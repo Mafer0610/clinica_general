@@ -14,7 +14,7 @@ document.getElementById('register-form').addEventListener('submit', async (e) =>
 
     if (data.message) {
         alert(data.message);
-        window.location.href = "index.html";
+        window.location.href = "../html/index.html";
     } else {
         alert("Error en el registro, intenta de nuevo.");
     }

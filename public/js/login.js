@@ -15,9 +15,9 @@ document.getElementById('login-form').addEventListener('submit', async (e) => {
         alert("Inicio de sesión exitoso");
 
         if (data.role === "admin") {
-            window.location.href = "panelAdmin.html"; 
+            window.location.href = "../html/panelAdmin.html"; 
         } else if (data.role === "user") {
-            window.location.href = "panelUser.html"; 
+            window.location.href = "../html/panelUser.html"; 
         } else {
             alert("Rol no reconocido, contacta al soporte.");
         }
