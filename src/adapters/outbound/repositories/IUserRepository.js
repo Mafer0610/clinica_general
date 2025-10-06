@@ -1,0 +1,1 @@
+/* Interfaz del repositorio*/
