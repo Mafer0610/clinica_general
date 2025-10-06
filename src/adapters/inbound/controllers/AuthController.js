@@ -1,6 +1,6 @@
 /*Manejo de peticiones HTTP*/
 const express = require('express');
-const AuthService = require('../../application/services/AuthService');
+const AuthService = require('../../../application/services/AuthService');
 
 const router = express.Router();
 
