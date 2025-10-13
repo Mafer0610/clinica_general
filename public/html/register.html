@@ -5,18 +5,22 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Registro de Usuario</title>
     <link rel="stylesheet" href="../css/styles.css">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto&display=swap" rel="stylesheet">
 </head>
 <body>
+    <div class="top-right">
+    <button class="superior_derecho-btn">Médico</button>
+    </div>
     <div class="form-container">
+        <h1 class="encabezado">DJFA</h1>
+        <h6>System´s</h6>
         <h2>Registro de Usuario</h2>
         <form id="register-form">
             <input type="text" id="username" placeholder="Usuario" required>
+            <input type="email" id="email" placeholder="Correo Electrónico" required>
             <input type="password" id="password" placeholder="Contraseña" required>
-            <select id="role">
-                <option value="user">Usuario</option>
-                <option value="admin">Administrador</option>
-            </select>
-            <button type="submit">Registrarse</button>
+            <input type="password" id="confirm-password" placeholder="Confirmar Contraseña" required>
+            <button class="registro-btn" type="submit">Registrarse</button>
         </form>
         <p>¿Ya tienes cuenta? <a href="index.html">Inicia sesión</a></p>
     </div>
