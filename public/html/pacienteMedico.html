@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Pacientes - Médico</title>
+  <link rel="stylesheet" href="../css/stylesMedico.css" />
+  <link href="https://fonts.googleapis.com/css2?family=Inknut+Antiqua:wght@700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+</head>
+<body>
+  <header>
+    <h1>
+      <span class="djfa">DJFA</span> 
+      <span class="systems">System's</span>
+    </h1>
+
+    <div class="profile-icon">
+      <i class="fas fa-user-circle"></i>
+    </div>
+  </header>
+
+  <div class="container">
+    <!-- Panel lateral -->
+    <aside class="sidebar">
+      <button class="nav-btn">
+        <i class="fas fa-tachometer-alt"></i> Dashboard.
+      </button>
+      <button class="nav-btn">
+        <i class="fas fa-calendar-alt"></i> Calendario.
+      </button>
+      <button class="nav-btn active">
+        <i class="fas fa-user-injured"></i> Pacientes.
+      </button>
+    </aside>
+
+    <!-- Contenido principal -->
+    <main class="main-content">
+      <div class="main-header">
+        <h2>Pacientes.</h2>
+      </div>
+
+      <!-- Contenedor de tarjetas de pacientes -->
+      <div class="patients-grid">
+        <!-- Tarjeta 1 -->
+        <div class="patient-card">
+          <div class="patient-icon">
+            <i class="fas fa-user"></i>
+          </div>
+          <div class="patient-info">
+            <h4 class="patient-name">Daniela Soto Aguilar.</h4>
+            <p class="patient-detail"><strong>Sexo:</strong> Femenino</p>
+            <p class="patient-detail"><strong>Edad:</strong> 33</p>
+            <p class="patient-detail"><strong>Ultima Cita:</strong> 15/09/2025</p>
+          </div>
+        </div>
+
+        <!-- Tarjeta 2 -->
+        <div class="patient-card">
+          <div class="patient-icon">
+            <i class="fas fa-user"></i>
+          </div>
+          <div class="patient-info">
+            <h4 class="patient-name">Valentina Rojas Hernandez.</h4>
+            <p class="patient-detail"><strong>Sexo:</strong> Femenino</p>
+            <p class="patient-detail"><strong>Edad:</strong> 27</p>
+            <p class="patient-detail"><strong>Ultima Cita:</strong> 09/09/2025</p>
+          </div>
+        </div>
+
+        <!-- Tarjeta 3 -->
+        <div class="patient-card">
+          <div class="patient-icon">
+            <i class="fas fa-user"></i>
+          </div>
+          <div class="patient-info">
+            <h4 class="patient-name">Luis Fernandez Ramirez.</h4>
+            <p class="patient-detail"><strong>Sexo:</strong> Masculino</p>
+            <p class="patient-detail"><strong>Edad:</strong> 45</p>
+            <p class="patient-detail"><strong>Ultima Cita:</strong> 12/09/2025</p>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+</body>
+</html>
