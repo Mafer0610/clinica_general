@@ -15,7 +15,7 @@
       <span class="systems">System's</span>
     </h1>
 
-    <div class="profile-icon">
+    <div class="profile-icon" id="profileIconPacientes">
       <i class="fas fa-user-circle"></i>
     </div>
   </header>
@@ -26,7 +26,7 @@
       <button class="nav-btn">
         <i class="fas fa-tachometer-alt"></i> Dashboard.
       </button>
-      <button class="nav-btn">
+      <button class="nav-btn" onclick="window.location.href='inicioMedico.html'">
         <i class="fas fa-calendar-alt"></i> Calendario.
       </button>
       <button class="nav-btn active">
@@ -40,10 +40,18 @@
         <h2>Pacientes.</h2>
       </div>
 
+      <h3 class="section-title">Lista de Pacientes</h3>
+
       <!-- Contenedor de tarjetas de pacientes -->
       <div class="patients-grid">
         <!-- Tarjeta 1 -->
-        <div class="patient-card">
+        <div class="patient-card" onclick="openModalInfoPaciente('Daniela Soto Aguilar', '961-345-6749', 'danielaagui@gmail.com', 'Femenino', 'Avenida Siempre Viva#123', 'Penicilina, Anestesicos Locales', '961-117-0537', [
+          {fecha: '15/08/2025', tipo: 'Revision General'},
+          {fecha: '22/08/2025', tipo: 'Consulta de Seguimiento'},
+          {fecha: '25/08/2025', tipo: 'Consulta de Emergencia (No Grave)'},
+          {fecha: '03/09/2025', tipo: 'Consulta de Control'},
+          {fecha: '09/09/2025', tipo: 'Consulta de Seguimiento'}
+        ])">
           <div class="patient-icon">
             <i class="fas fa-user"></i>
           </div>
@@ -56,7 +64,11 @@
         </div>
 
         <!-- Tarjeta 2 -->
-        <div class="patient-card">
+        <div class="patient-card" onclick="openModalInfoPaciente('Valentina Rojas Hernandez', '961-234-5678', 'valerojas@gmail.com', 'Femenino', 'Calle Principal #456', 'Ninguna', '961-345-6789', [
+          {fecha: '10/08/2025', tipo: 'Consulta General'},
+          {fecha: '20/08/2025', tipo: 'Revision'},
+          {fecha: '05/09/2025', tipo: 'Consulta de Control'}
+        ])">
           <div class="patient-icon">
             <i class="fas fa-user"></i>
           </div>
@@ -69,7 +81,11 @@
         </div>
 
         <!-- Tarjeta 3 -->
-        <div class="patient-card">
+        <div class="patient-card" onclick="openModalInfoPaciente('Luis Fernandez Ramirez', '961-456-7890', 'luisfer@gmail.com', 'Masculino', 'Boulevard Central #789', 'Aspirina', '961-567-8901', [
+          {fecha: '12/08/2025', tipo: 'Primera Consulta'},
+          {fecha: '25/08/2025', tipo: 'Consulta de Seguimiento'},
+          {fecha: '10/09/2025', tipo: 'Revision General'}
+        ])">
           <div class="patient-icon">
             <i class="fas fa-user"></i>
           </div>
@@ -83,5 +99,186 @@
       </div>
     </main>
   </div>
+
+  <!-- MODAL INFORMACIÓN DEL PACIENTE -->
+  <div id="modalInfoPaciente" class="modal">
+    <div class="modal-content modal-content-info-paciente">
+      <!-- Botón cerrar -->
+      <button class="modal-close" onclick="closeModalInfoPaciente()">
+        <i class="fas fa-times"></i>
+      </button>
+
+      <!-- Título del modal -->
+      <h2 class="modal-title-info">Informacion Del Contacto.</h2>
+
+      <!-- Información del contacto -->
+      <div class="info-contacto-grid">
+        <div class="info-row">
+          <span class="info-label">Nombre:</span>
+          <span class="info-value" id="infoPacienteNombre">Daniela Soto Aguilar</span>
+        </div>
+        <div class="info-row">
+          <span class="info-label">No.Tel:</span>
+          <span class="info-value" id="infoPacienteTel">961-345-6749</span>
+        </div>
+        <div class="info-row">
+          <span class="info-label">Correo Electronico:</span>
+          <span class="info-value" id="infoPacienteCorreo">danielaagui@gmail.com</span>
+        </div>
+        <div class="info-row">
+          <span class="info-label">Sexo:</span>
+          <span class="info-value" id="infoPacienteSexo">Femenino.</span>
+        </div>
+        <div class="info-row">
+          <span class="info-label">Domicilio:</span>
+          <span class="info-value" id="infoPacienteDomicilio">Avenida Siempre Viva#123</span>
+        </div>
+        <div class="info-row">
+          <span class="info-label">Alergias:</span>
+          <span class="info-value" id="infoPacienteAlergias">Penicilina, Anestesicos Locales</span>
+        </div>
+        <div class="info-row">
+          <span class="info-label">Contacto de Emergencia:</span>
+          <span class="info-value" id="infoPacienteEmergencia">961-117-0537</span>
+        </div>
+      </div>
+
+      <!-- Historial de Citas -->
+      <div class="historial-citas-container">
+        <h3 class="historial-title">Historial de Citas.</h3>
+        <div class="historial-lista" id="historialCitas">
+          <!-- Se llenará dinámicamente con JavaScript -->
+        </div>
+      </div>
+
+      <!-- Botones -->
+      <div class="modal-buttons-info">
+        <button class="btn-expediente">Ver Expediente Clinico</button>
+        <button class="btn-receta">Generar Receta</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL PERFIL -->
+  <div id="modalPerfilPacientes" class="modal">
+    <div class="modal-content modal-content-perfil">
+      <!-- Botón cerrar -->
+      <button class="modal-close" onclick="closeModalPerfilPacientes()">
+        <i class="fas fa-times"></i>
+      </button>
+
+      <!-- Título del modal -->
+      <h2 class="modal-title">Perfil</h2>
+
+      <!-- Formulario de perfil -->
+      <form class="modal-form-perfil" id="formPerfilPacientes">
+        <!-- Fila 1: Nombre y Apellidos -->
+        <div class="form-row">
+          <div class="form-col">
+            <label for="nombrePacientes">Nombre(s)</label>
+            <input type="text" id="nombrePacientes" class="form-input-perfil" value="Daniel Alejandro" placeholder="Nombre(s)">
+          </div>
+          <div class="form-col">
+            <label for="apellidosPacientes">Apellidos</label>
+            <input type="text" id="apellidosPacientes" class="form-input-perfil" value="Hernandez Perez" placeholder="Apellidos">
+          </div>
+        </div>
+
+        <!-- Fila 2: Cédula y Teléfono -->
+        <div class="form-row">
+          <div class="form-col">
+            <label for="cedulaPacientes">Cedula</label>
+            <input type="text" id="cedulaPacientes" class="form-input-perfil" value="4567890" placeholder="Cédula">
+          </div>
+          <div class="form-col">
+            <label for="telefonoPacientes">Teléfono</label>
+            <input type="tel" id="telefonoPacientes" class="form-input-perfil" value="961-117-4267" placeholder="Teléfono">
+          </div>
+        </div>
+
+        <!-- Fila 3: Correo (ancho completo) -->
+        <div class="form-row">
+          <div class="form-col-full">
+            <label for="correoPacientes">Correo</label>
+            <input type="email" id="correoPacientes" class="form-input-perfil" value="correo_de_ejemplo@gmail.com" placeholder="Correo electrónico">
+          </div>
+        </div>
+
+        <!-- Botón Guardar -->
+        <div class="modal-buttons-perfil">
+          <button type="submit" class="btn-guardar-perfil">Guardar</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <script>
+    // ===== MODAL INFORMACIÓN DEL PACIENTE =====
+    function openModalInfoPaciente(nombre, tel, correo, sexo, domicilio, alergias, emergencia, historial) {
+      // Rellenar información del contacto
+      document.getElementById('infoPacienteNombre').textContent = nombre;
+      document.getElementById('infoPacienteTel').textContent = tel;
+      document.getElementById('infoPacienteCorreo').textContent = correo;
+      document.getElementById('infoPacienteSexo').textContent = sexo + '.';
+      document.getElementById('infoPacienteDomicilio').textContent = domicilio;
+      document.getElementById('infoPacienteAlergias').textContent = alergias;
+      document.getElementById('infoPacienteEmergencia').textContent = emergencia;
+      
+      // Rellenar historial de citas
+      const historialContainer = document.getElementById('historialCitas');
+      historialContainer.innerHTML = '';
+      
+      historial.forEach(function(cita) {
+        const citaElement = document.createElement('div');
+        citaElement.className = 'historial-item';
+        citaElement.innerHTML = `<strong>${cita.fecha}</strong> | ${cita.tipo}.`;
+        historialContainer.appendChild(citaElement);
+      });
+      
+      // Mostrar modal
+      document.getElementById('modalInfoPaciente').style.display = 'flex';
+    }
+
+    function closeModalInfoPaciente() {
+      document.getElementById('modalInfoPaciente').style.display = 'none';
+    }
+
+    // ===== MODAL PERFIL =====
+    function openModalPerfilPacientes() {
+      document.getElementById('modalPerfilPacientes').style.display = 'flex';
+    }
+
+    function closeModalPerfilPacientes() {
+      document.getElementById('modalPerfilPacientes').style.display = 'none';
+    }
+
+    // Event listener para el icono de perfil
+    document.addEventListener('DOMContentLoaded', function() {
+      const profileIcon = document.getElementById('profileIconPacientes');
+      if (profileIcon) {
+        profileIcon.addEventListener('click', openModalPerfilPacientes);
+      }
+    });
+
+    // Cerrar modales al hacer clic fuera
+    window.onclick = function(event) {
+      const modalPerfil = document.getElementById('modalPerfilPacientes');
+      const modalInfo = document.getElementById('modalInfoPaciente');
+      
+      if (event.target === modalPerfil) {
+        closeModalPerfilPacientes();
+      }
+      if (event.target === modalInfo) {
+        closeModalInfoPaciente();
+      }
+    }
+
+    // Manejo del formulario de perfil
+    document.getElementById('formPerfilPacientes').addEventListener('submit', function(e) {
+      e.preventDefault();
+      alert('Perfil actualizado correctamente!');
+      closeModalPerfilPacientes();
+    });
+  </script>
 </body>
 </html>
