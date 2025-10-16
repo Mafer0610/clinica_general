@@ -154,7 +154,7 @@
       <!-- Botones -->
       <div class="modal-buttons-info">
         <button class="btn-expediente">Ver Expediente Clinico</button>
-        <button class="btn-receta">Generar Receta</button>
+        <button class="btn-receta" onclick="generarReceta()">Generar Receta</button>
       </div>
     </div>
   </div>
@@ -279,6 +279,12 @@
       alert('Perfil actualizado correctamente!');
       closeModalPerfilPacientes();
     });
+
+    // ===== FUNCIÓN PARA GENERAR RECETA =====
+    function generarReceta() {
+      const nombrePaciente = document.getElementById('infoPacienteNombre').textContent;
+      window.location.href = `recetaMedica.html?paciente=${encodeURIComponent(nombrePaciente)}`;
+    }
   </script>
 </body>
 </html>

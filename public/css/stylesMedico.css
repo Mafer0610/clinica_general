@@ -1,4 +1,4 @@
-/* --- Reset general --- */
+/* === RESET & BASE === */
 * {
   margin: 0;
   padding: 0;
@@ -10,7 +10,7 @@ body {
   background-color: #F2F2F2;
 }
 
-/* --- Header --- */
+/* === HEADER === */
 header {
   position: fixed;
   top: 0;
@@ -22,7 +22,6 @@ header {
   box-shadow: 0 2px 5px rgba(0,0,0,0.1);
   z-index: 1000;
   border-bottom: 2px solid #0f3659;
-
   display: flex;
   justify-content: space-between; 
   align-items: center;
@@ -37,7 +36,6 @@ h1 {
   font-family: 'Inknut Antiqua', serif;
   font-weight: 800;
   color: #0F3759;
-  vertical-align: middle;
 }
 
 .systems {
@@ -45,29 +43,29 @@ h1 {
   font-family: 'Inconsolata', monospace;
   font-weight: 500;
   color: #0F3759;
-  vertical-align: middle;
 }
 
-.profile-icon {
+.profile-icon,
+.profile-icon-header {
   font-size: 40px;
   color: #0F3759;
   cursor: pointer;
   transition: transform 0.2s ease, color 0.2s ease;
 }
 
-.profile-icon:hover {
+.profile-icon:hover,
+.profile-icon-header:hover {
   color: #09253f;
   transform: scale(1.1);
 }
 
-/* --- Contenedor principal --- */
+/* === LAYOUT === */
 .container {
   display: flex;
   margin-top: 90px;
   height: calc(100vh - 70px);
 }
 
-/* --- Sidebar --- */
 .sidebar {
   background-color: #F2F2F2;
   width: 230px;
@@ -82,14 +80,12 @@ h1 {
   border: none;
   text-align: left;
   padding: 15px 25px;
-  font-size: 1em;
+  font-size: 1.2em;
   color: #0F3759;
   cursor: pointer;
   border-left: 4px solid transparent;
   transition: all 0.2s ease;
   margin-right: 10px;
-  font-size: 1.2em;
-  vertical-align: middle;
 }
 
 .nav-btn.active,
@@ -99,7 +95,6 @@ h1 {
   font-weight: bold;
 }
 
-/* --- Contenido principal --- */
 .main-content {
   flex: 1;
   padding: 25px 40px;
@@ -118,7 +113,7 @@ h1 {
   font-size: 1.6em;
 }
 
-/* --- Botones principales --- */
+/* === BOTONES === */
 .btn-group {
   display: flex;
   gap: 12px;
@@ -150,14 +145,12 @@ h1 {
   transform: translateY(-2px);
 }
 
-/* --- Estilos minimalistas para el Semanario --- */
-
+/* === CALENDARIO === */
 .schedule-container {
   overflow-x: auto;
   margin-top: 20px;
 }
 
-/* --- Tabla semanal minimalista --- */
 .schedule {
   width: 100%;
   border-collapse: collapse;
@@ -180,7 +173,6 @@ h1 {
 }
 
 .schedule th.hour-column {
-  background-color: #F2F2F2;
   border-right: 2px solid #0F3759;
 }
 
@@ -208,7 +200,6 @@ h1 {
   border-right: 2px solid #0F3759 !important;
 }
 
-/* Citas en el calendario - estilo simple */
 .appointment-simple {
   cursor: pointer;
   transition: opacity 0.2s ease;
@@ -230,20 +221,7 @@ h1 {
   font-size: 0.8em;
 }
 
-/* --- Estilos para la sección de Pacientes --- */
-
-.profile-icon-header {
-  font-size: 40px;
-  color: #0F3759;
-  cursor: pointer;
-  transition: transform 0.2s ease, color 0.2s ease;
-}
-
-.profile-icon-header:hover {
-  color: #09253f;
-  transform: scale(1.1);
-}
-
+/* === PACIENTES === */
 .section-title {
   color: #0F3759;
   font-size: 1.4em;
@@ -251,7 +229,6 @@ h1 {
   font-weight: 600;
 }
 
-/* Grid de tarjetas de pacientes */
 .patients-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
@@ -259,7 +236,6 @@ h1 {
   margin-top: 20px;
 }
 
-/* Tarjeta individual de paciente */
 .patient-card {
   background-color: #B8CDE0;
   border-radius: 15px;
@@ -270,6 +246,7 @@ h1 {
   box-shadow: 0 3px 8px rgba(0, 0, 0, 0.15);
   transition: transform 0.3s ease, box-shadow 0.3s ease;
   border: 2px solid #9DB8CF;
+  cursor: pointer;
 }
 
 .patient-card:hover {
@@ -277,7 +254,6 @@ h1 {
   box-shadow: 0 6px 15px rgba(0, 0, 0, 0.25);
 }
 
-/* Icono del paciente */
 .patient-icon {
   background-color: #F2F2F2;
   border-radius: 50%;
@@ -295,7 +271,6 @@ h1 {
   color: #0F3759;
 }
 
-/* Información del paciente */
 .patient-info {
   flex: 1;
 }
@@ -319,31 +294,9 @@ h1 {
   font-weight: 700;
 }
 
-/* Responsive */
-@media (max-width: 768px) {
-  .patients-grid {
-    grid-template-columns: 1fr;
-  }
-  
-  .patient-card {
-    padding: 20px;
-  }
-  
-  .patient-icon {
-    width: 60px;
-    height: 60px;
-  }
-  
-  .patient-icon i {
-    font-size: 30px;
-  }
-}
-
-/* ==================== ESTILOS DEL MODAL ==================== */
-
-/* Overlay del modal */
+/* === MODALES === */
 .modal {
-  display: none; /* Oculto por defecto */
+  display: none;
   position: fixed;
   z-index: 2000;
   left: 0;
@@ -361,7 +314,6 @@ h1 {
   to { opacity: 1; }
 }
 
-/* Contenedor del modal */
 .modal-content {
   background-color: #FFFFFF;
   border: 3px solid #0F3759;
@@ -385,7 +337,23 @@ h1 {
   }
 }
 
-/* Botón de cerrar (X) */
+.modal-content-small {
+  max-width: 520px;
+  padding: 40px 50px;
+}
+
+.modal-content-perfil {
+  max-width: 700px;
+  padding: 35px 45px 45px;
+}
+
+.modal-content-info-paciente {
+  max-width: 650px;
+  padding: 35px 40px 40px;
+  max-height: 90vh;
+  overflow-y: auto;
+}
+
 .modal-close {
   position: absolute;
   top: 15px;
@@ -410,8 +378,8 @@ h1 {
   transform: rotate(90deg);
 }
 
-/* Título del modal */
-.modal-title {
+.modal-title,
+.modal-title-info {
   color: #0F3759;
   font-size: 1.8em;
   font-weight: 700;
@@ -420,14 +388,35 @@ h1 {
   margin-top: 5px;
 }
 
-/* Formulario del modal */
-.modal-form {
+.modal-title-reportes {
+  color: #0F3759;
+  font-size: 1.6em;
+  font-weight: 700;
+  text-align: center;
+  margin-bottom: 35px;
+  margin-top: 5px;
+  line-height: 1.3;
+}
+
+/* === FORMULARIOS === */
+.modal-form,
+.modal-form-reportes {
   display: flex;
   flex-direction: column;
   gap: 18px;
 }
 
-/* Grupo de formulario */
+.modal-form-reportes {
+  gap: 25px;
+}
+
+.modal-form-perfil {
+  display: flex;
+  flex-direction: column;
+  gap: 25px;
+  margin-top: 10px;
+}
+
 .form-group {
   display: flex;
   align-items: flex-start;
@@ -443,7 +432,11 @@ h1 {
   padding-top: 8px;
 }
 
-/* Inputs y selects */
+.form-group-reportes {
+  display: flex;
+  flex-direction: column;
+}
+
 .form-input,
 .form-select,
 .form-textarea {
@@ -459,7 +452,9 @@ h1 {
 
 .form-input:focus,
 .form-select:focus,
-.form-textarea:focus {
+.form-textarea:focus,
+.form-input-reportes:focus,
+.form-input-perfil:focus {
   outline: none;
   background-color: white;
   border-color: #1a5080;
@@ -468,7 +463,6 @@ h1 {
 
 .form-textarea {
   resize: vertical;
-  font-family: 'Segoe UI', sans-serif;
   min-height: 80px;
 }
 
@@ -481,130 +475,12 @@ h1 {
   appearance: none;
 }
 
-/* Input con icono */
-.input-with-icon {
-  position: relative;
-  flex: 1;
-  display: flex;
-  align-items: center;
-}
-
-.input-icon {
-  position: absolute;
-  left: 15px;
-  color: #0F3759;
-  font-size: 1.1em;
-  pointer-events: none;
-}
-
-.input-with-icon .form-input {
-  padding-left: 45px;
-  width: 100%;
-}
-
-/* Botones del modal */
-.modal-buttons {
-  display: flex;
-  justify-content: center;
-  gap: 20px;
-  margin-top: 25px;
-}
-
-.btn-modal {
-  padding: 12px 35px;
-  border: none;
-  border-radius: 8px;
-  font-size: 1em;
-  font-weight: 600;
+.form-input[type="date"],
+.form-input[type="time"],
+.form-input-reportes {
   cursor: pointer;
-  transition: all 0.3s ease;
-  min-width: 130px;
 }
 
-.btn-cancelar {
-  background-color: #D3D3D3;
-  color: #0F3759;
-  border: 2px solid transparent;
-}
-
-.btn-cancelar:hover {
-  background-color: #B8B8B8;
-  transform: translateY(-2px);
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
-}
-
-.btn-agendar {
-  background-color: #0F3759;
-  color: white;
-  border: 2px solid #0F3759;
-}
-
-.btn-agendar:hover {
-  background-color: #1a5080;
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(15, 55, 89, 0.4);
-}
-
-/* Responsive para el modal */
-@media (max-width: 768px) {
-  .modal-content {
-    padding: 25px 20px;
-    width: 95%;
-  }
-
-  .form-group {
-    flex-direction: column;
-    gap: 8px;
-  }
-
-  .form-group label {
-    min-width: auto;
-    padding-top: 0;
-  }
-
-  .modal-buttons {
-    flex-direction: column;
-    gap: 12px;
-  }
-
-  .btn-modal {
-    width: 100%;
-  }
-}
-
-/* ==================== MODAL REPORTES ==================== */
-
-/* Contenedor más pequeño para reportes */
-.modal-content-small {
-  max-width: 520px;
-  padding: 40px 50px;
-}
-
-/* Título del modal de reportes */
-.modal-title-reportes {
-  color: #0F3759;
-  font-size: 1.6em;
-  font-weight: 700;
-  text-align: center;
-  margin-bottom: 35px;
-  margin-top: 5px;
-  line-height: 1.3;
-}
-
-/* Formulario de reportes */
-.modal-form-reportes {
-  display: flex;
-  flex-direction: column;
-  gap: 25px;
-}
-
-/* Grupo de formulario para reportes */
-.form-group-reportes {
-  display: flex;
-  flex-direction: column;
-}
-
-/* Input de reportes con icono a la derecha */
 .form-input-reportes {
   width: 100%;
   padding: 14px 50px 14px 20px;
@@ -620,13 +496,22 @@ h1 {
   color: #8B9DAF;
 }
 
-.form-input-reportes:focus {
-  outline: none;
-  border-color: #1a5080;
-  box-shadow: 0 0 0 3px rgba(15, 55, 89, 0.1);
+.input-with-icon {
+  position: relative;
+  flex: 1;
+  display: flex;
+  align-items: center;
+  cursor: pointer;
 }
 
-/* Icono a la derecha */
+.input-icon {
+  position: absolute;
+  left: 15px;
+  color: #0F3759;
+  font-size: 1.1em;
+  pointer-events: none;
+}
+
 .input-icon-right {
   position: absolute;
   right: 18px;
@@ -637,77 +522,25 @@ h1 {
   pointer-events: none;
 }
 
+.input-with-icon .form-input {
+  padding-left: 45px;
+  width: 100%;
+  cursor: pointer;
+}
+
 .form-group-reportes .input-with-icon {
   position: relative;
   width: 100%;
-}
-
-/* Botones del modal de reportes */
-.modal-buttons-reportes {
-  display: flex;
-  justify-content: center;
-  margin-top: 15px;
-}
-
-.btn-generar-pdf {
-  background-color: #0F3759;
-  color: white;
-  border: none;
-  border-radius: 10px;
-  padding: 14px 45px;
-  font-size: 1em;
-  font-weight: 600;
   cursor: pointer;
-  transition: all 0.3s ease;
-  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.15);
 }
 
-.btn-generar-pdf:hover {
-  background-color: #1a5080;
-  transform: translateY(-2px);
-  box-shadow: 0 5px 15px rgba(15, 55, 89, 0.4);
-}
-
-/* Responsive para modal de reportes */
-@media (max-width: 768px) {
-  .modal-content-small {
-    padding: 30px 25px;
-    width: 95%;
-  }
-
-  .modal-title-reportes {
-    font-size: 1.3em;
-  }
-
-  .btn-generar-pdf {
-    width: 100%;
-  }
-}
-
-/* ==================== MODAL PERFIL ==================== */
-
-/* Contenedor del modal de perfil */
-.modal-content-perfil {
-  max-width: 700px;
-  padding: 35px 45px 45px 45px;
-}
-
-/* Formulario de perfil */
-.modal-form-perfil {
-  display: flex;
-  flex-direction: column;
-  gap: 25px;
-  margin-top: 10px;
-}
-
-/* Fila de campos */
+/* === PERFIL === */
 .form-row {
   display: flex;
   gap: 20px;
   width: 100%;
 }
 
-/* Columna de campo (50% ancho) */
 .form-col {
   flex: 1;
   display: flex;
@@ -715,7 +548,6 @@ h1 {
   gap: 8px;
 }
 
-/* Columna de campo (100% ancho) */
 .form-col-full {
   width: 100%;
   display: flex;
@@ -723,7 +555,6 @@ h1 {
   gap: 8px;
 }
 
-/* Labels del perfil */
 .form-col label,
 .form-col-full label {
   color: #0F3759;
@@ -731,7 +562,6 @@ h1 {
   font-weight: 600;
 }
 
-/* Inputs del perfil */
 .form-input-perfil {
   width: 100%;
   padding: 12px 18px;
@@ -748,80 +578,98 @@ h1 {
 }
 
 .form-input-perfil:focus {
-  outline: none;
-  border-color: #1a5080;
   color: #0F3759;
-  box-shadow: 0 0 0 3px rgba(15, 55, 89, 0.1);
 }
 
-/* Botones del modal de perfil */
-.modal-buttons-perfil {
+/* === BOTONES DE MODALES === */
+.modal-buttons,
+.modal-buttons-reportes,
+.modal-buttons-perfil,
+.modal-buttons-info {
   display: flex;
+  justify-content: center;
+  gap: 20px;
+  margin-top: 25px;
+}
+
+.modal-buttons-reportes {
+  margin-top: 15px;
+}
+
+.modal-buttons-perfil {
   justify-content: flex-end;
   margin-top: 10px;
 }
 
-.btn-guardar-perfil {
+.modal-buttons-info {
+  flex-direction: column;
+  gap: 15px;
+}
+
+.btn-modal {
+  padding: 12px 35px;
+  border: none;
+  border-radius: 8px;
+  font-size: 1em;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  min-width: 130px;
+}
+
+.btn-cancelar {
+  background-color: #D3D3D3;
+  color: #0F3759;
+}
+
+.btn-cancelar:hover {
+  background-color: #B8B8B8;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+}
+
+.btn-agendar,
+.btn-generar-pdf,
+.btn-guardar-perfil,
+.btn-expediente,
+.btn-receta {
   background-color: #0F3759;
   color: white;
   border: none;
   border-radius: 10px;
-  padding: 12px 40px;
-  font-size: 1.05em;
+  font-size: 1em;
   font-weight: 600;
   cursor: pointer;
   transition: all 0.3s ease;
   box-shadow: 0 3px 8px rgba(0, 0, 0, 0.15);
 }
 
-.btn-guardar-perfil:hover {
+.btn-agendar:hover,
+.btn-generar-pdf:hover,
+.btn-guardar-perfil:hover,
+.btn-expediente:hover,
+.btn-receta:hover {
   background-color: #1a5080;
   transform: translateY(-2px);
   box-shadow: 0 5px 15px rgba(15, 55, 89, 0.4);
 }
 
-/* Responsive para modal de perfil */
-@media (max-width: 768px) {
-  .modal-content-perfil {
-    padding: 30px 25px;
-    width: 95%;
-  }
-
-  .form-row {
-    flex-direction: column;
-    gap: 20px;
-  }
-
-  .modal-buttons-perfil {
-    justify-content: center;
-  }
-
-  .btn-guardar-perfil {
-    width: 100%;
-  }
+.btn-generar-pdf {
+  padding: 14px 45px;
 }
 
-/* ==================== MODAL INFORMACIÓN DEL PACIENTE ==================== */
-
-/* Contenedor del modal de información */
-.modal-content-info-paciente {
-  max-width: 650px;
-  padding: 35px 40px 40px 40px;
-  max-height: 90vh;
-  overflow-y: auto;
+.btn-guardar-perfil {
+  padding: 12px 40px;
+  font-size: 1.05em;
 }
 
-/* Título del modal de información */
-.modal-title-info {
-  color: #0F3759;
-  font-size: 1.6em;
-  font-weight: 700;
-  text-align: center;
-  margin-bottom: 25px;
-  margin-top: 5px;
+.btn-expediente,
+.btn-receta {
+  width: 100%;
+  padding: 14px 20px;
 }
 
-/* Grid de información del contacto */
+/* === INFORMACIÓN DEL PACIENTE === */
 .info-contacto-grid {
   display: flex;
   flex-direction: column;
@@ -829,7 +677,6 @@ h1 {
   margin-bottom: 25px;
 }
 
-/* Fila de información */
 .info-row {
   display: grid;
   grid-template-columns: 180px 1fr;
@@ -837,7 +684,6 @@ h1 {
   align-items: center;
 }
 
-/* Label de información */
 .info-label {
   color: #0F3759;
   font-size: 0.95em;
@@ -845,7 +691,6 @@ h1 {
   text-align: left;
 }
 
-/* Valor de información */
 .info-value {
   background-color: #FFFFFF;
   border: 2px solid #0F3759;
@@ -855,7 +700,6 @@ h1 {
   font-size: 0.9em;
 }
 
-/* Contenedor del historial de citas */
 .historial-citas-container {
   background-color: #FFFFFF;
   border: 2px solid #0F3759;
@@ -864,7 +708,6 @@ h1 {
   margin-bottom: 25px;
 }
 
-/* Título del historial */
 .historial-title {
   color: #0F3759;
   font-size: 1.3em;
@@ -873,14 +716,12 @@ h1 {
   margin-bottom: 15px;
 }
 
-/* Lista del historial */
 .historial-lista {
   display: flex;
   flex-direction: column;
   gap: 8px;
 }
 
-/* Item del historial */
 .historial-item {
   color: #0F3759;
   font-size: 0.95em;
@@ -896,59 +737,66 @@ h1 {
   font-weight: 700;
 }
 
-/* Botones del modal de información */
-.modal-buttons-info {
-  display: flex;
-  flex-direction: column;
-  gap: 15px;
-}
-
-.btn-expediente,
-.btn-receta {
-  width: 100%;
-  padding: 14px 20px;
-  border: none;
-  border-radius: 10px;
-  font-size: 1em;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.15);
-}
-
-.btn-expediente {
-  background-color: #0F3759;
-  color: white;
-}
-
-.btn-expediente:hover {
-  background-color: #1a5080;
-  transform: translateY(-2px);
-  box-shadow: 0 5px 15px rgba(15, 55, 89, 0.4);
-}
-
-.btn-receta {
-  background-color: #0F3759;
-  color: white;
-}
-
-.btn-receta:hover {
-  background-color: #1a5080;
-  transform: translateY(-2px);
-  box-shadow: 0 5px 15px rgba(15, 55, 89, 0.4);
-}
-
-/* Cursor pointer para las tarjetas de pacientes */
-.patient-card {
-  cursor: pointer;
-}
-
-/* Responsive para modal de información */
+/* === RESPONSIVE === */
 @media (max-width: 768px) {
+  .modal-content,
+  .modal-content-small,
+  .modal-content-perfil,
   .modal-content-info-paciente {
     padding: 25px 20px;
     width: 95%;
+  }
+
+  .modal-content-info-paciente {
     max-height: 85vh;
+  }
+
+  .form-group,
+  .form-row {
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .form-group label {
+    min-width: auto;
+    padding-top: 0;
+  }
+
+  .form-row {
+    gap: 20px;
+  }
+
+  .modal-buttons,
+  .modal-buttons-perfil {
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .modal-buttons-perfil {
+    justify-content: center;
+  }
+
+  .btn-modal,
+  .btn-generar-pdf,
+  .btn-guardar-perfil {
+    width: 100%;
+  }
+
+  .patients-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .patient-card {
+    padding: 20px;
+  }
+  
+  .patient-icon {
+    width: 60px;
+    height: 60px;
+  }
+  
+  .patient-icon i {
+    font-size: 30px;
   }
 
   .info-row {
@@ -971,5 +819,9 @@ h1 {
 
   .historial-item {
     font-size: 0.85em;
+  }
+
+  .modal-title-reportes {
+    font-size: 1.3em;
   }
 }

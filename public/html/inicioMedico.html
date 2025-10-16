@@ -14,8 +14,7 @@
       <span class="djfa">DJFA</span> 
       <span class="systems">System's</span>
     </h1>
-
-    <div class="profile-icon" id="profileIcon">
+    <div class="profile-icon" data-modal="perfil">
       <i class="fas fa-user-circle"></i>
     </div>
   </header>
@@ -23,9 +22,9 @@
   <div class="container">
     <!-- Panel lateral -->
     <aside class="sidebar">
-      <button class="nav-btn">  <i class="fas fa-tachometer-alt"></i> Dashboard.</button>
-      <button class="nav-btn active"> <i class="fas fa-calendar-alt"></i> Calendario.</button>
-      <button class="nav-btn" onclick="window.location.href='pacienteMedico.html'"> <i class="fas fa-user-injured"></i> Pacientes.</button>
+      <button class="nav-btn"><i class="fas fa-tachometer-alt"></i> Dashboard.</button>
+      <button class="nav-btn active"><i class="fas fa-calendar-alt"></i> Calendario.</button>
+      <button class="nav-btn" onclick="window.location.href='pacienteMedico.html'"><i class="fas fa-user-injured"></i> Pacientes.</button>
     </aside>
 
     <!-- Contenido principal -->
@@ -33,8 +32,8 @@
       <div class="main-header">
         <h2>Semanario</h2>
         <div class="btn-group">
-          <button class="btn active" onclick="openModalCita()">Agendar Cita</button>
-          <button class="btn" onclick="openModalReportes()">Reportes</button>
+          <button class="btn active" data-modal="cita">Agendar Cita</button>
+          <button class="btn" data-modal="reportes">Reportes</button>
         </div>
       </div>
 
@@ -60,10 +59,7 @@
                   <div class="appointment-update">Updated yesterday</div>
                 </div>
               </td>
-              <td></td>
-              <td></td>
-              <td></td>
-              <td></td>
+              <td></td><td></td><td></td><td></td>
             </tr>
             <tr>
               <td class="hour-cell">10:00</td>
@@ -73,35 +69,11 @@
                   <div class="appointment-update">Updated yesterday</div>
                 </div>
               </td>
-              <td></td>
-              <td></td>
-              <td></td>
-              <td></td>
+              <td></td><td></td><td></td><td></td>
             </tr>
-            <tr>
-              <td class="hour-cell">11:00</td>
-              <td></td>
-              <td></td>
-              <td></td>
-              <td></td>
-              <td></td>
-            </tr>
-            <tr>
-              <td class="hour-cell">12:00</td>
-              <td></td>
-              <td></td>
-              <td></td>
-              <td></td>
-              <td></td>
-            </tr>
-            <tr>
-              <td class="hour-cell">13:00</td>
-              <td></td>
-              <td></td>
-              <td></td>
-              <td></td>
-              <td></td>
-            </tr>
+            <tr><td class="hour-cell">11:00</td><td></td><td></td><td></td><td></td><td></td></tr>
+            <tr><td class="hour-cell">12:00</td><td></td><td></td><td></td><td></td><td></td></tr>
+            <tr><td class="hour-cell">13:00</td><td></td><td></td><td></td><td></td><td></td></tr>
             <tr>
               <td class="hour-cell">14:00</td>
               <td>
@@ -110,10 +82,7 @@
                   <div class="appointment-update">Updated yesterday</div>
                 </div>
               </td>
-              <td></td>
-              <td></td>
-              <td></td>
-              <td></td>
+              <td></td><td></td><td></td><td></td>
             </tr>
             <tr>
               <td class="hour-cell">15:00</td>
@@ -123,59 +92,14 @@
                   <div class="appointment-update">Updated yesterday</div>
                 </div>
               </td>
-              <td></td>
-              <td></td>
-              <td></td>
-              <td></td>
+              <td></td><td></td><td></td><td></td>
             </tr>
-            <tr>
-              <td class="hour-cell">16:00</td>
-              <td></td>
-              <td></td>
-              <td></td>
-              <td></td>
-              <td></td>
-            </tr>
-            <tr>
-              <td class="hour-cell">17:00</td>
-              <td></td>
-              <td></td>
-              <td></td>
-              <td></td>
-              <td></td>
-            </tr>
-            <tr>
-              <td class="hour-cell">18:00</td>
-              <td></td>
-              <td></td>
-              <td></td>
-              <td></td>
-              <td></td>
-            </tr>
-            <tr>
-              <td class="hour-cell">19:00</td>
-              <td></td>
-              <td></td>
-              <td></td>
-              <td></td>
-              <td></td>
-            </tr>
-            <tr>
-              <td class="hour-cell">20:00</td>
-              <td></td>
-              <td></td>
-              <td></td>
-              <td></td>
-              <td></td>
-            </tr>
-            <tr>
-              <td class="hour-cell">21:00</td>
-              <td></td>
-              <td></td>
-              <td></td>
-              <td></td>
-              <td></td>
-            </tr>
+            <tr><td class="hour-cell">16:00</td><td></td><td></td><td></td><td></td><td></td></tr>
+            <tr><td class="hour-cell">17:00</td><td></td><td></td><td></td><td></td><td></td></tr>
+            <tr><td class="hour-cell">18:00</td><td></td><td></td><td></td><td></td><td></td></tr>
+            <tr><td class="hour-cell">19:00</td><td></td><td></td><td></td><td></td><td></td></tr>
+            <tr><td class="hour-cell">20:00</td><td></td><td></td><td></td><td></td><td></td></tr>
+            <tr><td class="hour-cell">21:00</td><td></td><td></td><td></td><td></td><td></td></tr>
           </tbody>
         </table>
       </div>
@@ -183,19 +107,11 @@
   </div>
 
   <!-- MODAL AGENDAR CITA -->
-  <div id="modalAgendarCita" class="modal">
+  <div id="modalCita" class="modal" data-modal-id="cita">
     <div class="modal-content">
-      <!-- Botón cerrar -->
-      <button class="modal-close" onclick="closeModalCita()">
-        <i class="fas fa-times"></i>
-      </button>
-
-      <!-- Título del modal -->
+      <button class="modal-close" data-close="cita"><i class="fas fa-times"></i></button>
       <h2 class="modal-title">Agendar cita</h2>
-
-      <!-- Formulario -->
-      <form class="modal-form" id="formCita">
-        <!-- Paciente -->
+      <form class="modal-form" data-form="cita">
         <div class="form-group">
           <label for="paciente">Paciente:</label>
           <select id="paciente" class="form-select">
@@ -205,32 +121,24 @@
             <option value="3">Luis Fernandez Ramirez</option>
           </select>
         </div>
-
-        <!-- Descripción -->
         <div class="form-group">
           <label for="descripcion">Descripción:</label>
           <textarea id="descripcion" class="form-textarea" rows="4"></textarea>
         </div>
-
-        <!-- Fecha -->
         <div class="form-group">
           <label for="fecha">Fecha:</label>
-          <div class="input-with-icon">
+          <div class="input-with-icon" data-picker="fecha">
             <i class="fas fa-calendar-alt input-icon"></i>
             <input type="date" id="fecha" class="form-input" placeholder="--/--/--">
           </div>
         </div>
-
-        <!-- Hora inicio -->
         <div class="form-group">
           <label for="hora">Hora inicio:</label>
-          <div class="input-with-icon">
+          <div class="input-with-icon" data-picker="hora">
             <i class="fas fa-clock input-icon"></i>
             <input type="time" id="hora" class="form-input" placeholder="-- : --">
           </div>
         </div>
-
-        <!-- Tipo de cita -->
         <div class="form-group">
           <label for="tipoCita">Tipo de cita:</label>
           <select id="tipoCita" class="form-select">
@@ -241,10 +149,8 @@
             <option value="4">Seguimiento</option>
           </select>
         </div>
-
-        <!-- Botones -->
         <div class="modal-buttons">
-          <button type="button" class="btn-modal btn-cancelar" onclick="closeModalCita()">Cancelar</button>
+          <button type="button" class="btn-modal btn-cancelar" data-close="cita">Cancelar</button>
           <button type="submit" class="btn-modal btn-agendar">Agendar</button>
         </div>
       </form>
@@ -252,35 +158,23 @@
   </div>
 
   <!-- MODAL REPORTES -->
-  <div id="modalReportes" class="modal">
+  <div id="modalReportes" class="modal" data-modal-id="reportes">
     <div class="modal-content modal-content-small">
-      <!-- Botón cerrar -->
-      <button class="modal-close" onclick="closeModalReportes()">
-        <i class="fas fa-times"></i>
-      </button>
-
-      <!-- Título del modal -->
+      <button class="modal-close" data-close="reportes"><i class="fas fa-times"></i></button>
       <h2 class="modal-title-reportes">Seleccione el rango de fechas</h2>
-
-      <!-- Formulario de reportes -->
-      <form class="modal-form-reportes" id="formReportes">
-        <!-- Fecha de inicio -->
+      <form class="modal-form-reportes" data-form="reportes">
         <div class="form-group-reportes">
-          <div class="input-with-icon">
+          <div class="input-with-icon" data-picker="fechaInicio">
             <input type="date" id="fechaInicio" class="form-input-reportes" placeholder="Fecha de inicio">
             <i class="fas fa-calendar-alt input-icon-right"></i>
           </div>
         </div>
-
-        <!-- Fecha final -->
         <div class="form-group-reportes">
-          <div class="input-with-icon">
+          <div class="input-with-icon" data-picker="fechaFinal">
             <input type="date" id="fechaFinal" class="form-input-reportes" placeholder="Fecha final">
             <i class="fas fa-calendar-alt input-icon-right"></i>
           </div>
         </div>
-
-        <!-- Botón Generar PDF -->
         <div class="modal-buttons-reportes">
           <button type="submit" class="btn-generar-pdf">Generar PDF</button>
         </div>
@@ -289,19 +183,11 @@
   </div>
 
   <!-- MODAL PERFIL -->
-  <div id="modalPerfil" class="modal">
+  <div id="modalPerfil" class="modal" data-modal-id="perfil">
     <div class="modal-content modal-content-perfil">
-      <!-- Botón cerrar -->
-      <button class="modal-close" onclick="closeModalPerfil()">
-        <i class="fas fa-times"></i>
-      </button>
-
-      <!-- Título del modal -->
+      <button class="modal-close" data-close="perfil"><i class="fas fa-times"></i></button>
       <h2 class="modal-title">Perfil</h2>
-
-      <!-- Formulario de perfil -->
-      <form class="modal-form-perfil" id="formPerfil">
-        <!-- Fila 1: Nombre y Apellidos -->
+      <form class="modal-form-perfil" data-form="perfil">
         <div class="form-row">
           <div class="form-col">
             <label for="nombre">Nombre(s)</label>
@@ -312,8 +198,6 @@
             <input type="text" id="apellidos" class="form-input-perfil" value="Hernandez Perez" placeholder="Apellidos">
           </div>
         </div>
-
-        <!-- Fila 2: Cédula y Teléfono -->
         <div class="form-row">
           <div class="form-col">
             <label for="cedula">Cedula</label>
@@ -324,16 +208,12 @@
             <input type="tel" id="telefono" class="form-input-perfil" value="961-117-4267" placeholder="Teléfono">
           </div>
         </div>
-
-        <!-- Fila 3: Correo (ancho completo) -->
         <div class="form-row">
           <div class="form-col-full">
             <label for="correo">Correo</label>
             <input type="email" id="correo" class="form-input-perfil" value="correo_de_ejemplo@gmail.com" placeholder="Correo electrónico">
           </div>
         </div>
-
-        <!-- Botón Guardar -->
         <div class="modal-buttons-perfil">
           <button type="submit" class="btn-guardar-perfil">Guardar</button>
         </div>
@@ -342,85 +222,61 @@
   </div>
 
   <script>
-    // ===== MODAL AGENDAR CITA =====
-    function openModalCita() {
-      document.getElementById('modalAgendarCita').style.display = 'flex';
-    }
+    // ===== GESTIÓN UNIFICADA DE MODALES =====
+    const Modal = {
+      abrir: (id) => document.getElementById(`modal${id.charAt(0).toUpperCase() + id.slice(1)}`).style.display = 'flex',
+      cerrar: (id) => document.getElementById(`modal${id.charAt(0).toUpperCase() + id.slice(1)}`).style.display = 'none'
+    };
 
-    function closeModalCita() {
-      document.getElementById('modalAgendarCita').style.display = 'none';
-    }
+    // Event Delegation: Un solo listener para todos los botones de abrir modales
+    document.addEventListener('click', (e) => {
+      const modalTrigger = e.target.closest('[data-modal]');
+      const modalClose = e.target.closest('[data-close]');
+      const pickerTrigger = e.target.closest('[data-picker]');
 
-    // ===== MODAL REPORTES =====
-    function openModalReportes() {
-      document.getElementById('modalReportes').style.display = 'flex';
-    }
-
-    function closeModalReportes() {
-      document.getElementById('modalReportes').style.display = 'none';
-    }
-
-    // ===== MODAL PERFIL =====
-    function openModalPerfil() {
-      document.getElementById('modalPerfil').style.display = 'flex';
-    }
-
-    function closeModalPerfil() {
-      document.getElementById('modalPerfil').style.display = 'none';
-    }
-
-    // Event listener para el icono de perfil
-    document.addEventListener('DOMContentLoaded', function() {
-      const profileIcon = document.getElementById('profileIcon');
-      if (profileIcon) {
-        profileIcon.addEventListener('click', openModalPerfil);
-      }
+      if (modalTrigger) Modal.abrir(modalTrigger.dataset.modal);
+      if (modalClose) Modal.cerrar(modalClose.dataset.close);
+      if (pickerTrigger) document.getElementById(pickerTrigger.dataset.picker).showPicker();
     });
 
-    // Cerrar modales al hacer clic fuera de ellos
-    window.onclick = function(event) {
-      const modalCita = document.getElementById('modalAgendarCita');
-      const modalReportes = document.getElementById('modalReportes');
-      const modalPerfil = document.getElementById('modalPerfil');
-      
-      if (event.target === modalCita) {
-        closeModalCita();
-      }
-      if (event.target === modalReportes) {
-        closeModalReportes();
-      }
-      if (event.target === modalPerfil) {
-        closeModalPerfil();
-      }
-    }
-
-    // Manejo del formulario de citas
-    document.getElementById('formCita').addEventListener('submit', function(e) {
-      e.preventDefault();
-      alert('Cita agendada correctamente!');
-      closeModalCita();
+    // Cerrar modales al hacer clic en el overlay
+    document.querySelectorAll('.modal').forEach(modal => {
+      modal.addEventListener('click', (e) => {
+        if (e.target === modal) modal.style.display = 'none';
+      });
     });
 
-    // Manejo del formulario de reportes
-    document.getElementById('formReportes').addEventListener('submit', function(e) {
-      e.preventDefault();
-      const fechaInicio = document.getElementById('fechaInicio').value;
-      const fechaFinal = document.getElementById('fechaFinal').value;
-      
-      if (!fechaInicio || !fechaFinal) {
-        alert('Por favor seleccione ambas fechas');
-        return;
-      }
-      
-      alert(`Generando reporte PDF desde ${fechaInicio} hasta ${fechaFinal}`);
-      closeModalReportes();
-    });
+    // Gestión de formularios
+    document.addEventListener('DOMContentLoaded', () => {
+      const forms = {
+        cita: () => {
+          alert('Cita agendada correctamente!');
+          Modal.cerrar('cita');
+        },
+        reportes: () => {
+          const inicio = document.getElementById('fechaInicio').value;
+          const final = document.getElementById('fechaFinal').value;
+          
+          if (!inicio || !final) {
+            alert('Por favor seleccione ambas fechas');
+            return;
+          }
+          
+          alert(`Generando reporte PDF desde ${inicio} hasta ${final}`);
+          Modal.cerrar('reportes');
+        },
+        perfil: () => {
+          alert('Perfil actualizado correctamente!');
+          Modal.cerrar('perfil');
+        }
+      };
 
-    // Manejo del formulario de perfil
-    document.getElementById('formPerfil').addEventListener('submit', function(e) {
-      e.preventDefault();
-      alert('Perfil actualizado correctamente!');
-      closeModalPerfil();
+      document.querySelectorAll('[data-form]').forEach(form => {
+        form.addEventListener('submit', (e) => {
+          e.preventDefault();
+          forms[form.dataset.form]();
+        });
+      });
     });
   </script>
 </body>

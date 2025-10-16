@@ -1,0 +1,374 @@
+/* === ESTILOS RECETA MÉDICA === */
+
+body {
+  background-color: #E8E8E8;
+}
+
+.receta-container {
+  max-width: 900px;
+  margin: 120px auto 40px;
+  padding: 20px;
+}
+
+.receta-paper {
+  background-color: white;
+  border: 2px solid #0F3759;
+  border-radius: 0;
+  padding: 0;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
+  min-height: 1100px;
+}
+
+.receta-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 25px 40px;
+  border-bottom: 3px solid #0F3759;
+  background-color: white;
+}
+
+.receta-logo {
+  width: 70px;
+  height: 70px;
+  background-color: #0F3759;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-size: 22px;
+  font-weight: 700;
+  font-family: 'Inknut Antiqua', serif;
+}
+
+.receta-title {
+  background-color: #B8CDE0;
+  color: #0F3759;
+  padding: 12px 50px;
+  border-radius: 25px 0 0 25px;
+  font-size: 26px;
+  font-weight: 700;
+  letter-spacing: 2px;
+}
+
+.receta-content {
+  padding: 30px 40px 40px;
+}
+
+.doctor-info {
+  text-align: right;
+  margin-bottom: 25px;
+  color: #0F3759;
+}
+
+.doctor-info h3 {
+  font-size: 16px;
+  margin: 3px 0;
+  font-weight: 600;
+  color: #0F3759;
+}
+
+.doctor-info p {
+  font-size: 13px;
+  margin: 2px 0;
+  color: #6B8199;
+}
+
+.patient-info-section {
+  margin-bottom: 25px;
+}
+
+.patient-field-full {
+  margin-bottom: 15px;
+}
+
+.patient-field-full label {
+  color: #0F3759;
+  font-size: 13px;
+  font-weight: 600;
+  display: block;
+  margin-bottom: 5px;
+}
+
+.patient-field-full input {
+  width: 100%;
+  padding: 10px 15px;
+  border: 1px solid #6B8199;
+  border-radius: 0;
+  font-size: 14px;
+  color: #0F3759;
+  background-color: white;
+  box-sizing: border-box;
+}
+
+.patient-info-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 12px;
+  margin-bottom: 15px;
+}
+
+.patient-field {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.patient-field label {
+  color: #0F3759;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.patient-field input {
+  padding: 8px 12px;
+  border: 1px solid #6B8199;
+  border-radius: 0;
+  font-size: 13px;
+  color: #0F3759;
+  background-color: white;
+}
+
+.patient-field input:focus,
+.patient-field-full input:focus {
+  outline: none;
+  border-color: #0F3759;
+  background-color: #F8F9FA;
+}
+
+.prescription-area {
+  margin-top: 20px;
+  margin-bottom: 20px;
+}
+
+.prescription-area label {
+  color: #0F3759;
+  font-size: 14px;
+  font-weight: 600;
+  display: block;
+  margin-bottom: 8px;
+}
+
+.prescription-area textarea {
+  width: 100%;
+  min-height: 380px;
+  padding: 15px;
+  border: 1px solid #6B8199;
+  border-radius: 0;
+  font-size: 13px;
+  color: #0F3759;
+  background-color: white;
+  resize: vertical;
+  font-family: 'Segoe UI', sans-serif;
+  line-height: 1.6;
+  box-sizing: border-box;
+}
+
+.prescription-area textarea:focus {
+  outline: none;
+  border-color: #0F3759;
+  background-color: #F8F9FA;
+}
+
+.recommendations-area {
+  margin-bottom: 30px;
+}
+
+.recommendations-area label {
+  color: #0F3759;
+  font-size: 14px;
+  font-weight: 600;
+  display: block;
+  margin-bottom: 8px;
+}
+
+.recommendations-area textarea {
+  width: 100%;
+  min-height: 130px;
+  padding: 15px;
+  border: 1px solid #6B8199;
+  border-radius: 0;
+  font-size: 13px;
+  color: #0F3759;
+  background-color: white;
+  resize: vertical;
+  font-family: 'Segoe UI', sans-serif;
+  line-height: 1.6;
+  box-sizing: border-box;
+}
+
+.recommendations-area textarea:focus {
+  outline: none;
+  border-color: #0F3759;
+  background-color: #F8F9FA;
+}
+
+.receta-footer {
+  background-color: #B8CDE0;
+  padding: 15px 30px;
+  border-radius: 0;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  color: #0F3759;
+  font-size: 13px;
+}
+
+.footer-info {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+
+.receta-footer i {
+  font-size: 14px;
+  color: #0F3759;
+}
+
+.receta-footer p {
+  margin: 0;
+  font-size: 13px;
+  font-weight: 600;
+  color: #0F3759;
+}
+
+.firma-space {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 5px;
+}
+
+.firma-line {
+  width: 150px;
+  height: 40px;
+  border-bottom: 2px solid #0F3759;
+}
+
+.firma-label {
+  font-size: 11px;
+  color: #0F3759;
+  font-weight: 600;
+  margin: 0;
+}
+
+.action-buttons {
+  display: flex;
+  justify-content: center;
+  gap: 20px;
+  margin-top: 30px;
+}
+
+.btn-action {
+  padding: 14px 40px;
+  border: none;
+  border-radius: 10px;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.15);
+}
+
+.btn-download {
+  background-color: #0F3759;
+  color: white;
+}
+
+.btn-download:hover {
+  background-color: #1a5080;
+  transform: translateY(-2px);
+  box-shadow: 0 5px 15px rgba(15, 55, 89, 0.4);
+}
+
+.btn-cancel {
+  background-color: #D3D3D3;
+  color: #0F3759;
+}
+
+.btn-cancel:hover {
+  background-color: #B8B8B8;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+}
+
+/* === RESPONSIVE === */
+@media print {
+  body {
+    background-color: white;
+  }
+  
+  .action-buttons,
+  header {
+    display: none;
+  }
+  
+  .receta-container {
+    margin: 0;
+    padding: 0;
+  }
+  
+  .receta-paper {
+    box-shadow: none;
+    border: none;
+  }
+}
+
+@media (max-width: 768px) {
+  .receta-container {
+    margin: 100px 10px 20px;
+    padding: 10px;
+  }
+
+  .receta-paper {
+    padding: 0;
+  }
+
+  .receta-header {
+    padding: 20px;
+    flex-direction: column;
+    gap: 15px;
+  }
+
+  .receta-title {
+    border-radius: 25px;
+    padding: 10px 30px;
+  }
+
+  .receta-content {
+    padding: 20px;
+  }
+
+  .doctor-info {
+    text-align: center;
+  }
+
+  .patient-info-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .action-buttons {
+    flex-direction: column;
+  }
+
+  .btn-action {
+    width: 100%;
+  }
+
+  .receta-footer {
+    flex-direction: column;
+    gap: 15px;
+    text-align: center;
+    padding: 15px;
+  }
+
+  .footer-info {
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .firma-space {
+    margin-top: 10px;
+  }
+}
