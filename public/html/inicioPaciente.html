@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Agendar Cita - Clínica Médica</title>
+    <link rel="stylesheet" href="../css/stylesPaciente.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+</head>
+
+<body>
+
+    <!-- Encabezado con logo y botones -->
+    <header class="header">
+        <img src="../img/logo-clinica.png" alt="Logo Clínica" />
+        <div class="header-buttons">
+            <button class="btn"><i class="fas fa-calendar-plus"></i> Agendar cita</button>
+            <button class="btn"><i class="fas fa-clock"></i> Próxima visita</button>
+            <button class="btn"><i class="fas fa-history"></i> Historial</button>
+            <div class="profile-icon" id="profileIconPacientes">
+                <i class="fas fa-user-circle"></i>
+            </div>
+        </div>
+    </header>
+
+    <!-- Contenido principal -->
+    <div class="container">
+        <!-- Datos personales -->
+        <div class="form-section">
+            <h3 class="section-title">Datos Personales</h3>
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="nombre">Nombre</label>
+                    <input type="text" id="nombre" value="Daniel" />
+                </div>
+                <div class="form-group">
+                    <label for="apellido">Apellido</label>
+                    <input type="text" id="apellido" value="Hernandez Peróz" />
+                </div>
+            </div>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="fecha">Fecha de la cita</label>
+                    <input type="text" id="fecha" value="01:12:25" />
+                </div>
+                <div class="form-group">
+                    <label for="hora">Hora de la cita</label>
+                    <input type="text" id="hora" value="2:00" />
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label for="sintomas">Síntomas</label>
+                <textarea id="sintomas">Dolor de cabeza con escurrimiento nasal</textarea>
+            </div>
+        </div>
+
+        <!-- Contacto -->
+        <div class="form-section">
+            <h3 class="section-title">Información de Contacto</h3>
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="correo">Correo</label>
+                    <input type="email" id="correo" value="ejemplo@gmail.com" />
+                </div>
+                <div class="form-group">
+                    <label for="telefono">Teléfono</label>
+                    <input type="tel" id="telefono" value="9616714598" />
+                </div>
+                <div class="form-group">
+                    <label for="emergencia">Tel. De emergencia</label>
+                    <input type="tel" id="emergencia" value="9612794256" />
+                </div>
+            </div>
+        </div>
+
+        <!-- Información médica -->
+        <div class="form-section">
+            <h3 class="section-title">Información Médica</h3>
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="sanguineo">Tipo Sanguíneo</label>
+                    <input type="text" id="sanguineo" value="O+" />
+                </div>
+                <div class="form-group">
+                    <label for="alergias">Alergias</label>
+                    <input type="text" id="alergias" value="Sin alergias" />
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label for="padecimiento">Padecimiento Médico</label>
+                <input type="text" id="padecimiento" value="Sin padecimiento medico" />
+            </div>
+
+            <div class="form-group">
+                <label for="domicilio">Domicilio</label>
+                <input type="text" id="domicilio" value="Av.7 Manzana 3, Lote 1, Capulines 1" />
+            </div>
+        </div>
+
+        <!-- Botón final -->
+        <button class="btn-submit">
+            <i class="fas fa-calendar-check"></i> Generar Cita
+        </button>
+    </div>
+</body>
+
+</html>

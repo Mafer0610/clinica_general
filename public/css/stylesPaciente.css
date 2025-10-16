@@ -1,3 +1,230 @@
+/* Reset general */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: 'Segoe UI', sans-serif;
+}
+
+/* Fondo general */
 body {
-  background-color: #F2F2F2;
+  background: linear-gradient(135deg, #f5f7fa 0%, #e4e8f0 100%);
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Encabezado */
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: linear-gradient(135deg, #0F3759 0%, #1C4D8C 100%);
+  padding: 20px 40px;
+  color: white;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+  position: relative;
+  z-index: 100;
+}
+
+.header img {
+  height: 45px;
+  filter: brightness(0) invert(1);
+}
+
+.header-buttons {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+
+.header-buttons .btn {
+  background: rgba(255, 255, 255, 0.15);
+  color: white;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  border-radius: 25px;
+  padding: 12px 24px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  backdrop-filter: blur(10px);
+}
+
+.header-buttons .btn:hover {
+  background: rgba(255, 255, 255, 0.25);
+  border-color: rgba(255, 255, 255, 0.6);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+}
+
+/* Contenedor principal */
+.container {
+  padding: 40px;
+  max-width: 1200px;
+  margin: 0 auto;
+  width: 100%;
+}
+
+/* Secciones del formulario */
+.form-section {
+  background: white;
+  margin-bottom: 30px;
+  border-radius: 20px;
+  padding: 30px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+  border: 1px solid rgba(0, 0, 0, 0.05);
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.form-section:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.12);
+}
+
+/* Fila de inputs */
+.form-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 25px;
+  margin-bottom: 20px;
+}
+
+/* Grupo de inputs */
+.form-group {
+  flex: 1 1 45%;
+  min-width: 280px;
+}
+
+/* Etiquetas */
+label {
+  display: block;
+  margin-bottom: 8px;
+  font-weight: 600;
+  color: #0F3759;
+  font-size: 14px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+/* Inputs y textarea */
+input,
+textarea {
+  width: 100%;
+  padding: 14px 18px;
+  border: 2px solid #e1e5eb;
+  border-radius: 12px;
+  font-size: 16px;
+  transition: all 0.3s ease;
+  background: #f8f9fa;
+  color: #333;
+}
+
+/* Placeholder styling */
+input::placeholder,
+textarea::placeholder {
+  color: #a0a4a8;
+}
+
+/* Hover y focus */
+input:hover,
+textarea:hover {
+  border-color: #1C4D8C;
+  background: #ffffff;
+}
+
+input:focus,
+textarea:focus {
+  border-color: #0F3759;
+  box-shadow: 0 0 0 3px rgba(15, 55, 89, 0.1);
+  outline: none;
+  background: #ffffff;
+  transform: translateY(-1px);
+}
+
+textarea {
+  height: 100px;
+  resize: vertical;
+  line-height: 1.5;
+}
+
+/* Botón final */
+.btn-submit {
+  background: linear-gradient(135deg, #0F3759 0%, #1C4D8C 100%);
+  color: white;
+  border: none;
+  border-radius: 25px;
+  padding: 16px 40px;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  margin-top: 20px;
+  float: right;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 15px rgba(15, 55, 89, 0.3);
+  position: relative;
+  overflow: hidden;
+}
+
+.btn-submit:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 8px 25px rgba(15, 55, 89, 0.4);
+}
+
+.btn-submit:active {
+  transform: translateY(-1px);
+}
+
+/* Icono de perfil */
+.profile-icon {
+  font-size: 42px;
+  color: white;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  margin-left: 10px;
+}
+
+.profile-icon:hover {
+  color: #e6f3ff;
+  transform: scale(1.1);
+}
+
+/* Títulos de sección (opcional - si quieres agregarlos) */
+.section-title {
+  font-size: 20px;
+  color: #0F3759;
+  margin-bottom: 20px;
+  padding-bottom: 10px;
+  border-bottom: 2px solid #e1e5eb;
+  font-weight: 600;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .header {
+    flex-direction: column;
+    gap: 20px;
+    padding: 20px;
+  }
+  
+  .header-buttons {
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+  
+  .container {
+    padding: 20px;
+  }
+  
+  .form-section {
+    padding: 20px;
+  }
+  
+  .form-group {
+    flex: 1 1 100%;
+  }
+  
+  .btn-submit {
+    width: 100%;
+    float: none;
+  }
 }
