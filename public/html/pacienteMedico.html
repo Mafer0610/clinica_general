@@ -42,10 +42,23 @@
 
       <h3 class="section-title">Lista de Pacientes</h3>
 
+      <!-- Barra de búsqueda y botón añadir -->
+      <div class="search-add-container">
+        <div class="search-box">
+          <i class="fas fa-search search-icon"></i>
+          <input type="text" id="searchInput" placeholder="Buscar paciente por nombre...">
+          <i class="fas fa-times clear-search" id="clearSearch"></i>
+        </div>
+        <button class="btn-add-patient" onclick="openModalAddPaciente()">
+          <i class="fas fa-user-plus"></i>
+          Añadir Paciente
+        </button>
+      </div>
+
       <!-- Contenedor de tarjetas de pacientes -->
-      <div class="patients-grid">
+      <div class="patients-grid" id="patientsGrid">
         <!-- Tarjeta 1 -->
-        <div class="patient-card" onclick="openModalInfoPaciente('Daniela Soto Aguilar', '961-345-6749', 'danielaagui@gmail.com', 'Femenino', 'Avenida Siempre Viva#123', 'Penicilina, Anestesicos Locales', '961-117-0537', [
+        <div class="patient-card" data-name="Daniela Soto Aguilar" onclick="openModalInfoPaciente('Daniela Soto Aguilar', '961-345-6749', 'danielaagui@gmail.com', 'Femenino', 'Avenida Siempre Viva#123', 'Penicilina, Anestesicos Locales', '961-117-0537', [
           {fecha: '15/08/2025', tipo: 'Revision General'},
           {fecha: '22/08/2025', tipo: 'Consulta de Seguimiento'},
           {fecha: '25/08/2025', tipo: 'Consulta de Emergencia (No Grave)'},
@@ -64,7 +77,7 @@
         </div>
 
         <!-- Tarjeta 2 -->
-        <div class="patient-card" onclick="openModalInfoPaciente('Valentina Rojas Hernandez', '961-234-5678', 'valerojas@gmail.com', 'Femenino', 'Calle Principal #456', 'Ninguna', '961-345-6789', [
+        <div class="patient-card" data-name="Valentina Rojas Hernandez" onclick="openModalInfoPaciente('Valentina Rojas Hernandez', '961-234-5678', 'valerojas@gmail.com', 'Femenino', 'Calle Principal #456', 'Ninguna', '961-345-6789', [
           {fecha: '10/08/2025', tipo: 'Consulta General'},
           {fecha: '20/08/2025', tipo: 'Revision'},
           {fecha: '05/09/2025', tipo: 'Consulta de Control'}
@@ -81,7 +94,7 @@
         </div>
 
         <!-- Tarjeta 3 -->
-        <div class="patient-card" onclick="openModalInfoPaciente('Luis Fernandez Ramirez', '961-456-7890', 'luisfer@gmail.com', 'Masculino', 'Boulevard Central #789', 'Aspirina', '961-567-8901', [
+        <div class="patient-card" data-name="Luis Fernandez Ramirez" onclick="openModalInfoPaciente('Luis Fernandez Ramirez', '961-456-7890', 'luisfer@gmail.com', 'Masculino', 'Boulevard Central #789', 'Aspirina', '961-567-8901', [
           {fecha: '12/08/2025', tipo: 'Primera Consulta'},
           {fecha: '25/08/2025', tipo: 'Consulta de Seguimiento'},
           {fecha: '10/09/2025', tipo: 'Revision General'}
@@ -96,6 +109,12 @@
             <p class="patient-detail"><strong>Ultima Cita:</strong> 12/09/2025</p>
           </div>
         </div>
+      </div>
+
+      <!-- Mensaje cuando no hay resultados -->
+      <div class="no-results" id="noResults" style="display: none;">
+        <i class="fas fa-user-slash"></i>
+        <p>No se encontraron pacientes con ese nombre.</p>
       </div>
     </main>
   </div>
@@ -153,7 +172,7 @@
 
       <!-- Botones -->
       <div class="modal-buttons-info">
-        <button class="btn-expediente">Ver Expediente Clinico</button>
+        <button class="btn-expediente" onclick="verExpedienteClinico()">Ver Expediente Clinico</button>
         <button class="btn-receta" onclick="generarReceta()">Generar Receta</button>
       </div>
     </div>
@@ -212,7 +231,131 @@
     </div>
   </div>
 
+  <!-- MODAL AÑADIR PACIENTE -->
+  <div id="modalAddPaciente" class="modal">
+    <div class="modal-content modal-content-perfil">
+      <!-- Botón cerrar -->
+      <button class="modal-close" onclick="closeModalAddPaciente()">
+        <i class="fas fa-times"></i>
+      </button>
+
+      <!-- Título del modal -->
+      <h2 class="modal-title">Añadir Nuevo Paciente</h2>
+
+      <!-- Formulario añadir paciente -->
+      <form class="modal-form-perfil" id="formAddPaciente">
+        <!-- Nombre completo -->
+        <div class="form-row">
+          <div class="form-col-full">
+            <label for="nombreCompleto">Nombre Completo</label>
+            <input type="text" id="nombreCompleto" class="form-input-perfil" placeholder="Nombre completo del paciente" required>
+          </div>
+        </div>
+
+        <!-- Edad y Sexo -->
+        <div class="form-row">
+          <div class="form-col">
+            <label for="edadPaciente">Edad</label>
+            <input type="number" id="edadPaciente" class="form-input-perfil" placeholder="Edad" required>
+          </div>
+          <div class="form-col">
+            <label for="sexoPaciente">Sexo</label>
+            <select id="sexoPaciente" class="form-input-perfil" required>
+              <option value="">Seleccionar</option>
+              <option value="Masculino">Masculino</option>
+              <option value="Femenino">Femenino</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Teléfono y Correo -->
+        <div class="form-row">
+          <div class="form-col">
+            <label for="telPaciente">Teléfono</label>
+            <input type="tel" id="telPaciente" class="form-input-perfil" placeholder="961-XXX-XXXX" required>
+          </div>
+          <div class="form-col">
+            <label for="emailPaciente">Correo</label>
+            <input type="email" id="emailPaciente" class="form-input-perfil" placeholder="correo@ejemplo.com" required>
+          </div>
+        </div>
+
+        <!-- Domicilio -->
+        <div class="form-row">
+          <div class="form-col-full">
+            <label for="domicilioPaciente">Domicilio</label>
+            <input type="text" id="domicilioPaciente" class="form-input-perfil" placeholder="Dirección completa" required>
+          </div>
+        </div>
+
+        <!-- Alergias y Contacto de Emergencia -->
+        <div class="form-row">
+          <div class="form-col">
+            <label for="alergiasPaciente">Alergias</label>
+            <input type="text" id="alergiasPaciente" class="form-input-perfil" placeholder="Ninguna o especificar">
+          </div>
+          <div class="form-col">
+            <label for="emergenciaPaciente">Tel. Emergencia</label>
+            <input type="tel" id="emergenciaPaciente" class="form-input-perfil" placeholder="961-XXX-XXXX" required>
+          </div>
+        </div>
+
+        <!-- Botones -->
+        <div class="modal-buttons-perfil">
+          <button type="button" class="btn-modal btn-cancelar" onclick="closeModalAddPaciente()">Cancelar</button>
+          <button type="submit" class="btn-guardar-perfil">Guardar Paciente</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
   <script>
+    // ===== BÚSQUEDA DE PACIENTES =====
+    const searchInput = document.getElementById('searchInput');
+    const clearSearch = document.getElementById('clearSearch');
+    const patientsGrid = document.getElementById('patientsGrid');
+    const noResults = document.getElementById('noResults');
+
+    searchInput.addEventListener('input', function() {
+      const searchTerm = this.value.toLowerCase().trim();
+      const patientCards = patientsGrid.querySelectorAll('.patient-card');
+      let visibleCount = 0;
+
+      // Mostrar/ocultar botón de limpiar
+      if (searchTerm) {
+        clearSearch.classList.add('show');
+      } else {
+        clearSearch.classList.remove('show');
+      }
+
+      // Filtrar tarjetas
+      patientCards.forEach(card => {
+        const patientName = card.getAttribute('data-name').toLowerCase();
+        if (patientName.includes(searchTerm)) {
+          card.style.display = 'flex';
+          visibleCount++;
+        } else {
+          card.style.display = 'none';
+        }
+      });
+
+      // Mostrar mensaje si no hay resultados
+      if (visibleCount === 0 && searchTerm) {
+        noResults.style.display = 'block';
+        patientsGrid.style.display = 'none';
+      } else {
+        noResults.style.display = 'none';
+        patientsGrid.style.display = 'grid';
+      }
+    });
+
+    // Limpiar búsqueda
+    clearSearch.addEventListener('click', function() {
+      searchInput.value = '';
+      searchInput.dispatchEvent(new Event('input'));
+      searchInput.focus();
+    });
+
     // ===== MODAL INFORMACIÓN DEL PACIENTE =====
     function openModalInfoPaciente(nombre, tel, correo, sexo, domicilio, alergias, emergencia, historial) {
       // Rellenar información del contacto
@@ -252,6 +395,16 @@
       document.getElementById('modalPerfilPacientes').style.display = 'none';
     }
 
+    // ===== MODAL AÑADIR PACIENTE =====
+    function openModalAddPaciente() {
+      document.getElementById('modalAddPaciente').style.display = 'flex';
+    }
+
+    function closeModalAddPaciente() {
+      document.getElementById('modalAddPaciente').style.display = 'none';
+      document.getElementById('formAddPaciente').reset();
+    }
+
     // Event listener para el icono de perfil
     document.addEventListener('DOMContentLoaded', function() {
       const profileIcon = document.getElementById('profileIconPacientes');
@@ -264,12 +417,16 @@
     window.onclick = function(event) {
       const modalPerfil = document.getElementById('modalPerfilPacientes');
       const modalInfo = document.getElementById('modalInfoPaciente');
+      const modalAdd = document.getElementById('modalAddPaciente');
       
       if (event.target === modalPerfil) {
         closeModalPerfilPacientes();
       }
       if (event.target === modalInfo) {
         closeModalInfoPaciente();
+      }
+      if (event.target === modalAdd) {
+        closeModalAddPaciente();
       }
     }
 
@@ -279,6 +436,76 @@
       alert('Perfil actualizado correctamente!');
       closeModalPerfilPacientes();
     });
+
+    // Manejo del formulario de añadir paciente
+    document.getElementById('formAddPaciente').addEventListener('submit', function(e) {
+      e.preventDefault();
+      
+      // Obtener valores del formulario
+      const nombreCompleto = document.getElementById('nombreCompleto').value;
+      const edad = document.getElementById('edadPaciente').value;
+      const sexo = document.getElementById('sexoPaciente').value;
+      const telefono = document.getElementById('telPaciente').value;
+      const email = document.getElementById('emailPaciente').value;
+      const domicilio = document.getElementById('domicilioPaciente').value;
+      const alergias = document.getElementById('alergiasPaciente').value || 'Ninguna';
+      const emergencia = document.getElementById('emergenciaPaciente').value;
+      
+      // Fecha actual para "Última Cita"
+      const fechaActual = new Date().toLocaleDateString('es-MX', { 
+        day: '2-digit', 
+        month: '2-digit', 
+        year: 'numeric' 
+      });
+      
+      // Crear nueva tarjeta de paciente
+      const nuevaTarjeta = document.createElement('div');
+      nuevaTarjeta.className = 'patient-card';
+      nuevaTarjeta.setAttribute('data-name', nombreCompleto);
+      
+      // Historial vacío para nuevo paciente
+      const historialVacio = [];
+      
+      nuevaTarjeta.onclick = function() {
+        openModalInfoPaciente(
+          nombreCompleto,
+          telefono,
+          email,
+          sexo,
+          domicilio,
+          alergias,
+          emergencia,
+          historialVacio
+        );
+      };
+      
+      nuevaTarjeta.innerHTML = `
+        <div class="patient-icon">
+          <i class="fas fa-user"></i>
+        </div>
+        <div class="patient-info">
+          <h4 class="patient-name">${nombreCompleto}.</h4>
+          <p class="patient-detail"><strong>Sexo:</strong> ${sexo}</p>
+          <p class="patient-detail"><strong>Edad:</strong> ${edad}</p>
+          <p class="patient-detail"><strong>Ultima Cita:</strong> Sin citas</p>
+        </div>
+      `;
+      
+      // Agregar la tarjeta al grid
+      patientsGrid.appendChild(nuevaTarjeta);
+      
+      // Mostrar mensaje de éxito
+      alert('¡Paciente añadido correctamente!');
+      
+      // Cerrar modal y limpiar formulario
+      closeModalAddPaciente();
+    });
+
+    // ===== FUNCIÓN PARA VER EXPEDIENTE CLÍNICO =====
+    function verExpedienteClinico() {
+      const nombrePaciente = document.getElementById('infoPacienteNombre').textContent;
+      window.location.href = `expedienteClinico.html?paciente=${encodeURIComponent(nombrePaciente)}`;
+    }
 
     // ===== FUNCIÓN PARA GENERAR RECETA =====
     function generarReceta() {

@@ -1,0 +1,522 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Expediente Clínico</title>
+  <link rel="stylesheet" href="../css/stylesMedico.css" />
+  <link rel="stylesheet" href="../css/stylesExpediente.css" />
+  <link href="https://fonts.googleapis.com/css2?family=Inknut+Antiqua:wght@700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+</head>
+<body>
+  <header>
+    <h1>
+      <span class="djfa">DJFA</span> 
+      <span class="systems">System's</span>
+    </h1>
+    <div class="profile-icon">
+      <i class="fas fa-user-circle"></i>
+    </div>
+  </header>
+
+  <div class="expediente-container">
+    <div class="expediente-paper" id="expedientePaper">
+      <!-- Header del expediente -->
+      <div class="expediente-header">
+        <div class="expediente-logo">djfa</div>
+        <div class="expediente-title">EXPEDIENTE CLÍNICO</div>
+        <div class="expediente-number">
+          <span>No. Expediente:</span>
+          <strong id="numExpediente">EC-2025-001</strong>
+        </div>
+      </div>
+
+      <div class="expediente-content">
+        <!-- DATOS GENERALES DEL PACIENTE -->
+        <section class="expediente-section">
+          <h3 class="section-header">DATOS GENERALES DEL PACIENTE</h3>
+          <div class="data-grid-3">
+            <div class="data-field">
+              <label>Nombre Completo:</label>
+              <input type="text" id="nombrePaciente" value="Daniela Soto Aguilar">
+            </div>
+            <div class="data-field">
+              <label>Fecha de Nacimiento:</label>
+              <input type="date" id="fechaNacimiento">
+            </div>
+            <div class="data-field">
+              <label>Edad:</label>
+              <input type="text" id="edadPaciente" value="33 años">
+            </div>
+          </div>
+          
+          <div class="data-grid-3">
+            <div class="data-field">
+              <label>Sexo:</label>
+              <select id="sexoPaciente">
+                <option value="Femenino" selected>Femenino</option>
+                <option value="Masculino">Masculino</option>
+              </select>
+            </div>
+            <div class="data-field">
+              <label>Estado Civil:</label>
+              <select id="estadoCivil">
+                <option value="">Seleccionar</option>
+                <option value="Soltero(a)">Soltero(a)</option>
+                <option value="Casado(a)" selected>Casado(a)</option>
+                <option value="Divorciado(a)">Divorciado(a)</option>
+                <option value="Viudo(a)">Viudo(a)</option>
+              </select>
+            </div>
+            <div class="data-field">
+              <label>Ocupación:</label>
+              <input type="text" id="ocupacion" placeholder="Ocupación">
+            </div>
+          </div>
+
+          <div class="data-grid-2">
+            <div class="data-field">
+              <label>Domicilio:</label>
+              <input type="text" id="domicilio" value="Avenida Siempre Viva#123">
+            </div>
+            <div class="data-field">
+              <label>Teléfono:</label>
+              <input type="tel" id="telefono" value="961-345-6749">
+            </div>
+          </div>
+
+          <div class="data-grid-2">
+            <div class="data-field">
+              <label>Correo Electrónico:</label>
+              <input type="email" id="correo" value="danielaagui@gmail.com">
+            </div>
+            <div class="data-field">
+              <label>Tel. Emergencia:</label>
+              <input type="tel" id="telEmergencia" value="961-117-0537">
+            </div>
+          </div>
+        </section>
+
+        <!-- ANTECEDENTES HEREDO-FAMILIARES -->
+        <section class="expediente-section">
+          <h3 class="section-header">ANTECEDENTES HEREDO-FAMILIARES</h3>
+          <textarea class="textarea-field" id="antecedentesHF" rows="4" placeholder="Diabetes, Hipertensión, Cáncer, Enfermedades Cardiovasculares, etc."></textarea>
+        </section>
+
+        <!-- ANTECEDENTES PERSONALES NO PATOLÓGICOS -->
+        <section class="expediente-section">
+          <h3 class="section-header">ANTECEDENTES PERSONALES NO PATOLÓGICOS</h3>
+          <div class="data-grid-3">
+            <div class="data-field">
+              <label>Tipo Sanguíneo:</label>
+              <select id="tipoSangre">
+                <option value="">Seleccionar</option>
+                <option value="O+" selected>O+</option>
+                <option value="O-">O-</option>
+                <option value="A+">A+</option>
+                <option value="A-">A-</option>
+                <option value="B+">B+</option>
+                <option value="B-">B-</option>
+                <option value="AB+">AB+</option>
+                <option value="AB-">AB-</option>
+              </select>
+            </div>
+            <div class="data-field">
+              <label>Tabaquismo:</label>
+              <select id="tabaquismo">
+                <option value="No" selected>No</option>
+                <option value="Sí">Sí</option>
+                <option value="Ex-fumador">Ex-fumador</option>
+              </select>
+            </div>
+            <div class="data-field">
+              <label>Alcoholismo:</label>
+              <select id="alcoholismo">
+                <option value="No" selected>No</option>
+                <option value="Ocasional">Ocasional</option>
+                <option value="Frecuente">Frecuente</option>
+              </select>
+            </div>
+          </div>
+          <textarea class="textarea-field" id="antecedentesNoPatologicos" rows="3" placeholder="Actividad física, alimentación, higiene, vivienda, etc."></textarea>
+        </section>
+
+        <!-- ANTECEDENTES PERSONALES PATOLÓGICOS -->
+        <section class="expediente-section">
+          <h3 class="section-header">ANTECEDENTES PERSONALES PATOLÓGICOS</h3>
+          <div class="data-grid-2">
+            <div class="data-field">
+              <label>Alergias:</label>
+              <input type="text" id="alergias" value="Penicilina, Anestesicos Locales">
+            </div>
+            <div class="data-field">
+              <label>Cirugías Previas:</label>
+              <input type="text" id="cirugias" placeholder="Especificar cirugías">
+            </div>
+          </div>
+          <textarea class="textarea-field" id="antecedentesPatologicos" rows="4" placeholder="Enfermedades crónicas, hospitalizaciones previas, transfusiones, traumatismos, etc."></textarea>
+        </section>
+
+        <!-- PADECIMIENTO ACTUAL -->
+        <section class="expediente-section">
+          <h3 class="section-header">PADECIMIENTO ACTUAL</h3>
+          <div class="data-field">
+            <label>Fecha de Consulta:</label>
+            <input type="date" id="fechaConsulta">
+          </div>
+          <textarea class="textarea-field" id="padecimientoActual" rows="5" placeholder="Descripción del motivo de consulta, inicio, evolución y síntomas actuales..."></textarea>
+        </section>
+
+        <!-- EXPLORACIÓN FÍSICA -->
+        <section class="expediente-section">
+          <h3 class="section-header">EXPLORACIÓN FÍSICA</h3>
+          <div class="signos-vitales">
+            <h4>Signos Vitales:</h4>
+            <div class="data-grid-4">
+              <div class="data-field">
+                <label>Peso:</label>
+                <input type="text" id="peso" placeholder="kg">
+              </div>
+              <div class="data-field">
+                <label>Talla:</label>
+                <input type="text" id="talla" placeholder="cm">
+              </div>
+              <div class="data-field">
+                <label>T.A.:</label>
+                <input type="text" id="presion" placeholder="mmHg">
+              </div>
+              <div class="data-field">
+                <label>Temp:</label>
+                <input type="text" id="temperatura" placeholder="°C">
+              </div>
+              <div class="data-field">
+                <label>F.C.:</label>
+                <input type="text" id="frecuenciaCardiaca" placeholder="lpm">
+              </div>
+              <div class="data-field">
+                <label>F.R.:</label>
+                <input type="text" id="frecuenciaRespiratoria" placeholder="rpm">
+              </div>
+              <div class="data-field">
+                <label>IMC:</label>
+                <input type="text" id="imc" placeholder="kg/m²" readonly>
+              </div>
+              <div class="data-field">
+                <label>SpO2:</label>
+                <input type="text" id="saturacion" placeholder="%">
+              </div>
+            </div>
+          </div>
+          
+          <textarea class="textarea-field" id="exploracionFisica" rows="6" placeholder="Habitus exterior, cabeza, cuello, tórax, abdomen, extremidades, neurológico, etc."></textarea>
+        </section>
+
+        <!-- DIAGNÓSTICO -->
+        <section class="expediente-section">
+          <h3 class="section-header">DIAGNÓSTICO</h3>
+          <textarea class="textarea-field" id="diagnostico" rows="3" placeholder="Diagnóstico principal y diagnósticos secundarios (si aplica)"></textarea>
+        </section>
+
+        <!-- PLAN DE ESTUDIOS -->
+        <section class="expediente-section">
+          <h3 class="section-header">ESTUDIOS Y LABORATORIOS SOLICITADOS</h3>
+          <textarea class="textarea-field" id="estudios" rows="4" placeholder="Estudios de laboratorio, gabinete u otros estudios solicitados..."></textarea>
+        </section>
+
+        <!-- TRATAMIENTO -->
+        <section class="expediente-section">
+          <h3 class="section-header">TRATAMIENTO INDICADO</h3>
+          <textarea class="textarea-field" id="tratamiento" rows="5" placeholder="Medicamentos prescritos (nombre, dosis, vía, frecuencia), indicaciones médicas y recomendaciones..."></textarea>
+        </section>
+
+        <!-- PRONÓSTICO -->
+        <section class="expediente-section">
+          <h3 class="section-header">PRONÓSTICO</h3>
+          <textarea class="textarea-field" id="pronostico" rows="2" placeholder="Bueno, Reservado, Malo, etc."></textarea>
+        </section>
+
+        <!-- OBSERVACIONES -->
+        <section class="expediente-section">
+          <h3 class="section-header">OBSERVACIONES Y NOTAS ADICIONALES</h3>
+          <textarea class="textarea-field" id="observaciones" rows="4" placeholder="Notas adicionales, interconsultas, referencias, etc."></textarea>
+        </section>
+      </div>
+
+      <!-- Footer del expediente -->
+      <div class="expediente-footer">
+        <div class="footer-info">
+          <p><strong>Clínica:</strong> DJFA System's | <strong>Dirección:</strong> Avenida Siempre Viva # 117</p>
+          <p><strong>Teléfono:</strong> 961-117-1231 | <strong>Fecha de Impresión:</strong> <span id="fechaImpresion"></span></p>
+        </div>
+        <div class="firma-medico">
+          <div class="firma-line"></div>
+          <p class="firma-label">Dr. Cosme Fulanito</p>
+          <p class="cedula-label">Cédula Prof. 123456789</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Botones de acción -->
+    <div class="action-buttons">
+      <button class="btn-action btn-download" onclick="generarPDFExpediente()">
+        <i class="fas fa-download"></i> Descargar PDF
+      </button>
+      <button class="btn-action btn-print" onclick="window.print()">
+        <i class="fas fa-print"></i> Imprimir
+      </button>
+      <button class="btn-action btn-cancel" onclick="volverPacientes()">
+        <i class="fas fa-arrow-left"></i> Volver
+      </button>
+    </div>
+  </div>
+
+  <script>
+    // Establecer fechas actuales por defecto
+    const hoy = new Date().toISOString().split('T')[0];
+    document.getElementById('fechaConsulta').value = hoy;
+    document.getElementById('fechaImpresion').textContent = new Date().toLocaleDateString('es-MX');
+
+    // Calcular IMC automáticamente
+    document.getElementById('peso').addEventListener('input', calcularIMC);
+    document.getElementById('talla').addEventListener('input', calcularIMC);
+
+    function calcularIMC() {
+      const peso = parseFloat(document.getElementById('peso').value);
+      const talla = parseFloat(document.getElementById('talla').value) / 100; // convertir cm a m
+      
+      if (peso && talla && talla > 0) {
+        const imc = (peso / (talla * talla)).toFixed(2);
+        document.getElementById('imc').value = imc;
+      }
+    }
+
+    // Función para generar PDF
+    async function generarPDFExpediente() {
+      const { jsPDF } = window.jspdf;
+      const doc = new jsPDF({
+        orientation: 'portrait',
+        unit: 'mm',
+        format: 'a4'
+      });
+
+      let y = 10;
+      const margenIzq = 10;
+      const margenDer = 200;
+      const lineHeight = 6;
+
+      // ========== HEADER ==========
+      doc.setDrawColor(15, 55, 89);
+      doc.setLineWidth(0.8);
+      doc.rect(5, 5, 200, 287);
+
+      // Logo
+      doc.setFillColor(15, 55, 89);
+      doc.rect(margenIzq, y, 20, 20, 'F');
+      doc.setTextColor(255, 255, 255);
+      doc.setFontSize(16);
+      doc.setFont(undefined, 'bold');
+      doc.text('djfa', 20, y + 13, { align: 'center' });
+
+      // Título EXPEDIENTE CLÍNICO
+      doc.setFillColor(184, 205, 224);
+      doc.roundedRect(70, y, 90, 15, 3, 3, 'F');
+      doc.setTextColor(15, 55, 89);
+      doc.setFontSize(14);
+      doc.text('EXPEDIENTE CLÍNICO', 115, y + 10, { align: 'center' });
+
+      // No. Expediente
+      doc.setFillColor(240, 240, 240);
+      doc.roundedRect(165, y, 35, 15, 2, 2, 'F');
+      doc.setFontSize(8);
+      doc.setFont(undefined, 'normal');
+      doc.text('No. Expediente:', 182.5, y + 6, { align: 'center' });
+      doc.setFont(undefined, 'bold');
+      doc.setFontSize(9);
+      doc.text(document.getElementById('numExpediente').textContent, 182.5, y + 12, { align: 'center' });
+
+      y += 25;
+
+      // ========== DATOS GENERALES ==========
+      y = agregarSeccion(doc, 'DATOS GENERALES DEL PACIENTE', y, margenIzq, margenDer);
+      
+      doc.setFontSize(9);
+      doc.setFont(undefined, 'bold');
+      doc.text('Nombre Completo:', margenIzq, y);
+      doc.setFont(undefined, 'normal');
+      doc.text(document.getElementById('nombrePaciente').value, 45, y);
+      
+      doc.setFont(undefined, 'bold');
+      doc.text('Edad:', 120, y);
+      doc.setFont(undefined, 'normal');
+      doc.text(document.getElementById('edadPaciente').value, 133, y);
+
+      doc.setFont(undefined, 'bold');
+      doc.text('Sexo:', 160, y);
+      doc.setFont(undefined, 'normal');
+      doc.text(document.getElementById('sexoPaciente').value, 173, y);
+
+      y += lineHeight;
+      doc.setFont(undefined, 'bold');
+      doc.text('Domicilio:', margenIzq, y);
+      doc.setFont(undefined, 'normal');
+      const domicilio = doc.splitTextToSize(document.getElementById('domicilio').value, 120);
+      doc.text(domicilio, 30, y);
+      
+      doc.setFont(undefined, 'bold');
+      doc.text('Tel:', 155, y);
+      doc.setFont(undefined, 'normal');
+      doc.text(document.getElementById('telefono').value, 165, y);
+
+      y += lineHeight + 2;
+
+      // ========== ANTECEDENTES ==========
+      y = agregarSeccion(doc, 'ANTECEDENTES HEREDO-FAMILIARES', y, margenIzq, margenDer);
+      y = agregarTextoMultilinea(doc, document.getElementById('antecedentesHF').value, y, margenIzq, margenDer);
+
+      y = agregarSeccion(doc, 'ANTECEDENTES PERSONALES PATOLÓGICOS', y, margenIzq, margenDer);
+      doc.setFontSize(9);
+      doc.setFont(undefined, 'bold');
+      doc.text('Alergias:', margenIzq, y);
+      doc.setFont(undefined, 'normal');
+      doc.text(document.getElementById('alergias').value, 30, y);
+      
+      doc.setFont(undefined, 'bold');
+      doc.text('Tipo Sangre:', 110, y);
+      doc.setFont(undefined, 'normal');
+      doc.text(document.getElementById('tipoSangre').value, 135, y);
+
+      y += lineHeight;
+      y = agregarTextoMultilinea(doc, document.getElementById('antecedentesPatologicos').value, y, margenIzq, margenDer);
+
+      // ========== PADECIMIENTO ACTUAL ==========
+      y = agregarSeccion(doc, 'PADECIMIENTO ACTUAL', y, margenIzq, margenDer);
+      y = agregarTextoMultilinea(doc, document.getElementById('padecimientoActual').value, y, margenIzq, margenDer);
+
+      // ========== EXPLORACIÓN FÍSICA ==========
+      y = agregarSeccion(doc, 'EXPLORACIÓN FÍSICA - SIGNOS VITALES', y, margenIzq, margenDer);
+      
+      doc.setFontSize(8);
+      doc.setFont(undefined, 'bold');
+      const signosVitales = [
+        { label: 'Peso:', valor: document.getElementById('peso').value + ' kg' },
+        { label: 'Talla:', valor: document.getElementById('talla').value + ' cm' },
+        { label: 'TA:', valor: document.getElementById('presion').value },
+        { label: 'Temp:', valor: document.getElementById('temperatura').value + ' °C' },
+        { label: 'FC:', valor: document.getElementById('frecuenciaCardiaca').value + ' lpm' },
+        { label: 'FR:', valor: document.getElementById('frecuenciaRespiratoria').value + ' rpm' },
+        { label: 'IMC:', valor: document.getElementById('imc').value },
+        { label: 'SpO2:', valor: document.getElementById('saturacion').value + ' %' }
+      ];
+
+      let xPos = margenIzq;
+      signosVitales.forEach((signo, index) => {
+        if (index > 0 && index % 4 === 0) {
+          y += lineHeight;
+          xPos = margenIzq;
+        }
+        doc.setFont(undefined, 'bold');
+        doc.text(signo.label, xPos, y);
+        doc.setFont(undefined, 'normal');
+        doc.text(signo.valor, xPos + 12, y);
+        xPos += 47;
+      });
+
+      y += lineHeight + 1;
+      doc.setFontSize(9);
+      y = agregarTextoMultilinea(doc, document.getElementById('exploracionFisica').value, y, margenIzq, margenDer);
+
+      // ========== DIAGNÓSTICO ==========
+      y = agregarSeccion(doc, 'DIAGNÓSTICO', y, margenIzq, margenDer);
+      y = agregarTextoMultilinea(doc, document.getElementById('diagnostico').value, y, margenIzq, margenDer);
+
+      // ========== TRATAMIENTO ==========
+      y = agregarSeccion(doc, 'TRATAMIENTO INDICADO', y, margenIzq, margenDer);
+      y = agregarTextoMultilinea(doc, document.getElementById('tratamiento').value, y, margenIzq, margenDer);
+
+      // ========== PRONÓSTICO ==========
+      y = agregarSeccion(doc, 'PRONÓSTICO', y, margenIzq, margenDer);
+      y = agregarTextoMultilinea(doc, document.getElementById('pronostico').value, y, margenIzq, margenDer);
+
+      // ========== FOOTER ==========
+      const footerY = 270;
+      doc.setFillColor(184, 205, 224);
+      doc.roundedRect(8, footerY, 194, 22, 3, 3, 'F');
+      
+      doc.setTextColor(15, 55, 89);
+      doc.setFontSize(8);
+      doc.setFont(undefined, 'bold');
+      doc.text('Clínica DJFA System\'s | Avenida Siempre Viva # 117 | Tel: 961-117-1231', 105, footerY + 8, { align: 'center' });
+      
+      // Firma
+      doc.setDrawColor(15, 55, 89);
+      doc.line(150, footerY + 17, 195, footerY + 17);
+      doc.setFontSize(7);
+      doc.text('Dr. Cosme Fulanito', 172.5, footerY + 20, { align: 'center' });
+      doc.text('Cédula Prof. 123456789', 172.5, footerY + 23, { align: 'center' });
+
+      // Descargar
+      const nombrePaciente = document.getElementById('nombrePaciente').value.replace(/\s+/g, '_');
+      doc.save(`Expediente_Clinico_${nombrePaciente}_${hoy}.pdf`);
+    }
+
+    function agregarSeccion(doc, titulo, y, margenIzq, margenDer) {
+      if (y > 250) {
+        doc.addPage();
+        y = 15;
+      }
+      
+      doc.setFillColor(15, 55, 89);
+      doc.rect(margenIzq, y, margenDer - margenIzq, 7, 'F');
+      doc.setTextColor(255, 255, 255);
+      doc.setFontSize(10);
+      doc.setFont(undefined, 'bold');
+      doc.text(titulo, margenIzq + 2, y + 5);
+      doc.setTextColor(15, 55, 89);
+      
+      return y + 10;
+    }
+
+    function agregarTextoMultilinea(doc, texto, y, margenIzq, margenDer) {
+      if (!texto || texto.trim() === '') {
+        doc.setFont(undefined, 'italic');
+        doc.setTextColor(150, 150, 150);
+        doc.text('(Sin información registrada)', margenIzq, y);
+        doc.setTextColor(15, 55, 89);
+        doc.setFont(undefined, 'normal');
+        return y + 8;
+      }
+
+      doc.setFont(undefined, 'normal');
+      doc.setFontSize(9);
+      const lineas = doc.splitTextToSize(texto, margenDer - margenIzq - 5);
+      
+      lineas.forEach((linea) => {
+        if (y > 260) {
+          doc.addPage();
+          y = 15;
+        }
+        doc.text(linea, margenIzq, y);
+        y += 5;
+      });
+      
+      return y + 3;
+    }
+
+    function volverPacientes() {
+      window.location.href = 'pacienteMedico.html';
+    }
+
+    // Cargar datos del paciente desde URL
+    window.addEventListener('DOMContentLoaded', function() {
+      const urlParams = new URLSearchParams(window.location.search);
+      const nombrePaciente = urlParams.get('paciente');
+      
+      if (nombrePaciente) {
+        document.getElementById('nombrePaciente').value = nombrePaciente;
+      }
+    });
+  </script>
+</body>
+</html>

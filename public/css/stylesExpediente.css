@@ -1,0 +1,410 @@
+/* === ESTILOS EXPEDIENTE CLÍNICO === */
+
+body {
+  background-color: #E8E8E8;
+}
+
+.expediente-container {
+  max-width: 1000px;
+  margin: 120px auto 40px;
+  padding: 20px;
+}
+
+.expediente-paper {
+  background-color: white;
+  border: 2px solid #0F3759;
+  border-radius: 0;
+  padding: 0;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
+  min-height: 1100px;
+}
+
+/* === HEADER === */
+.expediente-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20px 30px;
+  border-bottom: 3px solid #0F3759;
+  background-color: white;
+  gap: 15px;
+}
+
+.expediente-logo {
+  width: 60px;
+  height: 60px;
+  background-color: #0F3759;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-size: 20px;
+  font-weight: 700;
+  font-family: 'Inknut Antiqua', serif;
+  flex-shrink: 0;
+}
+
+.expediente-title {
+  background-color: #B8CDE0;
+  color: #0F3759;
+  padding: 12px 40px;
+  border-radius: 20px;
+  font-size: 22px;
+  font-weight: 700;
+  letter-spacing: 1px;
+  flex: 1;
+  text-align: center;
+}
+
+.expediente-number {
+  background-color: #F0F0F0;
+  padding: 8px 15px;
+  border-radius: 8px;
+  text-align: center;
+  flex-shrink: 0;
+}
+
+.expediente-number span {
+  display: block;
+  font-size: 11px;
+  color: #6B8199;
+  margin-bottom: 3px;
+}
+
+.expediente-number strong {
+  display: block;
+  font-size: 13px;
+  color: #0F3759;
+  font-weight: 700;
+}
+
+/* === CONTENT === */
+.expediente-content {
+  padding: 25px 35px 30px;
+}
+
+.expediente-section {
+  margin-bottom: 20px;
+}
+
+.section-header {
+  background-color: #0F3759;
+  color: white;
+  padding: 8px 15px;
+  font-size: 13px;
+  font-weight: 700;
+  margin-bottom: 12px;
+  border-radius: 0;
+  letter-spacing: 0.5px;
+}
+
+/* === CAMPOS DE DATOS === */
+.data-grid-2 {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 15px;
+  margin-bottom: 12px;
+}
+
+.data-grid-3 {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 15px;
+  margin-bottom: 12px;
+}
+
+.data-grid-4 {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.data-field {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.data-field label {
+  color: #0F3759;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.data-field input,
+.data-field select {
+  padding: 8px 12px;
+  border: 1px solid #6B8199;
+  border-radius: 4px;
+  font-size: 13px;
+  color: #0F3759;
+  background-color: white;
+  transition: all 0.3s ease;
+}
+
+.data-field input:focus,
+.data-field select:focus {
+  outline: none;
+  border-color: #0F3759;
+  background-color: #F8F9FA;
+}
+
+.data-field select {
+  cursor: pointer;
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='10' viewBox='0 0 10 10'%3E%3Cpath fill='%230F3759' d='M5 7L1 3h8z'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 10px center;
+  padding-right: 30px;
+}
+
+/* === TEXTAREA === */
+.textarea-field {
+  width: 100%;
+  padding: 12px 15px;
+  border: 1px solid #6B8199;
+  border-radius: 4px;
+  font-size: 13px;
+  color: #0F3759;
+  background-color: white;
+  resize: vertical;
+  font-family: 'Segoe UI', sans-serif;
+  line-height: 1.5;
+  box-sizing: border-box;
+}
+
+.textarea-field:focus {
+  outline: none;
+  border-color: #0F3759;
+  background-color: #F8F9FA;
+}
+
+.textarea-field::placeholder {
+  color: #A0B3C7;
+  font-style: italic;
+}
+
+/* === SIGNOS VITALES === */
+.signos-vitales h4 {
+  color: #0F3759;
+  font-size: 13px;
+  font-weight: 600;
+  margin-bottom: 10px;
+}
+
+/* === FOOTER === */
+.expediente-footer {
+  background-color: #B8CDE0;
+  padding: 20px 30px;
+  border-radius: 0;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  color: #0F3759;
+  border-top: 2px solid #0F3759;
+}
+
+.footer-info {
+  flex: 1;
+}
+
+.footer-info p {
+  margin: 3px 0;
+  font-size: 12px;
+  color: #0F3759;
+  font-weight: 500;
+}
+
+.footer-info strong {
+  font-weight: 700;
+}
+
+.firma-medico {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 5px;
+}
+
+.firma-line {
+  width: 160px;
+  height: 40px;
+  border-bottom: 2px solid #0F3759;
+}
+
+.firma-label {
+  font-size: 12px;
+  color: #0F3759;
+  font-weight: 700;
+  margin: 0;
+}
+
+.cedula-label {
+  font-size: 10px;
+  color: #6B8199;
+  font-weight: 500;
+  margin: 0;
+}
+
+/* === BOTONES DE ACCIÓN === */
+.action-buttons {
+  display: flex;
+  justify-content: center;
+  gap: 20px;
+  margin-top: 30px;
+}
+
+.btn-action {
+  padding: 14px 35px;
+  border: none;
+  border-radius: 10px;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.15);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.btn-download {
+  background-color: #0F3759;
+  color: white;
+}
+
+.btn-download:hover {
+  background-color: #1a5080;
+  transform: translateY(-2px);
+  box-shadow: 0 5px 15px rgba(15, 55, 89, 0.4);
+}
+
+.btn-print {
+  background-color: #2ECC71;
+  color: white;
+}
+
+.btn-print:hover {
+  background-color: #27AE60;
+  transform: translateY(-2px);
+  box-shadow: 0 5px 15px rgba(46, 204, 113, 0.4);
+}
+
+.btn-cancel {
+  background-color: #D3D3D3;
+  color: #0F3759;
+}
+
+.btn-cancel:hover {
+  background-color: #B8B8B8;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+}
+
+/* === RESPONSIVE === */
+@media print {
+  body {
+    background-color: white;
+  }
+  
+  .action-buttons,
+  header {
+    display: none;
+  }
+  
+  .expediente-container {
+    margin: 0;
+    padding: 0;
+  }
+  
+  .expediente-paper {
+    box-shadow: none;
+    border: 1px solid #000;
+    page-break-inside: avoid;
+  }
+
+  .expediente-section {
+    page-break-inside: avoid;
+  }
+}
+
+@media (max-width: 768px) {
+  .expediente-container {
+    margin: 100px 10px 20px;
+    padding: 10px;
+  }
+
+  .expediente-header {
+    padding: 15px 20px;
+    flex-wrap: wrap;
+  }
+
+  .expediente-logo {
+    width: 50px;
+    height: 50px;
+    font-size: 18px;
+  }
+
+  .expediente-title {
+    font-size: 18px;
+    padding: 10px 25px;
+  }
+
+  .expediente-number {
+    width: 100%;
+    order: 3;
+  }
+
+  .expediente-content {
+    padding: 20px 15px;
+  }
+
+  .data-grid-2,
+  .data-grid-3,
+  .data-grid-4 {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+
+  .action-buttons {
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .btn-action {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .expediente-footer {
+    flex-direction: column;
+    gap: 15px;
+    text-align: center;
+    padding: 15px;
+  }
+
+  .footer-info p {
+    font-size: 11px;
+  }
+
+  .firma-medico {
+    margin-top: 10px;
+  }
+
+  .section-header {
+    font-size: 12px;
+    padding: 7px 12px;
+  }
+
+  .data-field label {
+    font-size: 11px;
+  }
+
+  .data-field input,
+  .data-field select,
+  .textarea-field {
+    font-size: 12px;
+  }
+}
