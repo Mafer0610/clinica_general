@@ -1,6 +1,5 @@
 <!DOCTYPE html>
 <html lang="es">
-
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -8,8 +7,11 @@
   <link rel="stylesheet" href="../css/stylesMedico.css" />
   <link href="https://fonts.googleapis.com/css2?family=Inknut+Antiqua:wght@700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+  <script src="../js/inicioMedico.js" defer></script>
+  <script src="../js/generarReporte.js" defer></script>
 </head>
-
 <body>
   <header>
     <h1>
@@ -26,8 +28,7 @@
     <aside class="sidebar">
       <button class="nav-btn"><i class="fas fa-tachometer-alt"></i> Dashboard.</button>
       <button class="nav-btn active"><i class="fas fa-calendar-alt"></i> Calendario.</button>
-      <button class="nav-btn" onclick="window.location.href='pacienteMedico.html'"><i class="fas fa-user-injured"></i>
-        Pacientes.</button>
+      <button class="nav-btn" onclick="window.location.href='pacienteMedico.html'"><i class="fas fa-user-injured"></i> Pacientes.</button>
     </aside>
 
     <!-- Contenido principal -->
@@ -289,8 +290,7 @@
         <div class="form-row">
           <div class="form-col-full">
             <label for="correo">Correo</label>
-            <input type="email" id="correo" class="form-input-perfil" value="correo_de_ejemplo@gmail.com"
-              placeholder="Correo electrónico">
+            <input type="email" id="correo" class="form-input-perfil" value="correo_de_ejemplo@gmail.com" placeholder="Correo electrónico">
           </div>
         </div>
         <div class="modal-buttons-perfil">
@@ -299,69 +299,5 @@
       </form>
     </div>
   </div>
-
-  <script>
-    // ===== GESTIÓN UNIFICADA DE MODALES =====
-    const Modal = {
-      abrir: (id) => document.getElementById(`modal${id.charAt(0).toUpperCase() + id.slice(1)}`).style.display = 'flex',
-      cerrar: (id) => document.getElementById(`modal${id.charAt(0).toUpperCase() + id.slice(1)}`).style.display = 'none'
-    };
-
-    // Event Delegation: Un solo listener para todos los botones de abrir modales
-    document.addEventListener('click', (e) => {
-      const modalTrigger = e.target.closest('[data-modal]');
-      const modalClose = e.target.closest('[data-close]');
-      const pickerTrigger = e.target.closest('[data-picker]');
-
-      if (modalTrigger) Modal.abrir(modalTrigger.dataset.modal);
-      if (modalClose) Modal.cerrar(modalClose.dataset.close);
-      if (pickerTrigger) document.getElementById(pickerTrigger.dataset.picker).showPicker();
-    });
-
-    // Cerrar modales al hacer clic en el overlay
-    document.querySelectorAll('.modal').forEach(modal => {
-      modal.addEventListener('click', (e) => {
-        if (e.target === modal) modal.style.display = 'none';
-      });
-    });
-
-    // Gestión de formularios
-    document.addEventListener('DOMContentLoaded', () => {
-      const forms = {
-        cita: () => {
-          alert('Cita agendada correctamente!');
-          Modal.cerrar('cita');
-        },
-        reportes: () => {
-          const inicio = document.getElementById('fechaInicio').value;
-          const final = document.getElementById('fechaFinal').value;
-
-          if (!inicio || !final) {
-            alert('Por favor seleccione ambas fechas');
-            return;
-          }
-
-          alert(`Generando reporte PDF desde ${inicio} hasta ${final}`);
-          Modal.cerrar('reportes');
-        },
-        perfil: () => {
-          alert('Perfil actualizado correctamente!');
-          Modal.cerrar('perfil');
-        }
-      };
-
-      document.querySelectorAll('[data-form]').forEach(form => {
-        form.addEventListener('submit', (e) => {
-          e.preventDefault();
-          forms[form.dataset.form]();
-        });
-      });
-    });
-  </script>
-  <!-- JS MODAL GENERAR REPORTE -->
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
-  <script src="../js/generarReporte.js"></script>
 </body>
-
 </html>
