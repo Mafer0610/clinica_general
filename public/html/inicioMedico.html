@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="es">
+
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -8,10 +9,11 @@
   <link href="https://fonts.googleapis.com/css2?family=Inknut+Antiqua:wght@700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
 </head>
+
 <body>
   <header>
     <h1>
-      <span class="djfa">DJFA</span> 
+      <span class="djfa">DJFA</span>
       <span class="systems">System's</span>
     </h1>
     <div class="profile-icon" data-modal="perfil">
@@ -24,7 +26,8 @@
     <aside class="sidebar">
       <button class="nav-btn"><i class="fas fa-tachometer-alt"></i> Dashboard.</button>
       <button class="nav-btn active"><i class="fas fa-calendar-alt"></i> Calendario.</button>
-      <button class="nav-btn" onclick="window.location.href='pacienteMedico.html'"><i class="fas fa-user-injured"></i> Pacientes.</button>
+      <button class="nav-btn" onclick="window.location.href='pacienteMedico.html'"><i class="fas fa-user-injured"></i>
+        Pacientes.</button>
     </aside>
 
     <!-- Contenido principal -->
@@ -59,7 +62,10 @@
                   <div class="appointment-update">Updated yesterday</div>
                 </div>
               </td>
-              <td></td><td></td><td></td><td></td>
+              <td></td>
+              <td></td>
+              <td></td>
+              <td></td>
             </tr>
             <tr>
               <td class="hour-cell">10:00</td>
@@ -69,11 +75,35 @@
                   <div class="appointment-update">Updated yesterday</div>
                 </div>
               </td>
-              <td></td><td></td><td></td><td></td>
+              <td></td>
+              <td></td>
+              <td></td>
+              <td></td>
             </tr>
-            <tr><td class="hour-cell">11:00</td><td></td><td></td><td></td><td></td><td></td></tr>
-            <tr><td class="hour-cell">12:00</td><td></td><td></td><td></td><td></td><td></td></tr>
-            <tr><td class="hour-cell">13:00</td><td></td><td></td><td></td><td></td><td></td></tr>
+            <tr>
+              <td class="hour-cell">11:00</td>
+              <td></td>
+              <td></td>
+              <td></td>
+              <td></td>
+              <td></td>
+            </tr>
+            <tr>
+              <td class="hour-cell">12:00</td>
+              <td></td>
+              <td></td>
+              <td></td>
+              <td></td>
+              <td></td>
+            </tr>
+            <tr>
+              <td class="hour-cell">13:00</td>
+              <td></td>
+              <td></td>
+              <td></td>
+              <td></td>
+              <td></td>
+            </tr>
             <tr>
               <td class="hour-cell">14:00</td>
               <td>
@@ -82,7 +112,10 @@
                   <div class="appointment-update">Updated yesterday</div>
                 </div>
               </td>
-              <td></td><td></td><td></td><td></td>
+              <td></td>
+              <td></td>
+              <td></td>
+              <td></td>
             </tr>
             <tr>
               <td class="hour-cell">15:00</td>
@@ -92,14 +125,59 @@
                   <div class="appointment-update">Updated yesterday</div>
                 </div>
               </td>
-              <td></td><td></td><td></td><td></td>
+              <td></td>
+              <td></td>
+              <td></td>
+              <td></td>
             </tr>
-            <tr><td class="hour-cell">16:00</td><td></td><td></td><td></td><td></td><td></td></tr>
-            <tr><td class="hour-cell">17:00</td><td></td><td></td><td></td><td></td><td></td></tr>
-            <tr><td class="hour-cell">18:00</td><td></td><td></td><td></td><td></td><td></td></tr>
-            <tr><td class="hour-cell">19:00</td><td></td><td></td><td></td><td></td><td></td></tr>
-            <tr><td class="hour-cell">20:00</td><td></td><td></td><td></td><td></td><td></td></tr>
-            <tr><td class="hour-cell">21:00</td><td></td><td></td><td></td><td></td><td></td></tr>
+            <tr>
+              <td class="hour-cell">16:00</td>
+              <td></td>
+              <td></td>
+              <td></td>
+              <td></td>
+              <td></td>
+            </tr>
+            <tr>
+              <td class="hour-cell">17:00</td>
+              <td></td>
+              <td></td>
+              <td></td>
+              <td></td>
+              <td></td>
+            </tr>
+            <tr>
+              <td class="hour-cell">18:00</td>
+              <td></td>
+              <td></td>
+              <td></td>
+              <td></td>
+              <td></td>
+            </tr>
+            <tr>
+              <td class="hour-cell">19:00</td>
+              <td></td>
+              <td></td>
+              <td></td>
+              <td></td>
+              <td></td>
+            </tr>
+            <tr>
+              <td class="hour-cell">20:00</td>
+              <td></td>
+              <td></td>
+              <td></td>
+              <td></td>
+              <td></td>
+            </tr>
+            <tr>
+              <td class="hour-cell">21:00</td>
+              <td></td>
+              <td></td>
+              <td></td>
+              <td></td>
+              <td></td>
+            </tr>
           </tbody>
         </table>
       </div>
@@ -211,7 +289,8 @@
         <div class="form-row">
           <div class="form-col-full">
             <label for="correo">Correo</label>
-            <input type="email" id="correo" class="form-input-perfil" value="correo_de_ejemplo@gmail.com" placeholder="Correo electrónico">
+            <input type="email" id="correo" class="form-input-perfil" value="correo_de_ejemplo@gmail.com"
+              placeholder="Correo electrónico">
           </div>
         </div>
         <div class="modal-buttons-perfil">
@@ -256,12 +335,12 @@
         reportes: () => {
           const inicio = document.getElementById('fechaInicio').value;
           const final = document.getElementById('fechaFinal').value;
-          
+
           if (!inicio || !final) {
             alert('Por favor seleccione ambas fechas');
             return;
           }
-          
+
           alert(`Generando reporte PDF desde ${inicio} hasta ${final}`);
           Modal.cerrar('reportes');
         },
@@ -279,5 +358,10 @@
       });
     });
   </script>
+  <!-- JS MODAL GENERAR REPORTE -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+  <script src="../js/generarReporte.js"></script>
 </body>
+
 </html>
