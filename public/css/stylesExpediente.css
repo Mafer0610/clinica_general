@@ -1,25 +1,34 @@
-/* === ESTILOS EXPEDIENTE CLÍNICO === */
+/*ESTILOS EXPEDIENTE CLÍNICO*/
+
+/* === ESTILOS BASE === */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
 
 body {
   background-color: #E8E8E8;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  color: #0F3759;
 }
 
+/* === CONTENEDOR PRINCIPAL === */
 .expediente-container {
   max-width: 1000px;
-  margin: 120px auto 40px;
+  margin: 40px auto;
   padding: 20px;
 }
 
 .expediente-paper {
   background-color: white;
   border: 2px solid #0F3759;
-  border-radius: 0;
   padding: 0;
   box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
   min-height: 1100px;
 }
 
-/* === HEADER === */
+/* === HEADER DEL EXPEDIENTE === */
 .expediente-header {
   display: flex;
   justify-content: space-between;
@@ -41,7 +50,6 @@ body {
   color: white;
   font-size: 20px;
   font-weight: 700;
-  font-family: 'Inknut Antiqua', serif;
   flex-shrink: 0;
 }
 
@@ -79,15 +87,29 @@ body {
   font-weight: 700;
 }
 
-/* === CONTENT === */
+/* === INFORMACIÓN DEL ESTABLECIMIENTO === */
+.establecimiento-info {
+  background-color: #F8F9FA;
+  padding: 15px 30px;
+  border-bottom: 1px solid #6B8199;
+  font-size: 11px;
+}
+
+.establecimiento-info p {
+  margin: 3px 0;
+}
+
+/* === CONTENIDO DEL EXPEDIENTE === */
 .expediente-content {
   padding: 25px 35px 30px;
 }
 
 .expediente-section {
   margin-bottom: 20px;
+  page-break-inside: avoid;
 }
 
+/* === ENCABEZADOS DE SECCIONES === */
 .section-header {
   background-color: #0F3759;
   color: white;
@@ -95,11 +117,19 @@ body {
   font-size: 13px;
   font-weight: 700;
   margin-bottom: 12px;
-  border-radius: 0;
   letter-spacing: 0.5px;
 }
 
-/* === CAMPOS DE DATOS === */
+.subsection-header {
+  background-color: #6B8199;
+  color: white;
+  padding: 6px 12px;
+  font-size: 12px;
+  font-weight: 600;
+  margin: 15px 0 10px 0;
+}
+
+/* === GRIDS DE DATOS === */
 .data-grid-2 {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -121,6 +151,14 @@ body {
   margin-bottom: 12px;
 }
 
+.data-grid-5 {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+/* === CAMPOS DE DATOS === */
 .data-field {
   display: flex;
   flex-direction: column;
@@ -129,7 +167,7 @@ body {
 
 .data-field label {
   color: #0F3759;
-  font-size: 12px;
+  font-size: 11px;
   font-weight: 600;
 }
 
@@ -138,7 +176,7 @@ body {
   padding: 8px 12px;
   border: 1px solid #6B8199;
   border-radius: 4px;
-  font-size: 13px;
+  font-size: 12px;
   color: #0F3759;
   background-color: white;
   transition: all 0.3s ease;
@@ -166,12 +204,13 @@ body {
   padding: 12px 15px;
   border: 1px solid #6B8199;
   border-radius: 4px;
-  font-size: 13px;
+  font-size: 12px;
   color: #0F3759;
   background-color: white;
   resize: vertical;
   font-family: 'Segoe UI', sans-serif;
   line-height: 1.5;
+  min-height: 80px;
   box-sizing: border-box;
 }
 
@@ -186,19 +225,111 @@ body {
   font-style: italic;
 }
 
-/* === SIGNOS VITALES === */
-.signos-vitales h4 {
-  color: #0F3759;
-  font-size: 13px;
-  font-weight: 600;
-  margin-bottom: 10px;
+/* === NOTAS IMPORTANTES === */
+.nota-importante {
+  background-color: #FFF3CD;
+  border-left: 4px solid #FFC107;
+  padding: 10px 15px;
+  margin: 10px 0;
+  font-size: 11px;
+  border-radius: 4px;
 }
 
-/* === FOOTER === */
+.nota-importante strong {
+  color: #856404;
+}
+
+/* === CHECKBOXES === */
+.checkbox-group {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 15px;
+  margin: 10px 0;
+}
+
+.checkbox-item {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.checkbox-item input[type="checkbox"] {
+  width: 16px;
+  height: 16px;
+  cursor: pointer;
+}
+
+.checkbox-item label {
+  font-size: 12px;
+  cursor: pointer;
+  margin: 0;
+}
+
+/* === TABLA DE MEDICAMENTOS === */
+.tabla-medicamentos {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 10px 0;
+  font-size: 11px;
+}
+
+.tabla-medicamentos th {
+  background-color: #6B8199;
+  color: white;
+  padding: 8px;
+  text-align: left;
+  font-weight: 600;
+}
+
+.tabla-medicamentos td {
+  padding: 8px;
+  border: 1px solid #D0D0D0;
+}
+
+.tabla-medicamentos input,
+.tabla-medicamentos select {
+  width: 100%;
+  padding: 5px;
+  border: 1px solid #6B8199;
+  border-radius: 3px;
+  font-size: 11px;
+}
+
+/* === SECCIÓN DE FIRMAS === */
+.firma-section {
+  margin-top: 30px;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 30px;
+}
+
+.firma-box {
+  text-align: center;
+}
+
+.firma-line {
+  width: 100%;
+  height: 50px;
+  border-bottom: 2px solid #0F3759;
+  margin-bottom: 8px;
+}
+
+.firma-label {
+  font-size: 12px;
+  font-weight: 700;
+  color: #0F3759;
+  margin: 5px 0;
+}
+
+.firma-sublabel {
+  font-size: 10px;
+  color: #6B8199;
+}
+
+/* === FOOTER DEL EXPEDIENTE === */
 .expediente-footer {
   background-color: #B8CDE0;
   padding: 20px 30px;
-  border-radius: 0;
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -212,40 +343,12 @@ body {
 
 .footer-info p {
   margin: 3px 0;
-  font-size: 12px;
-  color: #0F3759;
+  font-size: 11px;
   font-weight: 500;
 }
 
 .footer-info strong {
   font-weight: 700;
-}
-
-.firma-medico {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 5px;
-}
-
-.firma-line {
-  width: 160px;
-  height: 40px;
-  border-bottom: 2px solid #0F3759;
-}
-
-.firma-label {
-  font-size: 12px;
-  color: #0F3759;
-  font-weight: 700;
-  margin: 0;
-}
-
-.cedula-label {
-  font-size: 10px;
-  color: #6B8199;
-  font-weight: 500;
-  margin: 0;
 }
 
 /* === BOTONES DE ACCIÓN === */
@@ -265,9 +368,6 @@ body {
   cursor: pointer;
   transition: all 0.3s ease;
   box-shadow: 0 3px 8px rgba(0, 0, 0, 0.15);
-  display: flex;
-  align-items: center;
-  gap: 10px;
 }
 
 .btn-download {
@@ -303,20 +403,20 @@ body {
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
 }
 
-/* === RESPONSIVE === */
+/* === ESTILOS PARA IMPRESIÓN === */
 @media print {
   body {
     background-color: white;
   }
   
-  .action-buttons,
-  header {
-    display: none;
+  .action-buttons {
+    display: none !important;
   }
   
   .expediente-container {
     margin: 0;
     padding: 0;
+    max-width: 100%;
   }
   
   .expediente-paper {
@@ -328,11 +428,238 @@ body {
   .expediente-section {
     page-break-inside: avoid;
   }
-}
 
+  .section-header {
+    page-break-after: avoid;
+  }
+
+  .data-grid-2,
+  .data-grid-3,
+  .data-grid-4,
+  .data-grid-5 {
+    page-break-inside: avoid;
+  }
+}
+    /* Estilos adicionales para mejorar la presentación */
+    .expediente-container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 20px;
+    }
+    
+    .expediente-paper {
+      background: white;
+      padding: 30px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+      margin-bottom: 20px;
+    }
+    
+    .expediente-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
+      border-bottom: 2px solid #0F3759;
+      padding-bottom: 10px;
+    }
+    
+    .expediente-logo {
+      background: #0F3759;
+      color: white;
+      padding: 10px 15px;
+      font-weight: bold;
+      border-radius: 5px;
+    }
+    
+    .expediente-title {
+      font-size: 24px;
+      font-weight: bold;
+      color: #0F3759;
+    }
+    
+    .section-header {
+      background: #0F3759;
+      color: white;
+      padding: 8px 12px;
+      margin: 15px 0 10px 0;
+      border-radius: 4px;
+      font-size: 14px;
+    }
+    
+    .data-grid-2, .data-grid-3, .data-grid-4, .data-grid-5 {
+      display: grid;
+      gap: 15px;
+      margin-bottom: 15px;
+    }
+    
+    .data-grid-2 { grid-template-columns: 1fr 1fr; }
+    .data-grid-3 { grid-template-columns: 1fr 1fr 1fr; }
+    .data-grid-4 { grid-template-columns: 1fr 1fr 1fr 1fr; }
+    .data-grid-5 { grid-template-columns: 1fr 1fr 1fr 1fr 1fr; }
+    
+    .data-field {
+      display: flex;
+      flex-direction: column;
+    }
+    
+    .data-field label {
+      font-weight: 600;
+      margin-bottom: 5px;
+      font-size: 13px;
+      color: #333;
+    }
+    
+    .data-field input, .data-field select, .textarea-field {
+      padding: 8px 10px;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      font-size: 14px;
+    }
+    
+    .textarea-field {
+      width: 100%;
+      resize: vertical;
+      min-height: 80px;
+    }
+    
+    .nota-importante {
+      background: #fff8e1;
+      border-left: 4px solid #ffc107;
+      padding: 10px;
+      margin: 10px 0;
+      font-size: 13px;
+    }
+    
+    .subsection-header {
+      background: #6b8199;
+      color: white;
+      padding: 6px 10px;
+      margin: 12px 0 8px 0;
+      border-radius: 3px;
+      font-size: 13px;
+      font-weight: bold;
+    }
+    
+    .checkbox-group {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+      gap: 8px;
+      margin: 10px 0;
+    }
+    
+    .checkbox-item {
+      display: flex;
+      align-items: center;
+    }
+    
+    .checkbox-item input {
+      margin-right: 8px;
+    }
+    
+    .tabla-medicamentos {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 10px 0;
+    }
+    
+    .tabla-medicamentos th {
+      background: #0F3759;
+      color: white;
+      padding: 8px;
+      text-align: left;
+      font-size: 12px;
+    }
+    
+    .tabla-medicamentos td {
+      padding: 5px;
+      border: 1px solid #ddd;
+    }
+    
+    .tabla-medicamentos input, .tabla-medicamentos select {
+      width: 100%;
+      border: none;
+      padding: 5px;
+      box-sizing: border-box;
+    }
+    
+    .firma-section {
+      display: flex;
+      justify-content: space-between;
+      margin-top: 40px;
+    }
+    
+    .firma-box {
+      width: 45%;
+      text-align: center;
+    }
+    
+    .firma-line {
+      border-bottom: 1px solid #333;
+      margin-bottom: 5px;
+      height: 30px;
+    }
+    
+    .firma-label {
+      font-weight: bold;
+      font-size: 12px;
+      margin: 5px 0;
+    }
+    
+    .firma-sublabel {
+      font-size: 10px;
+      color: #666;
+      margin: 2px 0;
+    }
+    
+    .action-buttons {
+      display: flex;
+      gap: 15px;
+      justify-content: center;
+      margin-top: 20px;
+    }
+    
+    .btn-action {
+      padding: 10px 20px;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      font-weight: bold;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      transition: all 0.3s;
+    }
+    
+    .btn-download {
+      background: #0F3759;
+      color: white;
+    }
+    
+    .btn-print {
+      background: #28a745;
+      color: white;
+    }
+    
+    .btn-cancel {
+      background: #6c757d;
+      color: white;
+    }
+    
+    .btn-action:hover {
+      opacity: 0.9;
+      transform: translateY(-2px);
+    }
+    
+    @media print {
+      .action-buttons {
+        display: none;
+      }
+    }
+
+/* === RESPONSIVE DESIGN === */
 @media (max-width: 768px) {
   .expediente-container {
-    margin: 100px 10px 20px;
+    margin: 20px 10px;
     padding: 10px;
   }
 
@@ -357,13 +684,19 @@ body {
     order: 3;
   }
 
+  .establecimiento-info {
+    padding: 10px 15px;
+    font-size: 10px;
+  }
+
   .expediente-content {
     padding: 20px 15px;
   }
 
   .data-grid-2,
   .data-grid-3,
-  .data-grid-4 {
+  .data-grid-4,
+  .data-grid-5 {
     grid-template-columns: 1fr;
     gap: 12px;
   }
@@ -386,11 +719,12 @@ body {
   }
 
   .footer-info p {
-    font-size: 11px;
+    font-size: 10px;
   }
 
-  .firma-medico {
-    margin-top: 10px;
+  .firma-section {
+    grid-template-columns: 1fr;
+    gap: 20px;
   }
 
   .section-header {
@@ -398,13 +732,114 @@ body {
     padding: 7px 12px;
   }
 
-  .data-field label {
+  .subsection-header {
     font-size: 11px;
+    padding: 5px 10px;
+  }
+
+  .data-field label {
+    font-size: 10px;
   }
 
   .data-field input,
   .data-field select,
   .textarea-field {
     font-size: 12px;
+    padding: 6px 10px;
   }
+
+  .tabla-medicamentos {
+    font-size: 10px;
+  }
+
+  .tabla-medicamentos th,
+  .tabla-medicamentos td {
+    padding: 5px;
+  }
+
+  .checkbox-group {
+    gap: 10px;
+  }
+
+  .checkbox-item {
+    font-size: 11px;
+  }
+
+  .nota-importante {
+    font-size: 10px;
+    padding: 8px 12px;
+  }
+}
+
+@media (max-width: 480px) {
+  .expediente-header {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .expediente-logo {
+    width: 100%;
+    height: 50px;
+    border-radius: 0;
+  }
+
+  .expediente-title {
+    font-size: 16px;
+    padding: 8px 15px;
+    border-radius: 10px;
+  }
+
+  .expediente-number {
+    text-align: center;
+  }
+
+  .tabla-medicamentos {
+    display: block;
+    overflow-x: auto;
+  }
+}
+
+/* === ANIMACIONES === */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.expediente-section {
+  animation: fadeIn 0.3s ease-in-out;
+}
+
+/* === UTILIDADES === */
+.text-center {
+  text-align: center;
+}
+
+.text-bold {
+  font-weight: 700;
+}
+
+.text-muted {
+  color: #6B8199;
+}
+
+.mb-10 {
+  margin-bottom: 10px;
+}
+
+.mb-20 {
+  margin-bottom: 20px;
+}
+
+.mt-10 {
+  margin-top: 10px;
+}
+
+.mt-20 {
+  margin-top: 20px;
 }
