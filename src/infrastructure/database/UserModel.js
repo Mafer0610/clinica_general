@@ -1,11 +1,11 @@
 const mongoose = require('mongoose');
+const connections = require('./connections');
 
 const UserSchema = new mongoose.Schema({
     username: { 
         type: String, 
         required: true, 
         unique: true,
-        sparse: true,
         trim: true,
         minlength: 3,
         maxlength: 50
@@ -19,7 +19,6 @@ const UserSchema = new mongoose.Schema({
         type: String,
         required: true,
         unique: true,
-        sparse: true,  // ← AGREGADO
         trim: true,
         lowercase: true,
         match: [/^\w+([.-]?\w+)*@\w+([.-]?\w+)*(\.\w{2,3})+$/, 'Email inválido']
@@ -55,8 +54,17 @@ const UserSchema = new mongoose.Schema({
     collection: 'users'
 });
 
-// ← IMPORTANTE: Elimina los índices globales y dejarlos solo en unique
 UserSchema.index({ role: 1 });
 UserSchema.index({ isActive: 1 });
 
-module.exports = mongoose.model('User', UserSchema, 'users');
+async function getUserModel() {
+    const authConn = await connections.connectAuth();
+    
+    if (authConn.models.User) {
+        return authConn.models.User;
+    }
+    
+    return authConn.model('User', UserSchema, 'users');
+}
+
+module.exports = { getUserModel, UserSchema };

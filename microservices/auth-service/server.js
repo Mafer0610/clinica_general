@@ -1,15 +1,14 @@
 const express = require('express');
-const mongoose = require('mongoose');
 const cors = require('cors');
 require('dotenv').config();
 
+const connections = require('../../src/infrastructure/database/connections');
 const rabbitmq = require('../../shared/rabbitmq/RabbitMQClient');
 const AuthController = require('../../src/adapters/inbound/controllers/AuthController');
 
 const app = express();
 const PORT = process.env.PORT || 3001;
 
-// ========== MIDDLEWARE ==========
 const corsOptions = {
     origin: ['http://localhost:5000', 'http://localhost:3001', 'http://localhost:3002'],
     credentials: true,
@@ -22,85 +21,41 @@ app.use(cors(corsOptions));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// ========== CONEXIÓN MONGODB MEJORADA ==========
-async function connectMongoDB() {
+const validateMongoConnection = async (req, res, next) => {
     try {
-        console.log('🔗 Intentando conectar a MongoDB...');
-        console.log('📍 URI:', process.env.MONGO_URI.substring(0, 50) + '...');
-
-        await mongoose.connect(process.env.MONGO_URI, {
-            dbName: "auth",
-            serverSelectionTimeoutMS: 10000,
-            socketTimeoutMS: 45000,
-            retryWrites: true,
-            w: 'majority'
-        });
-
-        console.log('✅ Conectado a MongoDB - BD Auth');
-        console.log('📍 Base de datos:', mongoose.connection.name);
-        console.log('📍 Estado de conexión:', mongoose.connection.readyState); // 1 = conectado
-        
-        return true;
-    } catch (err) {
-        console.error('❌ Error de conexión MongoDB:', err.message);
-        return false;
-    }
-}
-
-// ========== RABBITMQ INICIALIZACIÓN ==========
-async function initRabbitMQ() {
-    try {
-        await rabbitmq.connect();
-        
-        // Crear exchanges
-        await rabbitmq.assertExchange('user.events', 'topic');
-        await rabbitmq.assertExchange('clinic.events', 'topic');
-        
-        // Crear colas
-        await rabbitmq.assertQueue('user.created');
-        await rabbitmq.assertQueue('user.updated');
-        await rabbitmq.assertQueue('user.deleted');
-        
-        // Vincular colas a exchanges
-        await rabbitmq.bindQueue('user.created', 'user.events', 'user.created');
-        await rabbitmq.bindQueue('user.updated', 'user.events', 'user.updated');
-        await rabbitmq.bindQueue('user.deleted', 'user.events', 'user.deleted');
-        
-        console.log('✅ RabbitMQ inicializado en Auth Service');
+        const authConn = await connections.connectAuth();
+        if (authConn.readyState !== 1) {
+            console.error('⚠️ Solicitud rechazada: MongoDB Auth no está conectado');
+            return res.status(503).json({
+                error: 'Servicio no disponible',
+                message: 'La base de datos no está conectada. Intenta nuevamente en unos segundos.'
+            });
+        }
+        next();
     } catch (error) {
-        console.error('❌ Error inicializando RabbitMQ:', error.message);
-    }
-}
-
-// ========== MIDDLEWARE DE VALIDACIÓN DE MONGODB ==========
-const validateMongoConnection = (req, res, next) => {
-    if (mongoose.connection.readyState !== 1) {
-        console.error('⚠️ Solicitud rechazada: MongoDB no está conectado');
+        console.error('❌ Error validando conexión:', error);
         return res.status(503).json({
             error: 'Servicio no disponible',
-            message: 'La base de datos no está conectada. Intenta nuevamente en unos segundos.'
+            message: 'Error de conexión a la base de datos.'
         });
     }
-    next();
 };
 
-// ========== RUTAS (con validación de MongoDB) ==========
 app.use('/auth', validateMongoConnection, AuthController);
 
-// Health check
-app.get('/health', (req, res) => {
+app.get('/health', async (req, res) => {
+    const status = connections.getStatus();
     res.json({
         service: 'Auth Service',
         status: 'OK',
         port: PORT,
         timestamp: new Date().toISOString(),
-        mongodb: mongoose.connection.readyState === 1 ? 'connected' : 'disconnected',
-        mongoState: mongoose.connection.readyState, // 0 = desconectado, 1 = conectado
+        mongodb: status.auth.status,
+        database: status.auth.database,
         rabbitmq: rabbitmq.channel ? 'connected' : 'disconnected'
     });
 });
 
-// Ruta raíz
 app.get('/', (req, res) => {
     res.json({
         message: 'DJFA Auth Service',
@@ -113,7 +68,6 @@ app.get('/', (req, res) => {
     });
 });
 
-// ========== MANEJO DE ERRORES ==========
 app.use((err, req, res, next) => {
     console.error('❌ Error:', err);
     res.status(500).json({
@@ -123,7 +77,6 @@ app.use((err, req, res, next) => {
     });
 });
 
-// 404
 app.use((req, res) => {
     res.status(404).json({
         error: 'Ruta no encontrada',
@@ -132,43 +85,54 @@ app.use((req, res) => {
     });
 });
 
-// ========== INICIAR SERVIDOR (ORDEN CORREGIDO) ==========
+async function initRabbitMQ() {
+    try {
+        await rabbitmq.connect();
+        
+        await rabbitmq.assertExchange('user.events', 'topic');
+        await rabbitmq.assertExchange('clinic.events', 'topic');
+        
+        await rabbitmq.assertQueue('user.created');
+        await rabbitmq.assertQueue('user.updated');
+        await rabbitmq.assertQueue('user.deleted');
+        
+        await rabbitmq.bindQueue('user.created', 'user.events', 'user.created');
+        await rabbitmq.bindQueue('user.updated', 'user.events', 'user.updated');
+        await rabbitmq.bindQueue('user.deleted', 'user.events', 'user.deleted');
+        
+        console.log('✅ RabbitMQ inicializado en Auth Service');
+    } catch (error) {
+        console.error('❌ Error inicializando RabbitMQ:', error.message);
+    }
+}
+
+// ========== INICIAR SERVIDOR ==========
 async function startServer() {
     try {
-        // ⚠️ PRIMERO: Conectar a MongoDB y ESPERAR
-        console.log('🔄 Paso 1: Conectando a MongoDB...');
-        const mongoConnected = await connectMongoDB();
+        console.log('🔄 Paso 1: Conectando a MongoDB Auth...');
+        await connections.connectAuth();
         
-        if (!mongoConnected) {
-            console.error('❌ No se pudo conectar a MongoDB. Reintentando en 5 segundos...');
-            setTimeout(startServer, 5000);
-            return;
-        }
-
-        // SEGUNDO: Esperar 1 segundo adicional para asegurar que la conexión esté completamente lista
         await new Promise(resolve => setTimeout(resolve, 1000));
         
-        // Verificar estado final de MongoDB
-        if (mongoose.connection.readyState !== 1) {
-            console.error('❌ MongoDB conectado pero no está listo. Estado:', mongoose.connection.readyState);
+        const authConn = await connections.connectAuth();
+        if (authConn.readyState !== 1) {
+            console.error('❌ MongoDB conectado pero no está listo');
             setTimeout(startServer, 3000);
             return;
         }
         
-        console.log('✅ MongoDB confirmado listo para recibir queries');
+        console.log('✅ MongoDB Auth confirmado listo');
 
-        // TERCERO: Inicializar RabbitMQ
         console.log('🔄 Paso 2: Inicializando RabbitMQ...');
         await initRabbitMQ();
 
-        // CUARTO: Escuchar en el puerto
         console.log('🔄 Paso 3: Iniciando servidor Express...');
         app.listen(PORT, () => {
             console.log('');
             console.log('═══════════════════════════════════════════════════');
             console.log(`🚀 Auth Service escuchando en http://localhost:${PORT}`);
             console.log(`📊 Health check: http://localhost:${PORT}/health`);
-            console.log(`🗄️  MongoDB: ${mongoose.connection.readyState === 1 ? '✅ Conectado' : '❌ Desconectado'}`);
+            console.log(`🗄️  MongoDB Auth: ✅ Conectado`);
             console.log(`🐰 RabbitMQ: ${rabbitmq.channel ? '✅ Conectado' : '❌ Desconectado'}`);
             console.log('═══════════════════════════════════════════════════');
             console.log('');
@@ -187,7 +151,7 @@ process.on('SIGINT', async () => {
     console.log('\n⏹️ Cerrando Auth Service...');
     try {
         await rabbitmq.close();
-        await mongoose.connection.close();
+        await connections.closeAll();
         console.log('✅ Conexiones cerradas correctamente');
         process.exit(0);
     } catch (error) {
@@ -198,7 +162,6 @@ process.on('SIGINT', async () => {
 
 process.on('unhandledRejection', (reason, promise) => {
     console.error('❌ Unhandled Rejection at:', promise, 'reason:', reason);
-    process.exit(1);
 });
 
 module.exports = app;
