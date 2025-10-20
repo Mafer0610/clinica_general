@@ -30,21 +30,15 @@ async function connectMongoDB() {
 
         await mongoose.connect(process.env.MONGO_URI, {
             dbName: "auth",
-            maxPoolSize: 10,
-            minPoolSize: 2,
-            serverSelectionTimeoutMS: 15000,  // ← AUMENTADO
+            serverSelectionTimeoutMS: 10000,
             socketTimeoutMS: 45000,
-            connectTimeoutMS: 15000,           // ← AGREGADO
-            family: 4,                         // ← IPv4
             retryWrites: true,
-            w: 'majority',
-            authSource: 'admin',               // ← AGREGADO
-            keepAlive: true,
-            keepAliveInitialDelayMS: 300000
+            w: 'majority'
         });
 
         console.log('✅ Conectado a MongoDB - BD Auth');
         console.log('📍 Base de datos:', mongoose.connection.name);
+        console.log('📍 Estado de conexión:', mongoose.connection.readyState); // 1 = conectado
         
         return true;
     } catch (err) {
@@ -78,8 +72,20 @@ async function initRabbitMQ() {
     }
 }
 
-// ========== RUTAS ==========
-app.use('/auth', AuthController);
+// ========== MIDDLEWARE DE VALIDACIÓN DE MONGODB ==========
+const validateMongoConnection = (req, res, next) => {
+    if (mongoose.connection.readyState !== 1) {
+        console.error('⚠️ Solicitud rechazada: MongoDB no está conectado');
+        return res.status(503).json({
+            error: 'Servicio no disponible',
+            message: 'La base de datos no está conectada. Intenta nuevamente en unos segundos.'
+        });
+    }
+    next();
+};
+
+// ========== RUTAS (con validación de MongoDB) ==========
+app.use('/auth', validateMongoConnection, AuthController);
 
 // Health check
 app.get('/health', (req, res) => {
@@ -89,6 +95,7 @@ app.get('/health', (req, res) => {
         port: PORT,
         timestamp: new Date().toISOString(),
         mongodb: mongoose.connection.readyState === 1 ? 'connected' : 'disconnected',
+        mongoState: mongoose.connection.readyState, // 0 = desconectado, 1 = conectado
         rabbitmq: rabbitmq.channel ? 'connected' : 'disconnected'
     });
 });
@@ -125,23 +132,46 @@ app.use((req, res) => {
     });
 });
 
-// ========== INICIAR SERVIDOR ==========
+// ========== INICIAR SERVIDOR (ORDEN CORREGIDO) ==========
 async function startServer() {
     try {
-        // Conectar a MongoDB primero
+        // ⚠️ PRIMERO: Conectar a MongoDB y ESPERAR
+        console.log('🔄 Paso 1: Conectando a MongoDB...');
         const mongoConnected = await connectMongoDB();
         
         if (!mongoConnected) {
-            console.warn('⚠️ Continuando sin MongoDB (podría causar problemas)');
+            console.error('❌ No se pudo conectar a MongoDB. Reintentando en 5 segundos...');
+            setTimeout(startServer, 5000);
+            return;
         }
 
-        // Inicializar RabbitMQ
+        // SEGUNDO: Esperar 1 segundo adicional para asegurar que la conexión esté completamente lista
+        await new Promise(resolve => setTimeout(resolve, 1000));
+        
+        // Verificar estado final de MongoDB
+        if (mongoose.connection.readyState !== 1) {
+            console.error('❌ MongoDB conectado pero no está listo. Estado:', mongoose.connection.readyState);
+            setTimeout(startServer, 3000);
+            return;
+        }
+        
+        console.log('✅ MongoDB confirmado listo para recibir queries');
+
+        // TERCERO: Inicializar RabbitMQ
+        console.log('🔄 Paso 2: Inicializando RabbitMQ...');
         await initRabbitMQ();
 
-        // Escuchar en el puerto
+        // CUARTO: Escuchar en el puerto
+        console.log('🔄 Paso 3: Iniciando servidor Express...');
         app.listen(PORT, () => {
+            console.log('');
+            console.log('═══════════════════════════════════════════════════');
             console.log(`🚀 Auth Service escuchando en http://localhost:${PORT}`);
             console.log(`📊 Health check: http://localhost:${PORT}/health`);
+            console.log(`🗄️  MongoDB: ${mongoose.connection.readyState === 1 ? '✅ Conectado' : '❌ Desconectado'}`);
+            console.log(`🐰 RabbitMQ: ${rabbitmq.channel ? '✅ Conectado' : '❌ Desconectado'}`);
+            console.log('═══════════════════════════════════════════════════');
+            console.log('');
         });
 
     } catch (error) {
