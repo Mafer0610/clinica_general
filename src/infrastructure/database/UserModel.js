@@ -5,6 +5,7 @@ const UserSchema = new mongoose.Schema({
         type: String, 
         required: true, 
         unique: true,
+        sparse: true,
         trim: true,
         minlength: 3,
         maxlength: 50
@@ -18,6 +19,7 @@ const UserSchema = new mongoose.Schema({
         type: String,
         required: true,
         unique: true,
+        sparse: true,  // ← AGREGADO
         trim: true,
         lowercase: true,
         match: [/^\w+([.-]?\w+)*@\w+([.-]?\w+)*(\.\w{2,3})+$/, 'Email inválido']
@@ -49,27 +51,12 @@ const UserSchema = new mongoose.Schema({
         default: null
     }
 }, {
-    timestamps: true, // Agrega automáticamente createdAt y updatedAt
+    timestamps: true,
     collection: 'users'
 });
 
-// NO AGREGAR ÍNDICES AQUÍ - ya están definidos con unique: true arriba
-// UserSchema.index({ username: 1 }); // REMOVER
-// UserSchema.index({ email: 1 }); // REMOVER
+// ← IMPORTANTE: Elimina los índices globales y dejarlos solo en unique
 UserSchema.index({ role: 1 });
 UserSchema.index({ isActive: 1 });
-
-// Middleware para actualizar updatedAt antes de guardar
-UserSchema.pre('save', function(next) {
-    this.updatedAt = Date.now();
-    next();
-});
-
-// Método para ocultar información sensible
-UserSchema.methods.toJSON = function() {
-    const user = this.toObject();
-    delete user.password;
-    return user;
-};
 
 module.exports = mongoose.model('User', UserSchema, 'users');

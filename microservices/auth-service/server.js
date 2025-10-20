@@ -9,18 +9,40 @@ const AuthController = require('../../src/adapters/inbound/controllers/AuthContr
 const app = express();
 const PORT = process.env.PORT || 3001;
 
-// Middleware
-app.use(cors());
+// ========== MIDDLEWARE ==========
+// CORS mejorado
+const corsOptions = {
+    origin: ['http://localhost:5000', 'http://localhost:3001', 'http://localhost:3002'],
+    credentials: true,
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization', 'X-Access-Token'],
+    optionsSuccessStatus: 200
+};
+
+app.use(cors(corsOptions));
 app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
 
-// Conexión a MongoDB (BD Auth)
+// ========== CONEXIÓN MONGODB ==========
 mongoose.connect(process.env.MONGO_URI, {
-    dbName: "auth"
+    dbName: "auth",
+    maxPoolSize: 10,
+    serverSelectionTimeoutMS: 5000,
+    socketTimeoutMS: 45000,
+    retryWrites: true,
+    w: 'majority'
 })
-.then(() => console.log('✅ Conectado a MongoDB - BD Auth'))
-.catch(err => console.error('❌ Error de conexión MongoDB:', err));
+.then(() => {
+    console.log('✅ Conectado a MongoDB - BD Auth');
+    console.log('📍 Base de datos:', mongoose.connection.name);
+})
+.catch(err => {
+    console.error('❌ Error de conexión MongoDB:', err.message);
+    console.error('URL:', process.env.MONGO_URI.replace(/:[^:]*@/, ':****@'));
+    // NO salir inmediatamente, permitir que el servidor continúe
+});
 
-// Inicializar RabbitMQ
+// ========== RABBITMQ ==========
 async function initRabbitMQ() {
     try {
         await rabbitmq.connect();
@@ -39,33 +61,16 @@ async function initRabbitMQ() {
         await rabbitmq.bindQueue('user.updated', 'user.events', 'user.updated');
         await rabbitmq.bindQueue('user.deleted', 'user.events', 'user.deleted');
         
-        // Consumir mensajes del servicio clínico (si es necesario)
-        await rabbitmq.consume('auth.requests', async (message) => {
-            console.log('📩 Solicitud recibida del servicio clínico:', message);
-            
-            // Procesar según el tipo de solicitud
-            switch(message.action) {
-                case 'validate_token':
-                    // Validar token y responder
-                    break;
-                case 'get_user_info':
-                    // Obtener información de usuario
-                    break;
-                default:
-                    console.warn('⚠️ Acción desconocida:', message.action);
-            }
-        });
-        
         console.log('✅ RabbitMQ inicializado en Auth Service');
     } catch (error) {
         console.error('❌ Error inicializando RabbitMQ:', error.message);
     }
 }
 
-// Rutas
+// ========== RUTAS ==========
 app.use('/auth', AuthController);
 
-// Ruta de health check
+// Health check
 app.get('/health', (req, res) => {
     res.json({
         service: 'Auth Service',
@@ -90,27 +95,44 @@ app.get('/', (req, res) => {
     });
 });
 
-// Manejo de errores
+// ========== MANEJO DE ERRORES ==========
 app.use((err, req, res, next) => {
     console.error('❌ Error:', err);
     res.status(500).json({
         error: 'Error interno del servidor',
-        message: err.message
+        message: err.message,
+        // NO incluir stack trace en producción
+        ...(process.env.NODE_ENV === 'development' && { stack: err.stack })
     });
 });
 
-// Iniciar servidor
+// 404
+app.use((req, res) => {
+    res.status(404).json({
+        error: 'Ruta no encontrada',
+        path: req.path,
+        method: req.method
+    });
+});
+
+// ========== INICIAR SERVIDOR ==========
 app.listen(PORT, async () => {
     console.log(`🚀 Auth Service escuchando en http://localhost:${PORT}`);
+    console.log(`📊 Health check: http://localhost:${PORT}/health`);
     await initRabbitMQ();
 });
 
-// Manejo de cierre graceful
+// ========== GRACEFUL SHUTDOWN ==========
 process.on('SIGINT', async () => {
     console.log('\n⏹️ Cerrando Auth Service...');
     await rabbitmq.close();
     await mongoose.connection.close();
     process.exit(0);
+});
+
+process.on('unhandledRejection', (reason, promise) => {
+    console.error('❌ Unhandled Rejection:', reason);
+    process.exit(1);
 });
 
 module.exports = app;
