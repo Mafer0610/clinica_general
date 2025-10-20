@@ -10,7 +10,6 @@ const app = express();
 const PORT = process.env.PORT || 3001;
 
 // ========== MIDDLEWARE ==========
-// CORS mejorado
 const corsOptions = {
     origin: ['http://localhost:5000', 'http://localhost:3001', 'http://localhost:3002'],
     credentials: true,
@@ -23,26 +22,38 @@ app.use(cors(corsOptions));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// ========== CONEXIÓN MONGODB ==========
-mongoose.connect(process.env.MONGO_URI, {
-    dbName: "auth",
-    maxPoolSize: 10,
-    serverSelectionTimeoutMS: 5000,
-    socketTimeoutMS: 45000,
-    retryWrites: true,
-    w: 'majority'
-})
-.then(() => {
-    console.log('✅ Conectado a MongoDB - BD Auth');
-    console.log('📍 Base de datos:', mongoose.connection.name);
-})
-.catch(err => {
-    console.error('❌ Error de conexión MongoDB:', err.message);
-    console.error('URL:', process.env.MONGO_URI.replace(/:[^:]*@/, ':****@'));
-    // NO salir inmediatamente, permitir que el servidor continúe
-});
+// ========== CONEXIÓN MONGODB MEJORADA ==========
+async function connectMongoDB() {
+    try {
+        console.log('🔗 Intentando conectar a MongoDB...');
+        console.log('📍 URI:', process.env.MONGO_URI.substring(0, 50) + '...');
 
-// ========== RABBITMQ ==========
+        await mongoose.connect(process.env.MONGO_URI, {
+            dbName: "auth",
+            maxPoolSize: 10,
+            minPoolSize: 2,
+            serverSelectionTimeoutMS: 15000,  // ← AUMENTADO
+            socketTimeoutMS: 45000,
+            connectTimeoutMS: 15000,           // ← AGREGADO
+            family: 4,                         // ← IPv4
+            retryWrites: true,
+            w: 'majority',
+            authSource: 'admin',               // ← AGREGADO
+            keepAlive: true,
+            keepAliveInitialDelayMS: 300000
+        });
+
+        console.log('✅ Conectado a MongoDB - BD Auth');
+        console.log('📍 Base de datos:', mongoose.connection.name);
+        
+        return true;
+    } catch (err) {
+        console.error('❌ Error de conexión MongoDB:', err.message);
+        return false;
+    }
+}
+
+// ========== RABBITMQ INICIALIZACIÓN ==========
 async function initRabbitMQ() {
     try {
         await rabbitmq.connect();
@@ -101,7 +112,6 @@ app.use((err, req, res, next) => {
     res.status(500).json({
         error: 'Error interno del servidor',
         message: err.message,
-        // NO incluir stack trace en producción
         ...(process.env.NODE_ENV === 'development' && { stack: err.stack })
     });
 });
@@ -116,22 +126,48 @@ app.use((req, res) => {
 });
 
 // ========== INICIAR SERVIDOR ==========
-app.listen(PORT, async () => {
-    console.log(`🚀 Auth Service escuchando en http://localhost:${PORT}`);
-    console.log(`📊 Health check: http://localhost:${PORT}/health`);
-    await initRabbitMQ();
-});
+async function startServer() {
+    try {
+        // Conectar a MongoDB primero
+        const mongoConnected = await connectMongoDB();
+        
+        if (!mongoConnected) {
+            console.warn('⚠️ Continuando sin MongoDB (podría causar problemas)');
+        }
+
+        // Inicializar RabbitMQ
+        await initRabbitMQ();
+
+        // Escuchar en el puerto
+        app.listen(PORT, () => {
+            console.log(`🚀 Auth Service escuchando en http://localhost:${PORT}`);
+            console.log(`📊 Health check: http://localhost:${PORT}/health`);
+        });
+
+    } catch (error) {
+        console.error('❌ Error al iniciar el servidor:', error);
+        process.exit(1);
+    }
+}
+
+startServer();
 
 // ========== GRACEFUL SHUTDOWN ==========
 process.on('SIGINT', async () => {
     console.log('\n⏹️ Cerrando Auth Service...');
-    await rabbitmq.close();
-    await mongoose.connection.close();
-    process.exit(0);
+    try {
+        await rabbitmq.close();
+        await mongoose.connection.close();
+        console.log('✅ Conexiones cerradas correctamente');
+        process.exit(0);
+    } catch (error) {
+        console.error('❌ Error al cerrar:', error);
+        process.exit(1);
+    }
 });
 
 process.on('unhandledRejection', (reason, promise) => {
-    console.error('❌ Unhandled Rejection:', reason);
+    console.error('❌ Unhandled Rejection at:', promise, 'reason:', reason);
     process.exit(1);
 });
 
