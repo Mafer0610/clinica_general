@@ -6,8 +6,6 @@ document.getElementById('login-form').addEventListener('submit', async (e) => {
     try {
         const authServiceUrl = 'http://localhost:3001';
         
-        console.log('📤 Enviando login a:', authServiceUrl);
-
         const response = await fetch(`${authServiceUrl}/auth/login`, { 
             method: 'POST',
             headers: { 
@@ -17,11 +15,8 @@ document.getElementById('login-form').addEventListener('submit', async (e) => {
             credentials: 'include',
             body: JSON.stringify({ username, password })
         });
-
-        console.log('📥 Response status:', response.status);
         
         const data = await response.json();
-        console.log('📥 Response data:', data);
 
         if (data.success) {
             localStorage.setItem('authToken', data.token);
@@ -29,7 +24,7 @@ document.getElementById('login-form').addEventListener('submit', async (e) => {
             localStorage.setItem('userId', data.user.id);
             localStorage.setItem('username', data.user.username);
 
-            alert("✅ Inicio de sesión exitoso");
+            alert("Inicio de sesión exitoso");
 
             if (data.role === "medico") {
                 window.location.href = "../html/inicioMedico.html"; 

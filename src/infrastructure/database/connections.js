@@ -45,7 +45,6 @@ class MongoDBConnections {
   async connectClinic() {
     try {
       if (this.clinicConnection?.readyState === 1) {
-        console.log('Ya conectado a BD Clinica');
         return this.clinicConnection;
       }
       
