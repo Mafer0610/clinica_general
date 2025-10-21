@@ -1,4 +1,4 @@
-/*Manejo de peticiones HTTP - Actualizado*/
+/*Manejo de peticiones HTTP - Actualizado con logs*/
 const express = require('express');
 const AuthService = require('../../../application/services/AuthService');
 
@@ -87,12 +87,15 @@ router.post('/validate-token', async (req, res) => {
 // ========== OBTENER USUARIO POR ID ==========
 router.get('/user/:id', async (req, res) => {
     try {
+        console.log('📥 GET /user/:id - ID:', req.params.id);
         const result = await AuthService.getUserById(req.params.id);
         
         if (result.error) {
+            console.log('❌ Usuario no encontrado');
             return res.status(404).json(result);
         }
 
+        console.log('✅ Usuario encontrado:', result.user.username);
         res.json(result);
     } catch (error) {
         console.error("❌ Error obteniendo usuario:", error);
@@ -103,14 +106,26 @@ router.get('/user/:id', async (req, res) => {
 // ========== ACTUALIZAR USUARIO ==========
 router.put('/user/:id', async (req, res) => {
     try {
-        const { username, email, role } = req.body;
+        console.log('📥 PUT /user/:id - ID:', req.params.id);
+        console.log('📦 Datos recibidos:', req.body);
+        
+        const { username, email, role, nombre, apellidos, cedula, telefono } = req.body;
         
         const updateData = {};
-        if (username) updateData.username = username;
-        if (email) updateData.email = email;
-        if (role) updateData.role = role;
+        if (username !== undefined) updateData.username = username;
+        if (email !== undefined) updateData.email = email;
+        if (role !== undefined) updateData.role = role;
+        
+        // Nuevos campos - permitir valores vacíos
+        if (nombre !== undefined) updateData.nombre = nombre;
+        if (apellidos !== undefined) updateData.apellidos = apellidos;
+        if (cedula !== undefined) updateData.cedula = cedula;
+        if (telefono !== undefined) updateData.telefono = telefono;
+
+        console.log('📝 Datos a actualizar:', updateData);
 
         if (Object.keys(updateData).length === 0) {
+            console.log('⚠️ No hay datos para actualizar');
             return res.status(400).json({ 
                 error: "No hay datos para actualizar" 
             });
@@ -119,9 +134,11 @@ router.put('/user/:id', async (req, res) => {
         const result = await AuthService.updateUser(req.params.id, updateData);
         
         if (result.error) {
+            console.log('❌ Error en actualización:', result.error);
             return res.status(404).json(result);
         }
 
+        console.log('✅ Usuario actualizado correctamente');
         res.json(result);
     } catch (error) {
         console.error("❌ Error actualizando usuario:", error);

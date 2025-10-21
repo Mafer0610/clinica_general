@@ -44,13 +44,19 @@ const UserRepository = {
                 throw new Error('MongoDB Auth no está conectado');
             }
 
-            console.log('Buscando usuario por ID:', userId);
+            console.log('🔍 UserRepository.findById - Buscando:', userId);
             const UserModel = await getUserModel();
             const user = await UserModel.findById(userId).maxTimeMS(5000);
-            console.log('Búsqueda completada');
+            
+            if (user) {
+                console.log('✅ Usuario encontrado en Repository:', user.username);
+            } else {
+                console.log('❌ Usuario NO encontrado en Repository');
+            }
+            
             return user;
         } catch (error) {
-            console.error("Error al buscar usuario por ID:", error.message);
+            console.error("❌ Error al buscar usuario por ID:", error.message);
             throw error;
         }
     },
@@ -89,15 +95,49 @@ const UserRepository = {
                 throw new Error('MongoDB Auth no está conectado');
             }
 
+            console.log('🔄 UserRepository.update - ID:', userId);
+            console.log('📝 Datos a actualizar:', updateData);
+
             const UserModel = await getUserModel();
+            
+            // Buscar usuario antes de actualizar
+            const userBefore = await UserModel.findById(userId).maxTimeMS(5000);
+            if (!userBefore) {
+                console.log('❌ Usuario no encontrado para actualizar');
+                return null;
+            }
+            
+            console.log('📌 Usuario encontrado:', userBefore.username);
+            console.log('📌 Datos actuales:', {
+                nombre: userBefore.nombre,
+                apellidos: userBefore.apellidos,
+                cedula: userBefore.cedula,
+                telefono: userBefore.telefono
+            });
+
+            // Actualizar
             const user = await UserModel.findByIdAndUpdate(
                 userId,
                 { $set: updateData },
                 { new: true, runValidators: true }
             ).maxTimeMS(5000);
+
+            if (user) {
+                console.log('✅ Usuario actualizado correctamente');
+                console.log('📌 Nuevos datos:', {
+                    nombre: user.nombre,
+                    apellidos: user.apellidos,
+                    cedula: user.cedula,
+                    telefono: user.telefono
+                });
+            } else {
+                console.log('❌ Actualización falló - usuario no encontrado');
+            }
+
             return user;
         } catch (error) {
-            console.error("Error al actualizar usuario:", error.message);
+            console.error("❌ Error al actualizar usuario:", error.message);
+            console.error('Stack:', error.stack);
             throw error;
         }
     },
@@ -117,7 +157,7 @@ const UserRepository = {
                 { $set: { lastLogin: new Date() } },
                 { new: true }
             ).maxTimeMS(5000);
-            console.log('Último login actualizado');
+            console.log('✅ Último login actualizado');
             return user;
         } catch (error) {
             console.error("Error al actualizar último login:", error.message);

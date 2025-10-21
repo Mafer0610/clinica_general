@@ -51,9 +51,8 @@ function cargarDatosPaciente() {
 
 function verificarJsPDF() {
   if (typeof window.jspdf === 'undefined') {
-    console.warn('⚠️ jsPDF no se ha cargado. El botón de descarga PDF podría no funcionar.');
+    console.warn('jsPDF no se ha cargado. El botón de descarga PDF podría no funcionar.');
   } else {
-    console.log('✅ jsPDF cargado correctamente');
   }
 }
 

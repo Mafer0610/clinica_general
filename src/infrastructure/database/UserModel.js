@@ -29,6 +29,28 @@ const UserSchema = new mongoose.Schema({
         default: 'user',
         required: true 
     },
+    // ===== NUEVOS CAMPOS PARA MÉDICO =====
+    nombre: {
+        type: String,
+        default: '',
+        trim: true
+    },
+    apellidos: {
+        type: String,
+        default: '',
+        trim: true
+    },
+    cedula: {
+        type: String,
+        default: '',
+        trim: true
+    },
+    telefono: {
+        type: String,
+        default: '',
+        trim: true
+    },
+    // ===== FIN NUEVOS CAMPOS =====
     isActive: {
         type: Boolean,
         default: true

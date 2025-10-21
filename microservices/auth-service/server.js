@@ -100,7 +100,7 @@ async function initRabbitMQ() {
         await rabbitmq.bindQueue('user.updated', 'user.events', 'user.updated');
         await rabbitmq.bindQueue('user.deleted', 'user.events', 'user.deleted');
         
-        console.log('✅ RabbitMQ inicializado en Auth Service');
+        ('✅ RabbitMQ inicializado en Auth Service');
     } catch (error) {
         console.error('❌ Error inicializando RabbitMQ:', error.message);
     }
@@ -109,7 +109,7 @@ async function initRabbitMQ() {
 // ========== INICIAR SERVIDOR ==========
 async function startServer() {
     try {
-        console.log('🔄 Paso 1: Conectando a MongoDB Auth...');
+        ('🔄 Paso 1: Conectando a MongoDB Auth...');
         await connections.connectAuth();
         
         await new Promise(resolve => setTimeout(resolve, 1000));
@@ -121,21 +121,21 @@ async function startServer() {
             return;
         }
         
-        console.log('✅ MongoDB Auth confirmado listo');
+        ('✅ MongoDB Auth confirmado listo');
 
-        console.log('🔄 Paso 2: Inicializando RabbitMQ...');
+        ('🔄 Paso 2: Inicializando RabbitMQ...');
         await initRabbitMQ();
 
-        console.log('🔄 Paso 3: Iniciando servidor Express...');
+        ('🔄 Paso 3: Iniciando servidor Express...');
         app.listen(PORT, () => {
-            console.log('');
-            console.log('═══════════════════════════════════════════════════');
-            console.log(`🚀 Auth Service escuchando en http://localhost:${PORT}`);
-            console.log(`📊 Health check: http://localhost:${PORT}/health`);
-            console.log(`🗄️  MongoDB Auth: ✅ Conectado`);
-            console.log(`🐰 RabbitMQ: ${rabbitmq.channel ? '✅ Conectado' : '❌ Desconectado'}`);
-            console.log('═══════════════════════════════════════════════════');
-            console.log('');
+            ('');
+            ('═══════════════════════════════════════════════════');
+            (`🚀 Auth Service escuchando en http://localhost:${PORT}`);
+            (`📊 Health check: http://localhost:${PORT}/health`);
+            (`🗄️  MongoDB Auth: ✅ Conectado`);
+            (`🐰 RabbitMQ: ${rabbitmq.channel ? '✅ Conectado' : '❌ Desconectado'}`);
+            ('═══════════════════════════════════════════════════');
+            ('');
         });
 
     } catch (error) {
@@ -148,7 +148,7 @@ startServer();
 
 // ========== GRACEFUL SHUTDOWN ==========
 process.on('SIGINT', async () => {
-    console.log('\n⏹️ Cerrando Auth Service...');
+    ('\n⏹️ Cerrando Auth Service...');
     try {
         await rabbitmq.close();
         await connections.closeAll();

@@ -18,7 +18,7 @@
       <span class="djfa">DJFA</span>
       <span class="systems">System's</span>
     </h1>
-    <div class="profile-icon" data-modal="perfil">
+    <div class="profile-icon">
       <i class="fas fa-user-circle"></i>
     </div>
   </header>
@@ -244,31 +244,34 @@
         <div class="form-row">
           <div class="form-col">
             <label for="nombre">Nombre(s)</label>
-            <input type="text" id="nombre" class="form-input-perfil" value="Daniel Alejandro" placeholder="Nombre(s)">
+            <input type="text" id="nombre" class="form-input-perfil" placeholder="Ingresa tu(s) nombre(s)">
           </div>
           <div class="form-col">
             <label for="apellidos">Apellidos</label>
-            <input type="text" id="apellidos" class="form-input-perfil" value="Hernandez Perez" placeholder="Apellidos">
+            <input type="text" id="apellidos" class="form-input-perfil" placeholder="Ingresa tus apellidos">
           </div>
         </div>
         <div class="form-row">
           <div class="form-col">
-            <label for="cedula">Cedula</label>
-            <input type="text" id="cedula" class="form-input-perfil" value="4567890" placeholder="Cédula">
+            <label for="cedula">Cédula Profesional</label>
+            <input type="text" id="cedula" class="form-input-perfil" placeholder="Ingresa tu cédula">
           </div>
           <div class="form-col">
             <label for="telefono">Teléfono</label>
-            <input type="tel" id="telefono" class="form-input-perfil" value="961-117-4267" placeholder="Teléfono">
+            <input type="tel" id="telefono" class="form-input-perfil" placeholder="Ingresa tu teléfono">
           </div>
         </div>
         <div class="form-row">
           <div class="form-col-full">
-            <label for="correo">Correo</label>
-            <input type="email" id="correo" class="form-input-perfil" value="correo_de_ejemplo@gmail.com" placeholder="Correo electrónico">
+            <label for="correo">Correo Electrónico</label>
+            <input type="email" id="correo" class="form-input-perfil" placeholder="Ingresa tu correo" readonly style="background-color: #f0f0f0; cursor: not-allowed;">
+            <small style="color: #6B8199; font-size: 11px; margin-top: 5px; display: block;">
+              * El correo no puede ser modificado
+            </small>
           </div>
         </div>
         <div class="modal-buttons-perfil">
-          <button type="submit" class="btn-guardar-perfil">Guardar</button>
+          <button type="submit" class="btn-guardar-perfil">Guardar Cambios</button>
         </div>
       </form>
     </div>
