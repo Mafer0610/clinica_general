@@ -1,213 +1,220 @@
 const express = require('express');
-const cors = require('cors');
-const path = require('path');
-require('dotenv').config();
+const PatientRepository = require('../../../infrastructure/database/PatientRepository');
 
-const connections = require('../../src/infrastructure/database/connections');
-const rabbitmq = require('../../shared/rabbitmq/RabbitMQClient');
+const router = express.Router();
 
-// Importar controladores
-const PatientController = require('../../src/adapters/inbound/controllers/PatientController');
-const AppointmentController = require('../../src/adapters/inbound/controllers/AppointmentController');
-
-const app = express();
-const PORT = process.env.PORT || 3002;
-
-// Middleware
-const corsOptions = {
-    origin: ['http://localhost:5000', 'http://localhost:3001', 'http://localhost:3002'],
-    credentials: true,
-    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-    allowedHeaders: ['Content-Type', 'Authorization', 'X-Access-Token'],
-    optionsSuccessStatus: 200
-};
-
-app.use(cors(corsOptions));
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
-app.use(express.static(path.join(__dirname, '../../public')));
-
-// Middleware de validación de conexión MongoDB
-const validateMongoConnection = async (req, res, next) => {
+// ========== OBTENER TODOS LOS PACIENTES ==========
+router.get('/', async (req, res) => {
     try {
-        const clinicConn = await connections.connectClinic();
-        if (clinicConn.readyState !== 1) {
-            console.error('⚠️ Solicitud rechazada: MongoDB Clinic no está conectado');
-            return res.status(503).json({
-                error: 'Servicio no disponible',
-                message: 'La base de datos no está conectada. Intenta nuevamente en unos segundos.'
+        const patients = await PatientRepository.findAll();
+        
+        res.json({
+            success: true,
+            patients: patients,
+            count: patients.length
+        });
+    } catch (error) {
+        console.error('Error obteniendo pacientes:', error);
+        res.status(500).json({
+            success: false,
+            error: 'Error al obtener pacientes'
+        });
+    }
+});
+
+// ========== OBTENER PACIENTE POR ID ==========
+router.get('/:id', async (req, res) => {
+    try {
+        const patient = await PatientRepository.findById(req.params.id);
+        
+        if (!patient) {
+            return res.status(404).json({
+                success: false,
+                error: 'Paciente no encontrado'
             });
         }
-        next();
+        
+        res.json({
+            success: true,
+            patient: patient
+        });
     } catch (error) {
-        console.error('❌ Error validando conexión:', error);
-        return res.status(503).json({
-            error: 'Servicio no disponible',
-            message: 'Error de conexión a la base de datos.'
+        console.error('Error obteniendo paciente:', error);
+        res.status(500).json({
+            success: false,
+            error: 'Error al obtener paciente'
         });
     }
-};
-
-// ========== RUTAS API ==========
-app.use('/api/patients', validateMongoConnection, PatientController);
-app.use('/api/appointments', validateMongoConnection, AppointmentController);
-
-// Health check
-app.get('/health', async (req, res) => {
-    const status = connections.getStatus();
-    res.json({
-        service: 'Clinic Service',
-        status: 'OK',
-        port: PORT,
-        timestamp: new Date().toISOString(),
-        mongodb: status.clinic.status,
-        database: status.clinic.database,
-        rabbitmq: rabbitmq.channel ? 'connected' : 'disconnected'
-    });
 });
 
-// Ruta raíz
-app.get('/', (req, res) => {
-    res.json({
-        message: 'DJFA Clinic Service',
-        version: '1.0.0',
-        endpoints: {
-            patients: 'GET/POST /api/patients',
-            patient: 'GET/PUT /api/patients/:id',
-            appointments: 'GET/POST /api/appointments',
-            appointment: 'PUT /api/appointments/:id',
-            health: 'GET /health'
-        }
-    });
-});
-
-// Manejo de errores
-app.use((err, req, res, next) => {
-    console.error('❌ Error:', err);
-    res.status(500).json({
-        error: 'Error interno del servidor',
-        message: err.message,
-        ...(process.env.NODE_ENV === 'development' && { stack: err.stack })
-    });
-});
-
-// Ruta no encontrada
-app.use((req, res) => {
-    res.status(404).json({
-        error: 'Ruta no encontrada',
-        path: req.path,
-        method: req.method
-    });
-});
-
-// Inicializar RabbitMQ
-async function initRabbitMQ() {
+// ========== BUSCAR PACIENTES POR NOMBRE ==========
+router.get('/search/:term', async (req, res) => {
     try {
-        await rabbitmq.connect();
+        const patients = await PatientRepository.searchByName(req.params.term);
         
-        await rabbitmq.assertExchange('user.events', 'topic');
-        await rabbitmq.assertExchange('clinic.events', 'topic');
+        res.json({
+            success: true,
+            patients: patients,
+            count: patients.length
+        });
+    } catch (error) {
+        console.error('Error buscando pacientes:', error);
+        res.status(500).json({
+            success: false,
+            error: 'Error al buscar pacientes'
+        });
+    }
+});
+
+// ========== CREAR PACIENTE ==========
+router.post('/', async (req, res) => {
+    try {
+        const {
+            nombre,
+            apellidos,
+            fechaNacimiento,
+            sexo,
+            telefono,
+            telefonoEmergencia,
+            domicilio,
+            correo,
+            alergias,
+            padecimientos,
+            tipoSanguineo
+        } = req.body;
         
-        await rabbitmq.assertQueue('patient.created');
-        await rabbitmq.assertQueue('appointment.created');
-        await rabbitmq.assertQueue('appointment.updated');
-        await rabbitmq.assertQueue('medical_record.created');
+        // Validaciones básicas
+        if (!nombre || !apellidos || !fechaNacimiento || !sexo || !telefono || !telefonoEmergencia || !domicilio) {
+            return res.status(400).json({
+                success: false,
+                error: 'Faltan campos requeridos'
+            });
+        }
         
-        await rabbitmq.bindQueue('patient.created', 'clinic.events', 'patient.created');
-        await rabbitmq.bindQueue('appointment.created', 'clinic.events', 'appointment.created');
-        await rabbitmq.bindQueue('appointment.updated', 'clinic.events', 'appointment.updated');
-        await rabbitmq.bindQueue('medical_record.created', 'clinic.events', 'medical_record.created');
+        // Calcular edad
+        const birthDate = new Date(fechaNacimiento);
+        const today = new Date();
+        let edad = today.getFullYear() - birthDate.getFullYear();
+        const monthDiff = today.getMonth() - birthDate.getMonth();
+        if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
+            edad--;
+        }
         
-        // Escuchar eventos de usuarios
-        await rabbitmq.consume('user.created', async (message) => {
-            console.log('👤 Nuevo usuario creado:', message);
+        const patientData = {
+            nombre,
+            apellidos,
+            fechaNacimiento: new Date(fechaNacimiento),
+            edad,
+            sexo,
+            telefono,
+            telefonoEmergencia,
+            domicilio,
+            correo: correo || null,
+            alergias: alergias || 'Ninguna',
+            padecimientos: padecimientos || 'Sin padecimientos',
+            tipoSanguineo: tipoSanguineo || null,
+            historialMedico: []
+        };
+        
+        const result = await PatientRepository.save(patientData);
+        
+        res.status(201).json({
+            success: true,
+            message: 'Paciente creado exitosamente',
+            patientId: result.insertedId
+        });
+    } catch (error) {
+        console.error('Error creando paciente:', error);
+        res.status(500).json({
+            success: false,
+            error: 'Error al crear paciente'
+        });
+    }
+});
+
+// ========== ACTUALIZAR PACIENTE ==========
+router.put('/:id', async (req, res) => {
+    try {
+        const updateData = { ...req.body };
+        delete updateData._id; // No actualizar el _id
+        
+        // Si se actualiza la fecha de nacimiento, recalcular edad
+        if (updateData.fechaNacimiento) {
+            updateData.fechaNacimiento = new Date(updateData.fechaNacimiento);
             
-            if (message.role === 'user') {
-                try {
-                    console.log('📝 Creando perfil de paciente para usuario:', message.userId);
-                    
-                    await rabbitmq.publish('clinic.events', 'patient.created', {
-                        userId: message.userId,
-                        username: message.username,
-                        email: message.email,
-                        createdAt: new Date()
-                    });
-                } catch (error) {
-                    console.error('❌ Error creando perfil de paciente:', error);
-                }
+            const birthDate = updateData.fechaNacimiento;
+            const today = new Date();
+            let edad = today.getFullYear() - birthDate.getFullYear();
+            const monthDiff = today.getMonth() - birthDate.getMonth();
+            if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
+                edad--;
             }
-        });
-        
-        await rabbitmq.consume('user.updated', async (message) => {
-            console.log('🔄 Usuario actualizado:', message);
-        });
-        
-        await rabbitmq.consume('user.deleted', async (message) => {
-            console.log('🗑️ Usuario eliminado:', message);
-        });
-        
-        console.log('✅ RabbitMQ inicializado en Clinic Service');
-    } catch (error) {
-        console.error('❌ Error inicializando RabbitMQ:', error.message);
-    }
-}
-
-// ========== INICIAR SERVIDOR ==========
-async function startServer() {
-    try {
-        console.log('🔄 Paso 1: Conectando a MongoDB Clinic...');
-        await connections.connectClinic();
-        
-        await new Promise(resolve => setTimeout(resolve, 1000));
-        
-        const clinicConn = await connections.connectClinic();
-        if (clinicConn.readyState !== 1) {
-            console.error('❌ MongoDB conectado pero no está listo');
-            setTimeout(startServer, 3000);
-            return;
+            updateData.edad = edad;
         }
         
-        console.log('✅ MongoDB Clinic confirmado listo');
-
-        console.log('🔄 Paso 2: Inicializando RabbitMQ...');
-        await initRabbitMQ();
-
-        console.log('🔄 Paso 3: Iniciando servidor Express...');
-        app.listen(PORT, () => {
-            console.log('');
-            console.log('═══════════════════════════════════════════════════');
-            console.log(`🚀 Clinic Service escuchando en http://localhost:${PORT}`);
-            console.log(`📊 Health check: http://localhost:${PORT}/health`);
-            console.log(`🗄️  MongoDB Clinic: ✅ Conectado a base de datos 'dclinica'`);
-            console.log(`🐰 RabbitMQ: ${rabbitmq.channel ? '✅ Conectado' : '❌ Desconectado'}`);
-            console.log('═══════════════════════════════════════════════════');
-            console.log('');
+        const updatedPatient = await PatientRepository.update(req.params.id, updateData);
+        
+        if (!updatedPatient) {
+            return res.status(404).json({
+                success: false,
+                error: 'Paciente no encontrado'
+            });
+        }
+        
+        res.json({
+            success: true,
+            message: 'Paciente actualizado exitosamente',
+            patient: updatedPatient
         });
-
     } catch (error) {
-        console.error('❌ Error al iniciar el servidor:', error);
-        process.exit(1);
+        console.error('Error actualizando paciente:', error);
+        res.status(500).json({
+            success: false,
+            error: 'Error al actualizar paciente'
+        });
     }
-}
+});
 
-startServer();
-
-// ========== GRACEFUL SHUTDOWN ==========
-process.on('SIGINT', async () => {
-    console.log('\n⏹️ Cerrando Clinic Service...');
+// ========== AGREGAR ENTRADA AL HISTORIAL MÉDICO ==========
+router.post('/:id/historial', async (req, res) => {
     try {
-        await rabbitmq.close();
-        await connections.closeAll();
-        console.log('✅ Conexiones cerradas correctamente');
-        process.exit(0);
+        const { fecha, tipo, descripcion, medicamentosPrevios } = req.body;
+        
+        const patient = await PatientRepository.findById(req.params.id);
+        
+        if (!patient) {
+            return res.status(404).json({
+                success: false,
+                error: 'Paciente no encontrado'
+            });
+        }
+        
+        const historialEntry = {
+            fecha: fecha ? new Date(fecha) : new Date(),
+            tipo: tipo || 'Consulta General',
+            descripcion: descripcion || '',
+            medicamentosPrevios: medicamentosPrevios || []
+        };
+        
+        const historialMedico = patient.historialMedico || [];
+        historialMedico.push(historialEntry);
+        
+        const updatedPatient = await PatientRepository.update(req.params.id, {
+            historialMedico: historialMedico
+        });
+        
+        res.json({
+            success: true,
+            message: 'Entrada agregada al historial médico',
+            patient: updatedPatient
+        });
     } catch (error) {
-        console.error('❌ Error al cerrar:', error);
-        process.exit(1);
+        console.error('Error agregando entrada al historial:', error);
+        res.status(500).json({
+            success: false,
+            error: 'Error al agregar entrada al historial'
+        });
     }
 });
 
-process.on('unhandledRejection', (reason, promise) => {
-    console.error('❌ Unhandled Rejection at:', promise, 'reason:', reason);
-});
-
-module.exports = app;
+module.exports = router;
