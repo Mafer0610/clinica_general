@@ -6,7 +6,10 @@ const router = express.Router();
 // ========== OBTENER TODOS LOS PACIENTES ==========
 router.get('/', async (req, res) => {
     try {
+        console.log('📥 Solicitud GET /api/patients recibida');
         const patients = await PatientRepository.findAll();
+        
+        console.log(`✅ Se encontraron ${patients.length} pacientes`);
         
         res.json({
             success: true,
@@ -14,10 +17,11 @@ router.get('/', async (req, res) => {
             count: patients.length
         });
     } catch (error) {
-        console.error('Error obteniendo pacientes:', error);
+        console.error('❌ Error obteniendo pacientes:', error);
         res.status(500).json({
             success: false,
-            error: 'Error al obtener pacientes'
+            error: 'Error al obtener pacientes',
+            details: error.message
         });
     }
 });
@@ -25,24 +29,29 @@ router.get('/', async (req, res) => {
 // ========== OBTENER PACIENTE POR ID ==========
 router.get('/:id', async (req, res) => {
     try {
+        console.log('📥 Solicitud GET /api/patients/:id recibida para ID:', req.params.id);
         const patient = await PatientRepository.findById(req.params.id);
         
         if (!patient) {
+            console.log('⚠️ Paciente no encontrado');
             return res.status(404).json({
                 success: false,
                 error: 'Paciente no encontrado'
             });
         }
         
+        console.log('✅ Paciente encontrado:', patient.nombre);
+        
         res.json({
             success: true,
             patient: patient
         });
     } catch (error) {
-        console.error('Error obteniendo paciente:', error);
+        console.error('❌ Error obteniendo paciente:', error);
         res.status(500).json({
             success: false,
-            error: 'Error al obtener paciente'
+            error: 'Error al obtener paciente',
+            details: error.message
         });
     }
 });
@@ -51,24 +60,25 @@ router.get('/:id', async (req, res) => {
 router.get('/search/:term', async (req, res) => {
     try {
         const patients = await PatientRepository.searchByName(req.params.term);
-        
+                
         res.json({
             success: true,
             patients: patients,
             count: patients.length
         });
     } catch (error) {
-        console.error('Error buscando pacientes:', error);
+        console.error('❌ Error buscando pacientes:', error);
         res.status(500).json({
             success: false,
-            error: 'Error al buscar pacientes'
+            error: 'Error al buscar pacientes',
+            details: error.message
         });
     }
 });
 
-// ========== CREAR PACIENTE ==========
 router.post('/', async (req, res) => {
     try {
+        
         const {
             nombre,
             apellidos,
@@ -87,7 +97,7 @@ router.post('/', async (req, res) => {
         if (!nombre || !apellidos || !fechaNacimiento || !sexo || !telefono || !telefonoEmergencia || !domicilio) {
             return res.status(400).json({
                 success: false,
-                error: 'Faltan campos requeridos'
+                error: 'Faltan campos requeridos: nombre, apellidos, fechaNacimiento, sexo, telefono, telefonoEmergencia, domicilio'
             });
         }
         
@@ -99,7 +109,7 @@ router.post('/', async (req, res) => {
         if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
             edad--;
         }
-        
+                
         const patientData = {
             nombre,
             apellidos,
@@ -117,7 +127,7 @@ router.post('/', async (req, res) => {
         };
         
         const result = await PatientRepository.save(patientData);
-        
+                
         res.status(201).json({
             success: true,
             message: 'Paciente creado exitosamente',
@@ -127,18 +137,18 @@ router.post('/', async (req, res) => {
         console.error('Error creando paciente:', error);
         res.status(500).json({
             success: false,
-            error: 'Error al crear paciente'
+            error: 'Error al crear paciente',
+            details: error.message
         });
     }
 });
 
 // ========== ACTUALIZAR PACIENTE ==========
 router.put('/:id', async (req, res) => {
-    try {
+    try {        
         const updateData = { ...req.body };
-        delete updateData._id; // No actualizar el _id
+        delete updateData._id;
         
-        // Si se actualiza la fecha de nacimiento, recalcular edad
         if (updateData.fechaNacimiento) {
             updateData.fechaNacimiento = new Date(updateData.fechaNacimiento);
             
@@ -160,7 +170,7 @@ router.put('/:id', async (req, res) => {
                 error: 'Paciente no encontrado'
             });
         }
-        
+                
         res.json({
             success: true,
             message: 'Paciente actualizado exitosamente',
@@ -170,19 +180,22 @@ router.put('/:id', async (req, res) => {
         console.error('Error actualizando paciente:', error);
         res.status(500).json({
             success: false,
-            error: 'Error al actualizar paciente'
+            error: 'Error al actualizar paciente',
+            details: error.message
         });
     }
 });
 
-// ========== AGREGAR ENTRADA AL HISTORIAL MÉDICO ==========
 router.post('/:id/historial', async (req, res) => {
     try {
+        console.log('📥 Agregando entrada al historial del paciente:', req.params.id);
+        
         const { fecha, tipo, descripcion, medicamentosPrevios } = req.body;
         
         const patient = await PatientRepository.findById(req.params.id);
         
         if (!patient) {
+            console.log('Paciente no encontrado');
             return res.status(404).json({
                 success: false,
                 error: 'Paciente no encontrado'
@@ -199,6 +212,7 @@ router.post('/:id/historial', async (req, res) => {
         const historialMedico = patient.historialMedico || [];
         historialMedico.push(historialEntry);
         
+        console.log('Actualizando historial médico...');
         const updatedPatient = await PatientRepository.update(req.params.id, {
             historialMedico: historialMedico
         });
@@ -212,7 +226,8 @@ router.post('/:id/historial', async (req, res) => {
         console.error('Error agregando entrada al historial:', error);
         res.status(500).json({
             success: false,
-            error: 'Error al agregar entrada al historial'
+            error: 'Error al agregar entrada al historial',
+            details: error.message
         });
     }
 });
