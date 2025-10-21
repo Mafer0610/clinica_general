@@ -49,7 +49,7 @@ class MongoDBConnections {
       }
       
       this.clinicConnection = await mongoose.createConnection(process.env.MONGO_URI, {
-        dbName: 'clinica',
+        dbName: 'dclinica',
         serverSelectionTimeoutMS: 10000,
         socketTimeoutMS: 45000,
         maxPoolSize: 10,
@@ -70,6 +70,8 @@ class MongoDBConnections {
       this.clinicConnection.on('disconnected', () => {
         console.warn('Desconectado de Clinica DB');
       });
+
+      console.log(`✅ Conectado a base de datos: ${this.clinicConnection.name}`);
 
       return this.clinicConnection;
     } catch (error) {

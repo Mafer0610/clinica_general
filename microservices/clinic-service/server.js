@@ -5,13 +5,18 @@ require('dotenv').config();
 
 const connections = require('../../src/infrastructure/database/connections');
 const rabbitmq = require('../../shared/rabbitmq/RabbitMQClient');
+
+// ========== IMPORTAR CONTROLADORES ==========
 const AuthController = require('../../src/adapters/inbound/controllers/AuthController');
+const PatientController = require('../../src/adapters/inbound/controllers/PatientController');
+const AppointmentController = require('../../src/adapters/inbound/controllers/AppointmentController');
 
 const app = express();
-const PORT = process.env.PORT || 3001;
+const PORT = process.env.PORT || 3002;
 
+// ========== CORS CONFIGURATION ==========
 const corsOptions = {
-    origin: ['http://localhost:3001', 'http://localhost:3002'],
+    origin: ['http://localhost:3001', 'http://localhost:3002', 'http://127.0.0.1:3002'],
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization', 'X-Access-Token'],
@@ -23,23 +28,17 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 // ========== SERVIR ARCHIVOS ESTÁTICOS ==========
-// Importante: La ruta debe apuntar correctamente a la carpeta public
 app.use(express.static(path.join(__dirname, '../../public')));
-
-// Servir archivos CSS
 app.use('/css', express.static(path.join(__dirname, '../../public/css')));
-
-// Servir archivos JS
 app.use('/js', express.static(path.join(__dirname, '../../public/js')));
-
-// Servir archivos HTML
 app.use('/html', express.static(path.join(__dirname, '../../public/html')));
 
+// ========== MIDDLEWARE DE VALIDACIÓN DE CONEXIÓN ==========
 const validateMongoConnection = async (req, res, next) => {
     try {
-        const authConn = await connections.connectAuth();
-        if (authConn.readyState !== 1) {
-            console.error('⚠️ Solicitud rechazada: MongoDB Auth no está conectado');
+        const clinicConn = await connections.connectClinic();
+        if (clinicConn.readyState !== 1) {
+            console.error('⚠️ Solicitud rechazada: MongoDB Clinic no está conectado');
             return res.status(503).json({
                 error: 'Servicio no disponible',
                 message: 'La base de datos no está conectada. Intenta nuevamente en unos segundos.'
@@ -56,7 +55,19 @@ const validateMongoConnection = async (req, res, next) => {
 };
 
 // ========== RUTAS API ==========
-app.use('/auth', validateMongoConnection, AuthController);
+console.log('📍 Configurando rutas API...');
+
+// Rutas de autenticación
+app.use('/auth', AuthController);
+console.log('✅ Rutas /auth configuradas');
+
+// Rutas de pacientes (CON validación de conexión)
+app.use('/api/patients', validateMongoConnection, PatientController);
+console.log('✅ Rutas /api/patients configuradas');
+
+// Rutas de citas (CON validación de conexión)
+app.use('/api/appointments', validateMongoConnection, AppointmentController);
+console.log('✅ Rutas /api/appointments configuradas');
 
 // ========== RUTAS HTML ==========
 // Ruta raíz - Login
@@ -84,21 +95,28 @@ app.get('/inicioPaciente.html', (req, res) => {
     res.sendFile(path.join(__dirname, '../../public/html/inicioPaciente.html'));
 });
 
-// Health check
+// Ruta para pacientes médico
+app.get('/pacienteMedico.html', (req, res) => {
+    res.sendFile(path.join(__dirname, '../../public/html/pacienteMedico.html'));
+});
+
+// ========== HEALTH CHECK ==========
 app.get('/health', async (req, res) => {
     const status = connections.getStatus();
     res.json({
-        service: 'Auth Service',
+        service: 'Clinic Service',
         status: 'OK',
         port: PORT,
         timestamp: new Date().toISOString(),
-        mongodb: status.auth.status,
-        database: status.auth.database,
+        mongodb: {
+            auth: status.auth.status,
+            clinic: status.clinic.status
+        },
         rabbitmq: rabbitmq.channel ? 'connected' : 'disconnected'
     });
 });
 
-// Manejo de errores
+// ========== MANEJO DE ERRORES ==========
 app.use((err, req, res, next) => {
     console.error('❌ Error:', err);
     res.status(500).json({
@@ -110,6 +128,7 @@ app.use((err, req, res, next) => {
 
 // Ruta no encontrada (debe ir al final)
 app.use((req, res) => {
+    console.log('⚠️ Ruta no encontrada:', req.method, req.path);
     res.status(404).json({
         error: 'Ruta no encontrada',
         path: req.path,
@@ -117,6 +136,7 @@ app.use((req, res) => {
     });
 });
 
+// ========== INICIALIZAR RABBITMQ ==========
 async function initRabbitMQ() {
     try {
         await rabbitmq.connect();
@@ -132,7 +152,7 @@ async function initRabbitMQ() {
         await rabbitmq.bindQueue('user.updated', 'user.events', 'user.updated');
         await rabbitmq.bindQueue('user.deleted', 'user.events', 'user.deleted');
         
-        console.log('✅ RabbitMQ inicializado en Auth Service');
+        console.log('✅ RabbitMQ inicializado en Clinic Service');
     } catch (error) {
         console.error('❌ Error inicializando RabbitMQ:', error.message);
     }
@@ -141,33 +161,70 @@ async function initRabbitMQ() {
 // ========== INICIAR SERVIDOR ==========
 async function startServer() {
     try {
+        console.log('');
+        console.log('═══════════════════════════════════════════════════');
+        console.log('🏥 INICIANDO CLINIC SERVICE');
+        console.log('═══════════════════════════════════════════════════');
+        
+        // Paso 1: Conectar a MongoDB Auth
+        console.log('');
         console.log('🔄 Paso 1: Conectando a MongoDB Auth...');
         await connections.connectAuth();
-        
         await new Promise(resolve => setTimeout(resolve, 1000));
         
         const authConn = await connections.connectAuth();
         if (authConn.readyState !== 1) {
-            console.error('❌ MongoDB conectado pero no está listo');
+            console.error('❌ MongoDB Auth conectado pero no está listo');
             setTimeout(startServer, 3000);
             return;
         }
-        
         console.log('✅ MongoDB Auth confirmado listo');
+        
+        // Paso 2: Conectar a MongoDB Clinic
+        console.log('');
+        console.log('🔄 Paso 2: Conectando a MongoDB Clinic...');
+        await connections.connectClinic();
+        await new Promise(resolve => setTimeout(resolve, 1000));
+        
+        const clinicConn = await connections.connectClinic();
+        if (clinicConn.readyState !== 1) {
+            console.error('❌ MongoDB Clinic conectado pero no está listo');
+            setTimeout(startServer, 3000);
+            return;
+        }
+        console.log('✅ MongoDB Clinic confirmado listo');
+        console.log('📊 Base de datos Clinic:', clinicConn.name);
 
-        console.log('🔄 Paso 2: Inicializando RabbitMQ...');
+        // Paso 3: Inicializar RabbitMQ
+        console.log('');
+        console.log('🔄 Paso 3: Inicializando RabbitMQ...');
         await initRabbitMQ();
 
-        console.log('🔄 Paso 3: Iniciando servidor Express...');
+        // Paso 4: Iniciar servidor Express
+        console.log('');
+        console.log('🔄 Paso 4: Iniciando servidor Express...');
         app.listen(PORT, () => {
             console.log('');
             console.log('═══════════════════════════════════════════════════');
-            console.log(`🚀 Auth Service escuchando en http://localhost:${PORT}`);
-            console.log(`🌐 LOGIN: http://localhost:${PORT}/`);
-            console.log(`📝 REGISTRO: http://localhost:${PORT}/register.html`);
-            console.log(`📊 Health check: http://localhost:${PORT}/health`);
-            console.log(`🗄️  MongoDB Auth: ✅ Conectado`);
-            console.log(`🐰 RabbitMQ: ${rabbitmq.channel ? '✅ Conectado' : '❌ Desconectado'}`);
+            console.log(`🚀 Clinic Service escuchando en http://localhost:${PORT}`);
+            console.log('');
+            console.log('📍 RUTAS DISPONIBLES:');
+            console.log(`   🌐 LOGIN: http://localhost:${PORT}/`);
+            console.log(`   📝 REGISTRO: http://localhost:${PORT}/register.html`);
+            console.log(`   🏥 INICIO MÉDICO: http://localhost:${PORT}/inicioMedico.html`);
+            console.log(`   👥 PACIENTES: http://localhost:${PORT}/pacienteMedico.html`);
+            console.log('');
+            console.log('📍 API ENDPOINTS:');
+            console.log(`   👤 Auth: http://localhost:${PORT}/auth`);
+            console.log(`   🏥 Pacientes: http://localhost:${PORT}/api/patients`);
+            console.log(`   📅 Citas: http://localhost:${PORT}/api/appointments`);
+            console.log('');
+            console.log('📊 ESTADO:');
+            console.log(`   🗄️  MongoDB Auth: ✅ Conectado (${authConn.name})`);
+            console.log(`   🗄️  MongoDB Clinic: ✅ Conectado (${clinicConn.name})`);
+            console.log(`   🐰 RabbitMQ: ${rabbitmq.channel ? '✅ Conectado' : '❌ Desconectado'}`);
+            console.log('');
+            console.log(`   📊 Health check: http://localhost:${PORT}/health`);
             console.log('═══════════════════════════════════════════════════');
             console.log('');
         });
@@ -182,7 +239,7 @@ startServer();
 
 // ========== GRACEFUL SHUTDOWN ==========
 process.on('SIGINT', async () => {
-    console.log('\n⏹️ Cerrando Auth Service...');
+    console.log('\n⏹️ Cerrando Clinic Service...');
     try {
         await rabbitmq.close();
         await connections.closeAll();
