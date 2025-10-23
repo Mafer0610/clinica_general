@@ -76,10 +76,19 @@ function crearTarjetaPaciente(patient) {
   return card;
 }
 
+// ===== MAPA DE TIPOS DE CITA =====
+const TIPOS_CITA = {
+  '1': 'Consulta médica',
+  '2': 'Consulta general',
+  '3': 'Revisión',
+  '4': 'Control',
+  '5': 'Seguimiento'
+};
+
 // ===== ABRIR MODAL CON INFORMACIÓN DEL PACIENTE =====
 async function abrirModalPaciente(patientId) {
   try {
-    // Obtener información del paciente y sus citas
+    
     const [patientResponse, appointmentsResponse] = await Promise.all([
       fetch(`${API_BASE_URL}/patients/${patientId}`),
       fetch(`${API_BASE_URL}/appointments/patient/${patientId}`)
@@ -92,7 +101,6 @@ async function abrirModalPaciente(patientId) {
       const patient = patientData.patient;
       const appointments = appointmentsData.success ? appointmentsData.appointments : [];
 
-      // Llenar información del modal
       document.getElementById('infoPacienteNombre').textContent = `${patient.nombre} ${patient.apellidos}`;
       document.getElementById('infoPacienteTel').textContent = patient.telefono || 'N/A';
       document.getElementById('infoPacienteCorreo').textContent = patient.correo || 'N/A';
@@ -101,27 +109,54 @@ async function abrirModalPaciente(patientId) {
       document.getElementById('infoPacienteAlergias').textContent = patient.alergias || 'Ninguna';
       document.getElementById('infoPacienteEmergencia').textContent = patient.telefonoEmergencia || 'N/A';
 
-      // Llenar historial de citas
       const historialContainer = document.getElementById('historialCitas');
       historialContainer.innerHTML = '';
 
       if (appointments.length === 0) {
         historialContainer.innerHTML = '<p style="text-align: center; color: #6B8199; padding: 10px;">No hay citas registradas</p>';
       } else {
-        appointments.forEach(cita => {
+        const citasOrdenadas = appointments.sort((a, b) => {
+          return new Date(b.fecha) - new Date(a.fecha);
+        });
+
+        citasOrdenadas.forEach(cita => {
+          console.log('Procesando cita:', {
+            fecha: cita.fecha,
+            hora: cita.hora,
+            tipoCita: cita.tipoCita,
+            descripcion: cita.descripcion
+          });
+
           const citaElement = document.createElement('div');
           citaElement.className = 'historial-item';
-          const fecha = new Date(cita.fecha).toLocaleDateString('es-MX');
-          citaElement.innerHTML = `<strong>${fecha}</strong> | ${cita.tipo || 'Consulta General'}.`;
+          
+          const fecha = new Date(cita.fecha);
+          const fechaFormateada = fecha.toLocaleDateString('es-MX', {
+            day: '2-digit',
+            month: '2-digit',
+            year: 'numeric'
+          });
+          
+          const tipoCita = TIPOS_CITA[cita.tipoCita] || cita.tipo || 'Consulta General';
+          
+          const hora = cita.hora || 'N/A';
+                    
+          citaElement.innerHTML = `
+            <strong>${fechaFormateada}</strong> | 
+            <span style="color: #0F3759; font-weight: 600;">${hora}</span> | 
+            ${tipoCita}
+            ${cita.descripcion ? `<br><span style="font-size: 0.9em; color: #6B8199; margin-left: 20px;">📝 ${cita.descripcion}</span>` : ''}
+          `;
+          
           historialContainer.appendChild(citaElement);
         });
       }
-
-      // Guardar ID del paciente para las acciones del modal
       document.getElementById('modalInfoPaciente').setAttribute('data-current-patient-id', patientId);
 
-      // Mostrar modal
       document.getElementById('modalInfoPaciente').style.display = 'flex';
+    } else {
+      console.error('Error al cargar paciente:', patientData.error);
+      alert('Error al cargar la información del paciente');
     }
   } catch (error) {
     console.error('Error al cargar información del paciente:', error);

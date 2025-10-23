@@ -116,16 +116,16 @@ router.post('/', async (req, res) => {
     try {
         const {
             pacienteId,
+            pacienteNombre,
             medicoId,
             fecha,
             hora,
-            tipo,
-            descripcion,
-            sintomas
+            tipoCita,
+            descripcion
         } = req.body;
         
         // Validaciones
-        if (!pacienteId || !medicoId || !fecha || !hora) {
+        if (!pacienteId || !medicoId || !fecha || !hora || !tipoCita) {
             return res.status(400).json({
                 success: false,
                 error: 'Faltan campos requeridos'
@@ -136,13 +136,12 @@ router.post('/', async (req, res) => {
         
         const appointmentData = {
             pacienteId: new ObjectId(pacienteId),
+            pacienteNombre: pacienteNombre,
             medicoId: medicoId,
             fecha: new Date(fecha),
             hora: hora,
-            tipo: tipo || 'Consulta General',
+            tipoCita: tipoCita,
             descripcion: descripcion || '',
-            sintomas: sintomas || '',
-            diagnostico: '',
             estado: 'pendiente',
             recordatorioEnviado: false,
             confirmada: false

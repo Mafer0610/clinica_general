@@ -1,7 +1,16 @@
 // ===== CONFIGURACIÓN API =====
 const API_BASE_URL = 'http://localhost:3002/api';
 
-// ===== GESTIÓN UNIFICADA DE MODALES =====
+// ===== MAPA DE TIPOS DE CITA =====
+const TIPOS_CITA = {
+  '1': 'Consulta médica',
+  '2': 'Consulta general',
+  '3': 'Revisión',
+  '4': 'Control',
+  '5': 'Seguimiento'
+};
+
+// ===== GESTIÓN DE MODALES =====
 const Modal = {
   abrir: (id) => {
     const modal = document.getElementById(`modal${id.charAt(0).toUpperCase() + id.slice(1)}`);
@@ -21,19 +30,17 @@ const Modal = {
 document.addEventListener('DOMContentLoaded', async function() {
   console.log('🔄 Inicializando aplicación...');
   
-  // Obtener ID del médico del localStorage
   const medicoId = localStorage.getItem('userId');
   console.log('👤 ID del médico:', medicoId);
   
   if (medicoId) {
     await cargarCitasMedico(medicoId);
-    await cargarPacientesParaSelect();
   } else {
     console.error('❌ No se encontró ID de médico en localStorage');
   }
 
-  // Configurar event listeners
   configurarEventListeners();
+  configurarBusquedaPacientes();
   configurarFormularios();
 });
 
@@ -41,7 +48,6 @@ document.addEventListener('DOMContentLoaded', async function() {
 function configurarEventListeners() {
   console.log('🔧 Configurando event listeners...');
 
-  // Event listener para abrir modales
   document.addEventListener('click', async (e) => {
     const modalTrigger = e.target.closest('[data-modal]');
     const modalClose = e.target.closest('[data-close]');
@@ -52,7 +58,6 @@ function configurarEventListeners() {
       const modalName = modalTrigger.dataset.modal;
       console.log('📂 Abriendo modal:', modalName);
       
-      // Si es el modal de perfil, cargar datos primero
       if (modalName === 'perfil') {
         await cargarPerfilMedico();
       }
@@ -64,6 +69,7 @@ function configurarEventListeners() {
       e.preventDefault();
       console.log('❌ Cerrando modal:', modalClose.dataset.close);
       Modal.cerrar(modalClose.dataset.close);
+      limpiarFormularioCita();
     }
     
     if (pickerTrigger) {
@@ -74,16 +80,17 @@ function configurarEventListeners() {
     }
   });
 
-  // Cerrar modales al hacer clic en el overlay
   document.querySelectorAll('.modal').forEach(modal => {
     modal.addEventListener('click', (e) => {
       if (e.target === modal) {
         modal.style.display = 'none';
+        if (modal.id === 'modalCita') {
+          limpiarFormularioCita();
+        }
       }
     });
   });
 
-  // Event listener específico para el icono de perfil
   const profileIcon = document.querySelector('.profile-icon');
   if (profileIcon) {
     console.log('✅ Icono de perfil encontrado');
@@ -94,12 +101,93 @@ function configurarEventListeners() {
       await cargarPerfilMedico();
       Modal.abrir('perfil');
     });
-  } else {
-    console.error('❌ No se encontró el icono de perfil');
   }
 }
 
-// ===== FUNCIÓN PARA CARGAR PERFIL DEL MÉDICO =====
+// ===== BUSQUEDA DE PACIENTES CON SUGERENCIAS =====
+function configurarBusquedaPacientes() {
+  const searchInput = document.getElementById('pacienteSearch');
+  const suggestionsDiv = document.getElementById('pacienteSuggestions');
+  const pacienteIdInput = document.getElementById('pacienteId');
+  
+  let pacientes = [];
+  
+  // Cargar todos los pacientes al inicio
+  async function cargarPacientes() {
+    try {
+      const response = await fetch(`${API_BASE_URL}/patients`);
+      const data = await response.json();
+      
+      if (data.success) {
+        pacientes = data.patients;
+        console.log(`✅ ${pacientes.length} pacientes cargados para búsqueda`);
+      }
+    } catch (error) {
+      console.error('❌ Error cargando pacientes:', error);
+    }
+  }
+  
+  cargarPacientes();
+  
+  // Búsqueda en tiempo real
+  searchInput.addEventListener('input', function() {
+    const searchTerm = this.value.toLowerCase().trim();
+    
+    if (searchTerm.length < 2) {
+      suggestionsDiv.classList.remove('show');
+      pacienteIdInput.value = '';
+      return;
+    }
+    
+    const resultados = pacientes.filter(p => {
+      const nombreCompleto = `${p.nombre} ${p.apellidos}`.toLowerCase();
+      return nombreCompleto.includes(searchTerm);
+    });
+    
+    mostrarSugerencias(resultados);
+  });
+  
+  function mostrarSugerencias(resultados) {
+    suggestionsDiv.innerHTML = '';
+    
+    if (resultados.length === 0) {
+      suggestionsDiv.innerHTML = '<div class="no-suggestions">No se encontraron pacientes</div>';
+      suggestionsDiv.classList.add('show');
+      return;
+    }
+    
+    resultados.forEach(paciente => {
+      const item = document.createElement('div');
+      item.className = 'patient-suggestion-item';
+      item.innerHTML = `
+        <div class="patient-suggestion-name">${paciente.nombre} ${paciente.apellidos}</div>
+        <div class="patient-suggestion-details">
+          ${paciente.sexo} • ${paciente.edad || 'N/A'} años • Tel: ${paciente.telefono}
+        </div>
+      `;
+      
+      item.addEventListener('click', () => {
+        searchInput.value = `${paciente.nombre} ${paciente.apellidos}`;
+        pacienteIdInput.value = paciente._id;
+        suggestionsDiv.classList.remove('show');
+        console.log('✅ Paciente seleccionado:', paciente._id);
+      });
+      
+      suggestionsDiv.appendChild(item);
+    });
+    
+    suggestionsDiv.classList.add('show');
+  }
+  
+  // Cerrar sugerencias al hacer clic fuera
+  document.addEventListener('click', (e) => {
+    if (!searchInput.contains(e.target) && !suggestionsDiv.contains(e.target)) {
+      suggestionsDiv.classList.remove('show');
+    }
+  });
+}
+
+// ===== CARGAR PERFIL DEL MÉDICO =====
 async function cargarPerfilMedico() {
   console.log('📥 Cargando perfil del médico...');
   
@@ -107,41 +195,34 @@ async function cargarPerfilMedico() {
     const userId = localStorage.getItem('userId');
     
     if (!userId) {
-      console.error('❌ No se encontró ID de usuario en localStorage');
+      console.error('❌ No se encontró ID de usuario');
       limpiarCamposPerfil();
       return;
     }
 
-    console.log('🔍 Buscando usuario:', userId);
-
-    // Obtener datos del usuario desde Auth Service
     const response = await fetch(`http://localhost:3001/auth/user/${userId}`);
     const data = await response.json();
-
-    console.log('📦 Respuesta del servidor:', data);
 
     if (data.success && data.user) {
       const user = data.user;
       
-      // Llenar campos del formulario
       document.getElementById('nombre').value = user.nombre || '';
       document.getElementById('apellidos').value = user.apellidos || '';
       document.getElementById('cedula').value = user.cedula || '';
       document.getElementById('telefono').value = user.telefono || '';
       document.getElementById('correo').value = user.email || '';
       
-      console.log('✅ Perfil del médico cargado correctamente');
+      console.log('✅ Perfil cargado correctamente');
     } else {
       console.warn('⚠️ No se encontraron datos del usuario');
       limpiarCamposPerfil();
     }
   } catch (error) {
-    console.error('❌ Error cargando perfil del médico:', error);
+    console.error('❌ Error cargando perfil:', error);
     limpiarCamposPerfil();
   }
 }
 
-// ===== FUNCIÓN PARA LIMPIAR CAMPOS DEL PERFIL =====
 function limpiarCamposPerfil() {
   document.getElementById('nombre').value = '';
   document.getElementById('apellidos').value = '';
@@ -168,12 +249,10 @@ async function cargarCitasMedico(medicoId) {
   }
 }
 
-// ===== RENDERIZAR CITAS EN EL CALENDARIO =====
+// ===== RENDERIZAR CITAS EN CALENDARIO =====
 function renderizarCitasEnCalendario(appointments) {
-  // Limpiar citas existentes
   document.querySelectorAll('.appointment-simple').forEach(el => el.remove());
 
-  // Obtener fecha actual de inicio de semana (lunes)
   const hoy = new Date();
   const diaSemana = hoy.getDay();
   const diff = diaSemana === 0 ? -6 : 1 - diaSemana;
@@ -181,7 +260,6 @@ function renderizarCitasEnCalendario(appointments) {
   lunes.setDate(hoy.getDate() + diff);
   lunes.setHours(0, 0, 0, 0);
 
-  // Crear fechas para cada día de la semana
   const fechasSemana = [];
   for (let i = 0; i < 5; i++) {
     const fecha = new Date(lunes);
@@ -189,7 +267,6 @@ function renderizarCitasEnCalendario(appointments) {
     fechasSemana.push(fecha);
   }
 
-  // Filtrar y colocar citas en el calendario
   appointments.forEach(cita => {
     const fechaCita = new Date(cita.fecha);
     
@@ -210,11 +287,13 @@ function renderizarCitasEnCalendario(appointments) {
           const celda = filas[filaIndex].cells[columnaIndex];
           
           if (celda) {
+            const tipoCita = TIPOS_CITA[cita.tipoCita] || 'Consulta';
+            
             const citaElement = document.createElement('div');
             citaElement.className = 'appointment-simple';
             citaElement.innerHTML = `
               <div class="appointment-title">${cita.pacienteNombre || 'Paciente'}</div>
-              <div class="appointment-update">${cita.tipo || 'Consulta'}</div>
+              <div class="appointment-update">${tipoCita}</div>
             `;
             
             citaElement.addEventListener('click', () => {
@@ -229,7 +308,7 @@ function renderizarCitasEnCalendario(appointments) {
   });
 }
 
-// ===== MOSTRAR DETALLES DE UNA CITA =====
+// ===== MOSTRAR DETALLES DE CITA =====
 function mostrarDetallesCita(cita) {
   const fechaFormateada = new Date(cita.fecha).toLocaleDateString('es-MX', {
     weekday: 'long',
@@ -238,36 +317,15 @@ function mostrarDetallesCita(cita) {
     day: 'numeric'
   });
 
+  const tipoCita = TIPOS_CITA[cita.tipoCita] || 'Consulta';
+
   alert(`
-📅 Cita: ${cita.tipo || 'Consulta General'}
+📅 Tipo: ${tipoCita}
 👤 Paciente: ${cita.pacienteNombre || 'N/A'}
 📆 Fecha: ${fechaFormateada}
 🕐 Hora: ${cita.hora}
 📝 Descripción: ${cita.descripcion || 'Sin descripción'}
-📊 Estado: ${cita.estado || 'pendiente'}
   `.trim());
-}
-
-// ===== CARGAR PACIENTES PARA EL SELECT =====
-async function cargarPacientesParaSelect() {
-  try {
-    const response = await fetch(`${API_BASE_URL}/patients`);
-    const data = await response.json();
-
-    if (data.success && data.patients) {
-      const select = document.getElementById('paciente');
-      select.innerHTML = '<option value="">Seleccionar paciente</option>';
-      
-      data.patients.forEach(patient => {
-        const option = document.createElement('option');
-        option.value = patient._id;
-        option.textContent = `${patient.nombre} ${patient.apellidos}`;
-        select.appendChild(option);
-      });
-    }
-  } catch (error) {
-    console.error('❌ Error al cargar pacientes:', error);
-  }
 }
 
 // ===== CONFIGURAR FORMULARIOS =====
@@ -275,15 +333,28 @@ function configurarFormularios() {
   const forms = {
     cita: async () => {
       console.log('📅 Guardando cita...');
-      const pacienteId = document.getElementById('paciente').value;
+      
+      const pacienteId = document.getElementById('pacienteId').value;
+      const pacienteNombre = document.getElementById('pacienteSearch').value;
       const descripcion = document.getElementById('descripcion').value;
       const fecha = document.getElementById('fecha').value;
       const hora = document.getElementById('hora').value;
       const tipoCita = document.getElementById('tipoCita').value;
       const medicoId = localStorage.getItem('userId');
 
-      if (!pacienteId || !fecha || !hora) {
-        alert('Por favor completa todos los campos requeridos');
+      // Validaciones
+      if (!pacienteId || !pacienteNombre) {
+        alert('⚠️ Por favor selecciona un paciente de la lista');
+        return;
+      }
+
+      if (!fecha || !hora) {
+        alert('⚠️ Por favor completa la fecha y hora');
+        return;
+      }
+
+      if (!tipoCita) {
+        alert('⚠️ Por favor selecciona el tipo de cita');
         return;
       }
 
@@ -295,10 +366,11 @@ function configurarFormularios() {
           },
           body: JSON.stringify({
             pacienteId: pacienteId,
+            pacienteNombre: pacienteNombre,
             medicoId: medicoId,
             fecha: fecha,
             hora: hora,
-            tipo: tipoCita || 'Consulta General',
+            tipoCita: tipoCita,
             descripcion: descripcion || ''
           })
         });
@@ -308,8 +380,8 @@ function configurarFormularios() {
         if (data.success) {
           alert('✅ Cita agendada correctamente!');
           Modal.cerrar('cita');
+          limpiarFormularioCita();
           await cargarCitasMedico(medicoId);
-          document.querySelector('[data-form="cita"]').reset();
         } else {
           alert('❌ Error al agendar cita: ' + (data.error || 'Error desconocido'));
         }
@@ -332,69 +404,56 @@ function configurarFormularios() {
       Modal.cerrar('reportes');
     },
     
-  perfil: async () => {
-    try {
-      const userId = localStorage.getItem('userId');
-      console.log('👤 ID del usuario:', userId);
-      
-      if (!userId) {
-        alert('❌ Error: No se encontró ID de usuario');
-        return;
+    perfil: async () => {
+      try {
+        const userId = localStorage.getItem('userId');
+        
+        if (!userId) {
+          alert('❌ Error: No se encontró ID de usuario');
+          return;
+        }
+
+        const nombre = document.getElementById('nombre').value.trim();
+        const apellidos = document.getElementById('apellidos').value.trim();
+        const cedula = document.getElementById('cedula').value.trim();
+        const telefono = document.getElementById('telefono').value.trim();
+
+        const updateData = {};
+        if (nombre) updateData.nombre = nombre;
+        if (apellidos) updateData.apellidos = apellidos;
+        if (cedula) updateData.cedula = cedula;
+        if (telefono) updateData.telefono = telefono;
+
+        if (Object.keys(updateData).length === 0) {
+          alert('⚠️ No hay cambios para guardar');
+          return;
+        }
+
+        const response = await fetch(`http://localhost:3001/auth/user/${userId}`, {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json',
+            'Accept': 'application/json'
+          },
+          body: JSON.stringify(updateData)
+        });
+
+        const data = await response.json();
+
+        if (response.ok && data.success) {
+          alert('✅ Perfil actualizado correctamente!');
+          Modal.cerrar('perfil');
+          await cargarPerfilMedico();
+        } else {
+          alert('❌ Error: ' + (data.error || 'No se pudo actualizar el perfil'));
+        }
+      } catch (error) {
+        console.error('❌ Error:', error);
+        alert('❌ Error de conexión: ' + error.message);
       }
-
-      // Obtener valores del formulario
-      const nombre = document.getElementById('nombre').value.trim();
-      const apellidos = document.getElementById('apellidos').value.trim();
-      const cedula = document.getElementById('cedula').value.trim();
-      const telefono = document.getElementById('telefono').value.trim();
-
-      // Crear objeto con solo los campos que tienen valor
-      const updateData = {};
-      if (nombre) updateData.nombre = nombre;
-      if (apellidos) updateData.apellidos = apellidos;
-      if (cedula) updateData.cedula = cedula;
-      if (telefono) updateData.telefono = telefono;
-
-      console.log('📤 Datos a enviar:', updateData);
-
-      // Verificar que hay datos para actualizar
-      if (Object.keys(updateData).length === 0) {
-        alert('⚠️ No hay cambios para guardar');
-        return;
-      }
-
-      // Enviar actualización
-      const response = await fetch(`http://localhost:3001/auth/user/${userId}`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-          'Accept': 'application/json'
-        },
-        body: JSON.stringify(updateData)
-      });
-
-      console.log('📡 Status:', response.status);
-
-      const data = await response.json();
-      console.log('📥 Respuesta:', data);
-
-      if (response.ok && data.success) {
-        alert('✅ Perfil actualizado correctamente!');
-        Modal.cerrar('perfil');
-        // Recargar los datos del perfil
-        await cargarPerfilMedico();
-      } else {
-        alert('❌ Error: ' + (data.error || 'No se pudo actualizar el perfil'));
-        console.error('❌ Detalles:', data);
-      }
-    } catch (error) {
-      console.error('❌ Error:', error);
-      alert('❌ Error de conexión: ' + error.message);
     }
-  }
   };
 
-  // Asignar eventos a formularios
   document.querySelectorAll('[data-form]').forEach(form => {
     form.addEventListener('submit', (e) => {
       e.preventDefault();
@@ -402,4 +461,15 @@ function configurarFormularios() {
       forms[formName]();
     });
   });
+}
+
+// ===== LIMPIAR FORMULARIO DE CITA =====
+function limpiarFormularioCita() {
+  document.getElementById('pacienteSearch').value = '';
+  document.getElementById('pacienteId').value = '';
+  document.getElementById('descripcion').value = '';
+  document.getElementById('fecha').value = '';
+  document.getElementById('hora').value = '';
+  document.getElementById('tipoCita').value = '';
+  document.getElementById('pacienteSuggestions').classList.remove('show');
 }

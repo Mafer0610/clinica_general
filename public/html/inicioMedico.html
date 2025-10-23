@@ -173,35 +173,50 @@
       <form class="modal-form" data-form="cita">
         <div class="form-group">
           <label for="paciente">Paciente:</label>
+          <input 
+            type="text" 
+            id="pacienteSearch" 
+            class="form-input"
+            placeholder="Buscar paciente..."
+            autocomplete="off"
+          >
+          <input type="hidden" id="pacienteId">
+          <div id="pacienteSuggestions" class="patient-suggestions"></div>
         </div>
+        
         <div class="form-group">
           <label for="descripcion">Descripción:</label>
-          <textarea id="descripcion" class="form-textarea" rows="4"></textarea>
+          <textarea id="descripcion" class="form-textarea" rows="4" placeholder="Descripción de la cita..."></textarea>
         </div>
+        
         <div class="form-group">
           <label for="fecha">Fecha:</label>
           <div class="input-with-icon" data-picker="fecha">
             <i class="fas fa-calendar-alt input-icon"></i>
-            <input type="date" id="fecha" class="form-input" placeholder="--/--/--">
+            <input type="date" id="fecha" class="form-input" required>
           </div>
         </div>
+        
         <div class="form-group">
           <label for="hora">Hora inicio:</label>
           <div class="input-with-icon" data-picker="hora">
             <i class="fas fa-clock input-icon"></i>
-            <input type="time" id="hora" class="form-input" placeholder="-- : --">
+            <input type="time" id="hora" class="form-input" required>
           </div>
         </div>
+        
         <div class="form-group">
           <label for="tipoCita">Tipo de cita:</label>
-          <select id="tipoCita" class="form-select">
-            <option value="">Consulta medica</option>
-            <option value="1">Consulta general</option>
-            <option value="2">Revisión</option>
-            <option value="3">Control</option>
-            <option value="4">Seguimiento</option>
+          <select id="tipoCita" class="form-select" required>
+            <option value="">Seleccionar tipo</option>
+            <option value="1">Consulta médica</option>
+            <option value="2">Consulta general</option>
+            <option value="3">Revisión</option>
+            <option value="4">Control</option>
+            <option value="5">Seguimiento</option>
           </select>
         </div>
+        
         <div class="modal-buttons">
           <button type="button" class="btn-modal btn-cancelar" data-close="cita">Cancelar</button>
           <button type="submit" class="btn-modal btn-agendar">Agendar</button>

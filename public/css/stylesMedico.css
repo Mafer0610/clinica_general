@@ -946,3 +946,63 @@ h1 {
     font-size: 1.3em;
   }
 }
+
+/* === SUGERENCIAS DE PACIENTES === */
+.patient-suggestions {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  background: white;
+  border: 2px solid #0F3759;
+  border-top: none;
+  border-radius: 0 0 8px 8px;
+  max-height: 200px;
+  overflow-y: auto;
+  z-index: 1000;
+  display: none;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
+}
+
+.patient-suggestions.show {
+  display: block;
+}
+
+.patient-suggestion-item {
+  padding: 12px 15px;
+  cursor: pointer;
+  border-bottom: 1px solid #E8E8E8;
+  transition: all 0.2s ease;
+  color: #0F3759;
+  font-size: 0.95em;
+}
+
+.patient-suggestion-item:last-child {
+  border-bottom: none;
+}
+
+.patient-suggestion-item:hover {
+  background-color: #B8CDE0;
+  color: #0F3759;
+}
+
+.patient-suggestion-name {
+  font-weight: 600;
+  margin-bottom: 3px;
+}
+
+.patient-suggestion-details {
+  font-size: 0.85em;
+  color: #6B8199;
+}
+
+.no-suggestions {
+  padding: 12px 15px;
+  color: #6B8199;
+  font-size: 0.9em;
+  text-align: center;
+}
+
+.form-group {
+  position: relative;
+}
