@@ -272,8 +272,6 @@ async function cargarPacientesParaSelect() {
 
 // ===== CONFIGURAR FORMULARIOS =====
 function configurarFormularios() {
-  console.log('📝 Configurando formularios...');
-
   const forms = {
     cita: async () => {
       console.log('📅 Guardando cita...');
@@ -334,57 +332,66 @@ function configurarFormularios() {
       Modal.cerrar('reportes');
     },
     
-    perfil: async () => {
-      console.log('💾 Guardando perfil...');
-      try {
-        const userId = localStorage.getItem('userId');
-        console.log('👤 ID del usuario:', userId);
-        
-        if (!userId) {
-          alert('❌ Error: No se encontró ID de usuario');
-          return;
-        }
-
-        // Obtener valores (pueden estar vacíos)
-        const updateData = {
-          nombre: document.getElementById('nombre').value.trim(),
-          apellidos: document.getElementById('apellidos').value.trim(),
-          cedula: document.getElementById('cedula').value.trim(),
-          telefono: document.getElementById('telefono').value.trim(),
-          email: document.getElementById('correo').value.trim()
-        };
-
-        console.log('📤 Datos a enviar:', updateData);
-        console.log('🌐 URL:', `http://localhost:3001/auth/user/${userId}`);
-
-        // Enviar actualización
-        const response = await fetch(`http://localhost:3001/auth/user/${userId}`, {
-          method: 'PUT',
-          headers: {
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify(updateData)
-        });
-
-        console.log('📡 Status de respuesta:', response.status);
-        console.log('📡 Status text:', response.statusText);
-
-        const data = await response.json();
-        console.log('📥 Respuesta completa:', data);
-
-        if (response.ok && data.success) {
-          alert('✅ Perfil actualizado correctamente!');
-          Modal.cerrar('perfil');
-        } else {
-          alert('❌ Error al actualizar perfil: ' + (data.error || 'Error desconocido'));
-          console.error('❌ Detalles del error:', data);
-        }
-      } catch (error) {
-        console.error('❌ Error actualizando perfil:', error);
-        console.error('❌ Stack trace:', error.stack);
-        alert('❌ Error de conexión al actualizar perfil: ' + error.message);
+  perfil: async () => {
+    try {
+      const userId = localStorage.getItem('userId');
+      console.log('👤 ID del usuario:', userId);
+      
+      if (!userId) {
+        alert('❌ Error: No se encontró ID de usuario');
+        return;
       }
+
+      // Obtener valores del formulario
+      const nombre = document.getElementById('nombre').value.trim();
+      const apellidos = document.getElementById('apellidos').value.trim();
+      const cedula = document.getElementById('cedula').value.trim();
+      const telefono = document.getElementById('telefono').value.trim();
+
+      // Crear objeto con solo los campos que tienen valor
+      const updateData = {};
+      if (nombre) updateData.nombre = nombre;
+      if (apellidos) updateData.apellidos = apellidos;
+      if (cedula) updateData.cedula = cedula;
+      if (telefono) updateData.telefono = telefono;
+
+      console.log('📤 Datos a enviar:', updateData);
+
+      // Verificar que hay datos para actualizar
+      if (Object.keys(updateData).length === 0) {
+        alert('⚠️ No hay cambios para guardar');
+        return;
+      }
+
+      // Enviar actualización
+      const response = await fetch(`http://localhost:3001/auth/user/${userId}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json'
+        },
+        body: JSON.stringify(updateData)
+      });
+
+      console.log('📡 Status:', response.status);
+
+      const data = await response.json();
+      console.log('📥 Respuesta:', data);
+
+      if (response.ok && data.success) {
+        alert('✅ Perfil actualizado correctamente!');
+        Modal.cerrar('perfil');
+        // Recargar los datos del perfil
+        await cargarPerfilMedico();
+      } else {
+        alert('❌ Error: ' + (data.error || 'No se pudo actualizar el perfil'));
+        console.error('❌ Detalles:', data);
+      }
+    } catch (error) {
+      console.error('❌ Error:', error);
+      alert('❌ Error de conexión: ' + error.message);
     }
+  }
   };
 
   // Asignar eventos a formularios

@@ -6,28 +6,23 @@ const UserSchema = new mongoose.Schema({
         type: String, 
         required: true, 
         unique: true,
-        trim: true,
-        minlength: 3,
-        maxlength: 50
+        trim: true
     },
     password: { 
         type: String, 
-        required: true,
-        minlength: 6
+        required: true
     },
     email: {
         type: String,
         required: true,
         unique: true,
         trim: true,
-        lowercase: true,
-        match: [/^\w+([.-]?\w+)*@\w+([.-]?\w+)*(\.\w{2,3})+$/, 'Email inválido']
+        lowercase: true
     },
     role: { 
         type: String, 
         enum: ['admin', 'user', 'medico'], 
-        default: 'user',
-        required: true 
+        default: 'user'
     },
     nombre: {
         type: String,
@@ -53,19 +48,7 @@ const UserSchema = new mongoose.Schema({
         type: Boolean,
         default: true
     },
-    createdAt: {
-        type: Date,
-        default: Date.now
-    },
-    updatedAt: {
-        type: Date,
-        default: Date.now
-    },
     lastLogin: {
-        type: Date,
-        default: null
-    },
-    deletedAt: {
         type: Date,
         default: null
     }

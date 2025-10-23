@@ -105,27 +105,31 @@ router.get('/user/:id', async (req, res) => {
 // ========== ACTUALIZAR USUARIO ==========
 router.put('/user/:id', async (req, res) => {
     try {
-        console.log('📥 PUT /user/:id - ID:', req.params.id);
-        console.log('📦 Datos recibidos:', req.body);
+        console.log('📥 PUT /user/:id');
+        console.log('📋 ID:', req.params.id);
+        console.log('📦 Body completo:', JSON.stringify(req.body, null, 2));
         
         const { username, email, role, nombre, apellidos, cedula, telefono } = req.body;
         
+        // Construir objeto de actualización solo con campos que vienen en el body
         const updateData = {};
         if (username !== undefined) updateData.username = username;
         if (email !== undefined) updateData.email = email;
         if (role !== undefined) updateData.role = role;
-        
-        // Nuevos campos - permitir valores vacíos
         if (nombre !== undefined) updateData.nombre = nombre;
         if (apellidos !== undefined) updateData.apellidos = apellidos;
         if (cedula !== undefined) updateData.cedula = cedula;
         if (telefono !== undefined) updateData.telefono = telefono;
+        
+        // Agregar timestamp de actualización
+        updateData.updatedAt = new Date();
 
-        console.log('📝 Datos a actualizar:', updateData);
+        console.log('📝 Datos a actualizar:', JSON.stringify(updateData, null, 2));
 
-        if (Object.keys(updateData).length === 0) {
+        if (Object.keys(updateData).length === 1) { // solo updatedAt
             console.log('⚠️ No hay datos para actualizar');
             return res.status(400).json({ 
+                success: false,
                 error: "No hay datos para actualizar" 
             });
         }
@@ -138,10 +142,16 @@ router.put('/user/:id', async (req, res) => {
         }
 
         console.log('✅ Usuario actualizado correctamente');
+        console.log('📤 Respuesta:', JSON.stringify(result, null, 2));
         res.json(result);
     } catch (error) {
         console.error("❌ Error actualizando usuario:", error);
-        res.status(500).json({ error: "Error interno del servidor" });
+        console.error('Stack:', error.stack);
+        res.status(500).json({ 
+            success: false,
+            error: "Error interno del servidor",
+            details: error.message 
+        });
     }
 });
 

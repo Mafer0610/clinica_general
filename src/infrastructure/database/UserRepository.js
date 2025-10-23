@@ -95,48 +95,54 @@ const UserRepository = {
                 throw new Error('MongoDB Auth no está conectado');
             }
 
-            console.log('🔄 UserRepository.update - ID:', userId);
-            console.log('📝 Datos a actualizar:', updateData);
+            console.log('🔄 UserRepository.update');
+            console.log('📋 ID:', userId);
+            console.log('📝 Update data:', JSON.stringify(updateData, null, 2));
 
             const UserModel = await getUserModel();
             
-            // Buscar usuario antes de actualizar
-            const userBefore = await UserModel.findById(userId).maxTimeMS(5000);
+            // Verificar que el usuario existe
+            const userBefore = await UserModel.findById(userId);
             if (!userBefore) {
-                console.log('❌ Usuario no encontrado para actualizar');
+                console.log('❌ Usuario no encontrado');
                 return null;
             }
             
-            console.log('📌 Usuario encontrado:', userBefore.username);
-            console.log('📌 Datos actuales:', {
+            console.log('📌 Usuario antes de actualizar:', {
+                username: userBefore.username,
                 nombre: userBefore.nombre,
                 apellidos: userBefore.apellidos,
                 cedula: userBefore.cedula,
                 telefono: userBefore.telefono
             });
 
-            // Actualizar
-            const user = await UserModel.findByIdAndUpdate(
+            // Realizar actualización
+            const updatedUser = await UserModel.findByIdAndUpdate(
                 userId,
                 { $set: updateData },
-                { new: true, runValidators: true }
-            ).maxTimeMS(5000);
+                { 
+                    new: true,           // Retornar documento actualizado
+                    runValidators: true  // Ejecutar validaciones del schema
+                }
+            );
 
-            if (user) {
-                console.log('✅ Usuario actualizado correctamente');
-                console.log('📌 Nuevos datos:', {
-                    nombre: user.nombre,
-                    apellidos: user.apellidos,
-                    cedula: user.cedula,
-                    telefono: user.telefono
-                });
-            } else {
-                console.log('❌ Actualización falló - usuario no encontrado');
+            if (!updatedUser) {
+                console.log('❌ Actualización falló');
+                return null;
             }
 
-            return user;
+            console.log('✅ Usuario actualizado');
+            console.log('📌 Usuario después de actualizar:', {
+                username: updatedUser.username,
+                nombre: updatedUser.nombre,
+                apellidos: updatedUser.apellidos,
+                cedula: updatedUser.cedula,
+                telefono: updatedUser.telefono
+            });
+
+            return updatedUser;
         } catch (error) {
-            console.error("❌ Error al actualizar usuario:", error.message);
+            console.error("❌ Error en update:", error.message);
             console.error('Stack:', error.stack);
             throw error;
         }
