@@ -1,4 +1,3 @@
-/*Manejo de peticiones HTTP - Actualizado con logs*/
 const express = require('express');
 const AuthService = require('../../../application/services/AuthService');
 

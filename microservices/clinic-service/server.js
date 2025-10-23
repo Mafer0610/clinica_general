@@ -54,22 +54,15 @@ const validateMongoConnection = async (req, res, next) => {
     }
 };
 
-// ========== RUTAS API ==========
-console.log('📍 Configurando rutas API...');
-
 // Rutas de autenticación
 app.use('/auth', AuthController);
-console.log('✅ Rutas /auth configuradas');
 
 // Rutas de pacientes (CON validación de conexión)
 app.use('/api/patients', validateMongoConnection, PatientController);
-console.log('✅ Rutas /api/patients configuradas');
 
 // Rutas de citas (CON validación de conexión)
 app.use('/api/appointments', validateMongoConnection, AppointmentController);
-console.log('✅ Rutas /api/appointments configuradas');
 
-// ========== RUTAS HTML ==========
 // Ruta raíz - Login
 app.get('/', (req, res) => {
     res.sendFile(path.join(__dirname, '../../public/html/index.html'));
@@ -128,7 +121,6 @@ app.use((err, req, res, next) => {
 
 // Ruta no encontrada (debe ir al final)
 app.use((req, res) => {
-    console.log('⚠️ Ruta no encontrada:', req.method, req.path);
     res.status(404).json({
         error: 'Ruta no encontrada',
         path: req.path,
@@ -151,8 +143,6 @@ async function initRabbitMQ() {
         await rabbitmq.bindQueue('user.created', 'user.events', 'user.created');
         await rabbitmq.bindQueue('user.updated', 'user.events', 'user.updated');
         await rabbitmq.bindQueue('user.deleted', 'user.events', 'user.deleted');
-        
-        console.log('✅ RabbitMQ inicializado en Clinic Service');
     } catch (error) {
         console.error('❌ Error inicializando RabbitMQ:', error.message);
     }
@@ -160,49 +150,33 @@ async function initRabbitMQ() {
 
 // ========== INICIAR SERVIDOR ==========
 async function startServer() {
-    try {
-        console.log('');
-        console.log('═══════════════════════════════════════════════════');
-        console.log('🏥 INICIANDO CLINIC SERVICE');
-        console.log('═══════════════════════════════════════════════════');
-        
+    try {        
         // Paso 1: Conectar a MongoDB Auth
-        console.log('');
-        console.log('🔄 Paso 1: Conectando a MongoDB Auth...');
         await connections.connectAuth();
         await new Promise(resolve => setTimeout(resolve, 1000));
         
         const authConn = await connections.connectAuth();
         if (authConn.readyState !== 1) {
-            console.error('❌ MongoDB Auth conectado pero no está listo');
+            console.error('MongoDB Auth conectado pero no está listo');
             setTimeout(startServer, 3000);
             return;
         }
-        console.log('✅ MongoDB Auth confirmado listo');
         
         // Paso 2: Conectar a MongoDB Clinic
-        console.log('');
-        console.log('🔄 Paso 2: Conectando a MongoDB Clinic...');
         await connections.connectClinic();
         await new Promise(resolve => setTimeout(resolve, 1000));
         
         const clinicConn = await connections.connectClinic();
         if (clinicConn.readyState !== 1) {
-            console.error('❌ MongoDB Clinic conectado pero no está listo');
+            console.error('MongoDB Clinic conectado pero no está listo');
             setTimeout(startServer, 3000);
             return;
         }
-        console.log('✅ MongoDB Clinic confirmado listo');
-        console.log('📊 Base de datos Clinic:', clinicConn.name);
 
         // Paso 3: Inicializar RabbitMQ
-        console.log('');
-        console.log('🔄 Paso 3: Inicializando RabbitMQ...');
         await initRabbitMQ();
 
         // Paso 4: Iniciar servidor Express
-        console.log('');
-        console.log('🔄 Paso 4: Iniciando servidor Express...');
         app.listen(PORT, () => {
             console.log('');
             console.log('═══════════════════════════════════════════════════');
@@ -239,14 +213,12 @@ startServer();
 
 // ========== GRACEFUL SHUTDOWN ==========
 process.on('SIGINT', async () => {
-    console.log('\n⏹️ Cerrando Clinic Service...');
     try {
         await rabbitmq.close();
         await connections.closeAll();
-        console.log('✅ Conexiones cerradas correctamente');
         process.exit(0);
     } catch (error) {
-        console.error('❌ Error al cerrar:', error);
+        console.error('Error al cerrar:', error);
         process.exit(1);
     }
 });

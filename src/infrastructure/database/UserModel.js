@@ -29,7 +29,6 @@ const UserSchema = new mongoose.Schema({
         default: 'user',
         required: true 
     },
-    // ===== NUEVOS CAMPOS PARA MÉDICO =====
     nombre: {
         type: String,
         default: '',
@@ -50,7 +49,6 @@ const UserSchema = new mongoose.Schema({
         default: '',
         trim: true
     },
-    // ===== FIN NUEVOS CAMPOS =====
     isActive: {
         type: Boolean,
         default: true
