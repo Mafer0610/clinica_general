@@ -41,39 +41,31 @@
             <form class="modal-form-perfil" data-form="perfil">
                 <div class="form-row">
                     <div class="form-col">
-                        <label for="nombre">Nombre(s)</label>
-                        <input type="text" id="nombre" class="form-input-perfil" value="Daniel Alejandro"
-                            placeholder="Nombre(s)">
+                        <label for="nombreModal">Nombre(s)</label>
+                        <input type="text" id="nombreModal" class="form-input-perfil" placeholder="Nombre(s)">
                     </div>
                     <div class="form-col">
-                        <label for="apellidos">Apellidos</label>
-                        <input type="text" id="apellidos" class="form-input-perfil" value="Hernandez Perez"
-                            placeholder="Apellidos">
+                        <label for="apellidosModal">Apellidos</label>
+                        <input type="text" id="apellidosModal" class="form-input-perfil" placeholder="Apellidos">
                     </div>
                 </div>
                 <div class="form-row">
                     <div class="form-col">
-                        <label for="telefono">Teléfono</label>
-                        <input type="tel" id="telefono" class="form-input-perfil" value="961-117-4267"
-                            placeholder="Teléfono">
+                        <label for="telefonoModal">Teléfono</label>
+                        <input type="tel" id="telefonoModal" class="form-input-perfil" placeholder="Teléfono">
                     </div>
-                    <div class="form-row">
-                        <div class="form-col">
-                            <label for="emergencia">Teléfono de emergencia</label>
-                            <input type="tel" id="emergencia" class="form-input-perfil" value="9612794256"
-                                placeholder="Teléfono de emergencia">
-                        </div>
+                    <div class="form-col">
+                        <label for="emergenciaModal">Teléfono de emergencia</label>
+                        <input type="tel" id="emergenciaModal" class="form-input-perfil" placeholder="Teléfono de emergencia">
                     </div>
-
                 </div>
 
                 <div class="form-col-full">
-                    <label for="correo">Correo</label>
-                    <input type="email" id="correo" class="form-input-perfil" value="correo_de_ejemplo@gmail.com"
-                        placeholder="Correo electrónico">
+                    <label for="correoModal">Correo</label>
+                    <input type="email" id="correoModal" class="form-input-perfil" placeholder="Correo electrónico" readonly style="background-color: #f0f0f0; cursor: not-allowed;">
                 </div>
 
-                <button class="btn-submit">
+                <button type="submit" class="btn-submit">
                     <i class="fas fa-check-circle"></i> Guardar
                 </button>
             </form>
@@ -88,28 +80,28 @@
             <div class="form-row">
                 <div class="form-group">
                     <label for="nombre">Nombre</label>
-                    <input type="text" id="nombre" value="Daniel" />
+                    <input type="text" id="nombre" placeholder="Tu nombre" />
                 </div>
                 <div class="form-group">
                     <label for="apellido">Apellido</label>
-                    <input type="text" id="apellido" value="Hernandez Peróz" />
+                    <input type="text" id="apellido" placeholder="Tus apellidos" />
                 </div>
             </div>
 
             <div class="form-row">
                 <div class="form-group">
                     <label for="fecha">Fecha de la cita</label>
-                    <input type="text" id="fecha" value="01:12:25" />
+                    <input type="date" id="fecha" />
                 </div>
                 <div class="form-group">
                     <label for="hora">Hora de la cita</label>
-                    <input type="text" id="hora" value="2:00" />
+                    <input type="time" id="hora" />
                 </div>
             </div>
 
             <div class="form-group">
                 <label for="sintomas">Síntomas</label>
-                <textarea id="sintomas">Dolor de cabeza con escurrimiento nasal</textarea>
+                <textarea id="sintomas" placeholder="Describe tus síntomas..."></textarea>
             </div>
         </div>
 
@@ -119,15 +111,15 @@
             <div class="form-row">
                 <div class="form-group">
                     <label for="correo">Correo</label>
-                    <input type="email" id="correo" value="ejemplo@gmail.com" />
+                    <input type="email" id="correo" placeholder="tu@email.com" readonly style="background-color: #f0f0f0;" />
                 </div>
                 <div class="form-group">
                     <label for="telefono">Teléfono</label>
-                    <input type="tel" id="telefono" value="9616714598" />
+                    <input type="tel" id="telefono" placeholder="961-XXX-XXXX" />
                 </div>
                 <div class="form-group">
                     <label for="emergencia">Tel. De emergencia</label>
-                    <input type="tel" id="emergencia" value="9612794256" />
+                    <input type="tel" id="emergencia" placeholder="961-XXX-XXXX" />
                 </div>
             </div>
         </div>
@@ -138,22 +130,22 @@
             <div class="form-row">
                 <div class="form-group">
                     <label for="sanguineo">Tipo Sanguíneo</label>
-                    <input type="text" id="sanguineo" value="O+" />
+                    <input type="text" id="sanguineo" placeholder="Ej: O+" />
                 </div>
                 <div class="form-group">
                     <label for="alergias">Alergias</label>
-                    <input type="text" id="alergias" value="Sin alergias" />
+                    <input type="text" id="alergias" placeholder="Sin alergias" />
                 </div>
             </div>
 
             <div class="form-group">
                 <label for="padecimiento">Padecimiento Médico</label>
-                <input type="text" id="padecimiento" value="Sin padecimiento medico" />
+                <input type="text" id="padecimiento" placeholder="Sin padecimiento médico" />
             </div>
 
             <div class="form-group">
                 <label for="domicilio">Domicilio</label>
-                <input type="text" id="domicilio" value="Av.7 Manzana 3, Lote 1, Capulines 1" />
+                <input type="text" id="domicilio" placeholder="Tu dirección completa" />
             </div>
         </div>
 
@@ -163,7 +155,7 @@
         </button>
     </div>
 
-    <script src="../js/modalperfilPacientes.js"></script>
+    <script src="../js/inicioPaciente.js"></script>
 </body>
 
 </html>

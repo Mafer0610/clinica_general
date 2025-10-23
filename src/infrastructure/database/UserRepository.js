@@ -1,4 +1,4 @@
-const { getUserModel } = require('./UserModel');
+const { getUserModel } = require('../../domain/entities/UserModel');
 const connections = require('./connections');
 
 const UserRepository = {

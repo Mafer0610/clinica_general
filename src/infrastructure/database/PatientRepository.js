@@ -54,6 +54,25 @@ const PatientRepository = {
         }
     },
 
+    // NUEVA FUNCIÓN: Buscar por email
+    async findByEmail(email) {
+        try {
+            const clinicConn = await connections.connectClinic();
+            
+            if (clinicConn.readyState !== 1) {
+                throw new Error('MongoDB Clinic no está conectado');
+            }
+
+            const patient = await clinicConn.collection('patients')
+                .findOne({ correo: email });
+            
+            return patient;
+        } catch (error) {
+            console.error("Error al buscar paciente por email:", error.message);
+            throw error;
+        }
+    },
+
     async save(patientData) {
         try {
             const clinicConn = await connections.connectClinic();

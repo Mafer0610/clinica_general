@@ -19,12 +19,20 @@ document.getElementById('login-form').addEventListener('submit', async (e) => {
         const data = await response.json();
 
         if (data.success) {
+            // Guardar información del usuario en localStorage
             localStorage.setItem('authToken', data.token);
             localStorage.setItem('userRole', data.role);
             localStorage.setItem('userId', data.user.id);
             localStorage.setItem('username', data.user.username);
+            localStorage.setItem('userEmail', data.user.email); // NUEVO: Guardar email
 
-            alert("Inicio de sesión exitoso");
+            console.log('✅ Datos guardados en localStorage:');
+            console.log('   - userId:', data.user.id);
+            console.log('   - username:', data.user.username);
+            console.log('   - email:', data.user.email);
+            console.log('   - role:', data.role);
+
+            alert("✅ Inicio de sesión exitoso");
 
             if (data.role === "medico") {
                 window.location.href = "../html/inicioMedico.html"; 

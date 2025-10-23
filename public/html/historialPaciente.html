@@ -31,6 +31,7 @@
             </div>
         </div>
     </header>
+    
     <!-- MODAL PERFIL -->
     <div id="modalPerfil" class="modal" data-modal-id="perfil">
         <div class="modal-content modal-content-perfil">
@@ -40,38 +41,30 @@
                 <div class="form-row">
                     <div class="form-col">
                         <label for="nombre">Nombre(s)</label>
-                        <input type="text" id="nombre" class="form-input-perfil" value="Daniel Alejandro"
-                            placeholder="Nombre(s)">
+                        <input type="text" id="nombre" class="form-input-perfil" placeholder="Nombre(s)">
                     </div>
                     <div class="form-col">
                         <label for="apellidos">Apellidos</label>
-                        <input type="text" id="apellidos" class="form-input-perfil" value="Hernandez Perez"
-                            placeholder="Apellidos">
+                        <input type="text" id="apellidos" class="form-input-perfil" placeholder="Apellidos">
                     </div>
                 </div>
                 <div class="form-row">
                     <div class="form-col">
                         <label for="telefono">Teléfono</label>
-                        <input type="tel" id="telefono" class="form-input-perfil" value="961-117-4267"
-                            placeholder="Teléfono">
+                        <input type="tel" id="telefono" class="form-input-perfil" placeholder="Teléfono">
                     </div>
-                    <div class="form-row">
-                        <div class="form-col">
-                            <label for="emergencia">Teléfono de emergencia</label>
-                            <input type="tel" id="emergencia" class="form-input-perfil" value="9612794256"
-                                placeholder="Teléfono de emergencia">
-                        </div>
+                    <div class="form-col">
+                        <label for="emergencia">Teléfono de emergencia</label>
+                        <input type="tel" id="emergencia" class="form-input-perfil" placeholder="Teléfono de emergencia">
                     </div>
-
                 </div>
 
                 <div class="form-col-full">
                     <label for="correo">Correo</label>
-                    <input type="email" id="correo" class="form-input-perfil" value="correo_de_ejemplo@gmail.com"
-                        placeholder="Correo electrónico">
+                    <input type="email" id="correo" class="form-input-perfil" placeholder="Correo electrónico" readonly style="background-color: #f0f0f0; cursor: not-allowed;">
                 </div>
 
-                <button class="btn-submit">
+                <button type="submit" class="btn-submit">
                     <i class="fas fa-check-circle"></i> Guardar
                 </button>
             </form>
@@ -80,66 +73,10 @@
 
     <!-- Contenedor principal -->
     <div class="container">
-
-        <!-- Cita 1 -->
-        <div class="form-section">
-            <h2 class="section-title">15/08/2025</h2>
-            <div class="form-row">
-                <div class="form-group">
-                    <label>Hora de la cita</label>
-                    <input type="text" value="12:00 P.M" readonly>
-                </div>
-                <div class="form-group">
-                    <label>Síntomas</label>
-                    <textarea readonly>Dolor de cabeza con escurrimiento nasal</textarea>
-                </div>
-                <div class="form-group">
-                    <label>Diagnóstico</label>
-                    <input type="text" value="Resfriado común" readonly>
-                </div>
-            </div>
-        </div>
-
-        <!-- Cita 2 -->
-        <div class="form-section">
-            <h2 class="section-title">22/08/2025</h2>
-            <div class="form-row">
-                <div class="form-group">
-                    <label>Hora de la cita</label>
-                    <input type="text" value="16:00 P.M" readonly>
-                </div>
-                <div class="form-group">
-                    <label>Síntomas</label>
-                    <textarea readonly>Dolor de cabeza con escurrimiento nasal</textarea>
-                </div>
-                <div class="form-group">
-                    <label>Diagnóstico</label>
-                    <input type="text" value="Resfriado común" readonly>
-                </div>
-            </div>
-        </div>
-
-        <!-- Cita 3 -->
-        <div class="form-section">
-            <h2 class="section-title">25/08/2025</h2>
-            <div class="form-row">
-                <div class="form-group">
-                    <label>Hora de la cita</label>
-                    <input type="text" value="16:00 P.M" readonly>
-                </div>
-                <div class="form-group">
-                    <label>Síntomas</label>
-                    <textarea readonly>Dolor de cabeza con escurrimiento nasal</textarea>
-                </div>
-                <div class="form-group">
-                    <label>Diagnóstico</label>
-                    <input type="text" value="Resfriado común" readonly>
-                </div>
-            </div>
-        </div>
-
+        <!-- Las citas se cargarán dinámicamente aquí -->
     </div>
-    <script src="../js/modalperfilPacientes.js"></script>
+    
+    <script src="../js/historialPaciente.js"></script>
 </body>
 
 </html>
