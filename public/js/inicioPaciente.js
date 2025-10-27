@@ -4,6 +4,7 @@ const API_BASE_URL = 'http://localhost:3002/api';
 // ===== VARIABLES GLOBALES =====
 let currentUserEmail = null;
 let currentPatientData = null;
+let defaultMedicoId = null;
 
 // ===== CARGAR DATOS AL INICIAR =====
 document.addEventListener('DOMContentLoaded', async function() {
@@ -22,6 +23,9 @@ document.addEventListener('DOMContentLoaded', async function() {
     currentUserEmail = userEmail;
     console.log('✅ Email del usuario:', currentUserEmail);
 
+    // Obtener un médico por defecto (el primero disponible)
+    await obtenerMedicoPorDefecto();
+
     // Cargar perfil del paciente
     await cargarPerfilPaciente();
     
@@ -29,18 +33,51 @@ document.addEventListener('DOMContentLoaded', async function() {
     configurarModalPerfil();
 });
 
+// ===== OBTENER MÉDICO POR DEFECTO =====
+async function obtenerMedicoPorDefecto() {
+    try {
+        console.log('🔍 Buscando médico por defecto...');
+        
+        // Intentar obtener un médico del sistema
+        const response = await fetch('http://localhost:3001/auth/users?role=medico');
+        const data = await response.json();
+
+        if (data.success && data.users && data.users.length > 0) {
+            defaultMedicoId = data.users[0]._id || data.users[0].id;
+            console.log('✅ Médico por defecto encontrado:', defaultMedicoId);
+            localStorage.setItem('defaultMedicoId', defaultMedicoId);
+        } else {
+            // Si no hay médicos, usar el userId del sistema como fallback
+            defaultMedicoId = localStorage.getItem('userId') || 'medico_default';
+            console.log('⚠️ No se encontraron médicos, usando fallback:', defaultMedicoId);
+        }
+    } catch (error) {
+        console.error('❌ Error obteniendo médico:', error);
+        defaultMedicoId = localStorage.getItem('userId') || 'medico_default';
+    }
+}
+
 // ===== CARGAR PERFIL DEL PACIENTE =====
 async function cargarPerfilPaciente() {
     try {
         console.log('📥 Cargando perfil del paciente...');
+        console.log('📧 Email a buscar:', currentUserEmail);
         
         const response = await fetch(`${API_BASE_URL}/patient-profile/profile/${encodeURIComponent(currentUserEmail)}`);
         const data = await response.json();
+
+        console.log('📋 Respuesta del servidor:', data);
 
         if (data.success) {
             if (data.hasProfile && data.patient) {
                 currentPatientData = data.patient;
                 console.log('✅ Perfil encontrado:', data.patient.nombre);
+                console.log('📋 Datos del paciente:', {
+                    nombre: data.patient.nombre,
+                    apellidos: data.patient.apellidos,
+                    telefono: data.patient.telefono,
+                    correo: data.patient.correo
+                });
                 mostrarDatosExistentes(data.patient);
             } else {
                 console.log('⚠️ No se encontró perfil del paciente');
@@ -150,6 +187,12 @@ document.querySelector('.btn-submit').addEventListener('click', async function(e
     try {
         // Paso 1: Crear o actualizar perfil del paciente
         console.log('📝 Actualizando perfil del paciente...');
+        console.log('📋 Datos a guardar:', {
+            email: currentUserEmail,
+            nombre: nombre,
+            apellidos: apellidos,
+            tipoSanguineo: tipoSanguineo || null
+        });
         
         const profileResponse = await fetch(`${API_BASE_URL}/patient-profile/profile/upsert`, {
             method: 'POST',
@@ -165,7 +208,7 @@ document.querySelector('.btn-submit').addEventListener('click', async function(e
                 domicilio: domicilio,
                 alergias: alergias,
                 padecimientos: padecimientos,
-                tipoSanguineo: tipoSanguineo || null,
+                tipoSanguineo: tipoSanguineo || null, // ASEGURARSE QUE SE ENVÍE
                 sexo: currentPatientData?.sexo || null,
                 fechaNacimiento: currentPatientData?.fechaNacimiento || null
             })
@@ -178,14 +221,24 @@ document.querySelector('.btn-submit').addEventListener('click', async function(e
         }
 
         console.log('✅ Perfil actualizado correctamente');
+        console.log('📋 Respuesta del perfil:', profileData);
         const patientId = profileData.patient._id;
+        console.log('🆔 Patient ID obtenido:', patientId);
+
+        // VALIDACIÓN CRÍTICA: Verificar que tenemos un patientId válido
+        if (!patientId) {
+            throw new Error('No se pudo obtener el ID del paciente');
+        }
 
         // Paso 2: Crear la cita
         console.log('📅 Creando cita...');
-        
-        // Obtener el primer médico disponible (en un sistema real, el paciente elegiría)
-        // Por ahora usaremos un médico por defecto o el guardado en localStorage
-        const medicoId = localStorage.getItem('defaultMedicoId') || 'medico_default';
+        console.log('📋 Datos de la cita:', {
+            pacienteId: patientId,
+            pacienteNombre: `${nombre} ${apellidos}`,
+            medicoId: defaultMedicoId,
+            fecha: fecha,
+            hora: hora
+        });
         
         const appointmentResponse = await fetch(`${API_BASE_URL}/appointments`, {
             method: 'POST',
@@ -193,9 +246,9 @@ document.querySelector('.btn-submit').addEventListener('click', async function(e
                 'Content-Type': 'application/json'
             },
             body: JSON.stringify({
-                pacienteId: patientId,
+                pacienteId: patientId, // USAR EL ID CORRECTO
                 pacienteNombre: `${nombre} ${apellidos}`,
-                medicoId: medicoId,
+                medicoId: defaultMedicoId, // USAR EL MÉDICO OBTENIDO
                 fecha: fecha,
                 hora: hora,
                 tipoCita: '2', // Consulta general
@@ -204,6 +257,7 @@ document.querySelector('.btn-submit').addEventListener('click', async function(e
         });
 
         const appointmentData = await appointmentResponse.json();
+        console.log('📋 Respuesta de la cita:', appointmentData);
 
         if (!appointmentData.success) {
             throw new Error(appointmentData.error || 'Error al crear cita');
@@ -257,22 +311,39 @@ function configurarModalPerfil() {
 // ===== CARGAR DATOS EN MODAL DE PERFIL =====
 async function cargarDatosModalPerfil() {
     try {
+        console.log('📥 Cargando datos del modal de perfil...');
+        
         // Obtener datos del usuario desde auth service
         const userId = localStorage.getItem('userId');
+        console.log('🆔 User ID:', userId);
+        
         const response = await fetch(`http://localhost:3001/auth/user/${userId}`);
         const data = await response.json();
 
+        console.log('📋 Respuesta auth:', data);
+
         if (data.success && data.user) {
-            document.getElementById('nombre').value = data.user.nombre || '';
-            document.getElementById('apellidos').value = data.user.apellidos || '';
-            document.getElementById('telefono').value = data.user.telefono || '';
-            
-            // Cargar teléfono de emergencia desde perfil de paciente
+            // Si el paciente tiene perfil, usar esos datos primero
             if (currentPatientData) {
-                document.getElementById('emergencia').value = currentPatientData.telefonoEmergencia || '';
+                console.log('✅ Usando datos del perfil del paciente');
+                document.getElementById('nombreModal').value = currentPatientData.nombre || '';
+                document.getElementById('apellidosModal').value = currentPatientData.apellidos || '';
+                document.getElementById('telefonoModal').value = currentPatientData.telefono || '';
+                document.getElementById('emergenciaModal').value = currentPatientData.telefonoEmergencia || '';
+            } else {
+                // Si no tiene perfil, usar datos del auth
+                console.log('⚠️ Usando datos del auth (sin perfil completo)');
+                document.getElementById('nombreModal').value = data.user.nombre || '';
+                document.getElementById('apellidosModal').value = data.user.apellidos || '';
+                document.getElementById('telefonoModal').value = data.user.telefono || '';
+                document.getElementById('emergenciaModal').value = '';
             }
             
-            document.getElementById('correo').value = data.user.email || '';
+            document.getElementById('correoModal').value = data.user.email || '';
+            
+            console.log('✅ Modal de perfil cargado');
+        } else {
+            console.error('❌ No se encontraron datos del usuario');
         }
     } catch (error) {
         console.error('❌ Error cargando datos del modal:', error);
@@ -282,10 +353,10 @@ async function cargarDatosModalPerfil() {
 // ===== GUARDAR CAMBIOS DEL PERFIL =====
 async function guardarCambiosPerfil() {
     try {
-        const nombre = document.getElementById('nombre').value.trim();
-        const apellidos = document.getElementById('apellidos').value.trim();
-        const telefono = document.getElementById('telefono').value.trim();
-        const emergencia = document.getElementById('emergencia').value.trim();
+        const nombre = document.getElementById('nombreModal').value.trim();
+        const apellidos = document.getElementById('apellidosModal').value.trim();
+        const telefono = document.getElementById('telefonoModal').value.trim();
+        const emergencia = document.getElementById('emergenciaModal').value.trim();
 
         // Actualizar en auth service
         const userId = localStorage.getItem('userId');

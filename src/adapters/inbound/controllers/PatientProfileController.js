@@ -7,21 +7,25 @@ const router = express.Router();
 // ========== OBTENER PERFIL COMPLETO DEL PACIENTE POR EMAIL ==========
 router.get('/profile/:email', async (req, res) => {
     try {
-        console.log('📥 Obteniendo perfil del paciente con email:', req.params.email);
+        const emailBuscado = decodeURIComponent(req.params.email);
+        console.log('📥 Obteniendo perfil del paciente con email:', emailBuscado);
         
         // Buscar paciente por email
-        const patient = await PatientRepository.findByEmail(req.params.email);
+        const patient = await PatientRepository.findByEmail(emailBuscado);
         
         if (!patient) {
-            console.log('⚠️ Paciente no encontrado con email:', req.params.email);
+            console.log('⚠️ Paciente no encontrado con email:', emailBuscado);
+            console.log('💡 Tip: Verifica que el email en localStorage coincida con el de la BD');
             return res.json({
                 success: true,
                 hasProfile: false,
-                patient: null
+                patient: null,
+                searchedEmail: emailBuscado // Para debugging
             });
         }
 
         console.log('✅ Paciente encontrado:', patient.nombre);
+        console.log('📧 Email en BD:', patient.correo);
         
         // Obtener citas del paciente
         const appointments = await AppointmentRepository.findByPatientId(patient._id.toString());
@@ -46,6 +50,7 @@ router.get('/profile/:email', async (req, res) => {
 router.post('/profile/upsert', async (req, res) => {
     try {
         console.log('📥 Crear/Actualizar perfil del paciente');
+        console.log('📋 Body recibido:', JSON.stringify(req.body, null, 2));
         
         const {
             email,
@@ -97,9 +102,19 @@ router.post('/profile/upsert', async (req, res) => {
             if (domicilio) updateData.domicilio = domicilio;
             if (alergias !== undefined) updateData.alergias = alergias;
             if (padecimientos !== undefined) updateData.padecimientos = padecimientos;
-            if (tipoSanguineo) updateData.tipoSanguineo = tipoSanguineo;
+            
+            // CORRECCIÓN CRÍTICA: Guardar tipo de sangre incluso si es vacío
+            if (tipoSanguineo !== undefined) {
+                updateData.tipoSanguineo = tipoSanguineo || null;
+                console.log('💉 Actualizando tipo sanguíneo:', tipoSanguineo);
+            }
+
+            console.log('📝 Datos a actualizar:', JSON.stringify(updateData, null, 2));
 
             const updatedPatient = await PatientRepository.update(patient._id.toString(), updateData);
+
+            console.log('✅ Paciente actualizado:', updatedPatient.nombre);
+            console.log('💉 Tipo sanguíneo guardado:', updatedPatient.tipoSanguineo);
 
             return res.json({
                 success: true,
@@ -135,12 +150,18 @@ router.post('/profile/upsert', async (req, res) => {
                 domicilio: domicilio || '',
                 alergias: alergias || 'Ninguna',
                 padecimientos: padecimientos || 'Sin padecimientos',
-                tipoSanguineo: tipoSanguineo || null,
+                tipoSanguineo: tipoSanguineo || null, // CORRECCIÓN: Asegurar que se guarde
                 historialMedico: []
             };
 
+            console.log('📝 Datos del nuevo paciente:', JSON.stringify(patientData, null, 2));
+            console.log('💉 Tipo sanguíneo a guardar:', tipoSanguineo);
+
             const result = await PatientRepository.save(patientData);
             const newPatient = await PatientRepository.findById(result.insertedId.toString());
+
+            console.log('✅ Nuevo paciente creado:', newPatient.nombre);
+            console.log('💉 Tipo sanguíneo guardado:', newPatient.tipoSanguineo);
 
             return res.status(201).json({
                 success: true,
@@ -151,9 +172,11 @@ router.post('/profile/upsert', async (req, res) => {
         }
     } catch (error) {
         console.error('❌ Error en upsert de perfil:', error);
+        console.error('Stack:', error.stack);
         res.status(500).json({
             success: false,
-            error: 'Error al guardar perfil del paciente'
+            error: 'Error al guardar perfil del paciente',
+            details: error.message
         });
     }
 });
@@ -226,6 +249,73 @@ router.get('/appointments/history/:email', async (req, res) => {
         res.status(500).json({
             success: false,
             error: 'Error al obtener historial de citas'
+        });
+    }
+});
+
+// ========== CONFIRMAR CITA ==========
+router.put('/appointments/:appointmentId/confirm', async (req, res) => {
+    try {
+        console.log('✅ Confirmando cita:', req.params.appointmentId);
+        
+        const updatedAppointment = await AppointmentRepository.update(
+            req.params.appointmentId,
+            {
+                confirmada: true,
+                estado: 'confirmada'
+            }
+        );
+
+        if (!updatedAppointment) {
+            return res.status(404).json({
+                success: false,
+                error: 'Cita no encontrada'
+            });
+        }
+
+        res.json({
+            success: true,
+            message: 'Cita confirmada correctamente',
+            appointment: updatedAppointment
+        });
+    } catch (error) {
+        console.error('❌ Error confirmando cita:', error);
+        res.status(500).json({
+            success: false,
+            error: 'Error al confirmar cita'
+        });
+    }
+});
+
+// ========== CANCELAR CITA ==========
+router.put('/appointments/:appointmentId/cancel', async (req, res) => {
+    try {
+        console.log('❌ Cancelando cita:', req.params.appointmentId);
+        
+        const updatedAppointment = await AppointmentRepository.update(
+            req.params.appointmentId,
+            {
+                estado: 'cancelada'
+            }
+        );
+
+        if (!updatedAppointment) {
+            return res.status(404).json({
+                success: false,
+                error: 'Cita no encontrada'
+            });
+        }
+
+        res.json({
+            success: true,
+            message: 'Cita cancelada correctamente',
+            appointment: updatedAppointment
+        });
+    } catch (error) {
+        console.error('❌ Error cancelando cita:', error);
+        res.status(500).json({
+            success: false,
+            error: 'Error al cancelar cita'
         });
     }
 });
