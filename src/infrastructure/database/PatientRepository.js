@@ -54,7 +54,6 @@ const PatientRepository = {
         }
     },
 
-    // NUEVA FUNCIÓN: Buscar por email
     async findByEmail(email) {
         try {
             const clinicConn = await connections.connectClinic();
@@ -63,8 +62,15 @@ const PatientRepository = {
                 throw new Error('MongoDB Clinic no está conectado');
             }
 
+            console.log('🔍 Buscando paciente con email:', email);
             const patient = await clinicConn.collection('patients')
                 .findOne({ correo: email });
+            
+            if (patient) {
+                console.log('✅ Paciente encontrado:', patient.nombre);
+            } else {
+                console.log('⚠️ No se encontró paciente con ese email');
+            }
             
             return patient;
         } catch (error) {
@@ -81,15 +87,20 @@ const PatientRepository = {
                 throw new Error('MongoDB Clinic no está conectado');
             }
 
+            console.log('💾 Guardando paciente:', patientData.nombre);
+            
             const result = await clinicConn.collection('patients').insertOne({
                 ...patientData,
                 createdAt: new Date(),
                 updatedAt: new Date()
             });
 
+            console.log('✅ Paciente guardado con ID:', result.insertedId);
+            
             return result;
         } catch (error) {
             console.error("Error al guardar paciente:", error.message);
+            console.error("Stack:", error.stack);
             throw error;
         }
     },
@@ -102,21 +113,49 @@ const PatientRepository = {
                 throw new Error('MongoDB Clinic no está conectado');
             }
 
+            console.log('🔄 Actualizando paciente:', patientId);
+            console.log('📝 Datos a actualizar:', JSON.stringify(updateData, null, 2));
+
             const ObjectId = require('mongodb').ObjectId;
+            
+            // Agregar timestamp de actualización
+            const dataWithTimestamp = {
+                ...updateData,
+                updatedAt: new Date()
+            };
+            
+            // Realizar la actualización
             const result = await clinicConn.collection('patients').findOneAndUpdate(
                 { _id: new ObjectId(patientId) },
+                { $set: dataWithTimestamp },
                 { 
-                    $set: { 
-                        ...updateData, 
-                        updatedAt: new Date() 
-                    } 
-                },
-                { returnDocument: 'after' }
+                    returnDocument: 'after', // Devolver documento actualizado
+                    returnOriginal: false    // No devolver el original
+                }
             );
 
-            return result.value;
+            console.log('📊 Resultado de la actualización:', result);
+
+            // Verificar si se encontró y actualizó el documento
+            if (!result.value && !result.ok) {
+                console.error('❌ No se encontró el paciente con ID:', patientId);
+                return null;
+            }
+
+            // El documento actualizado está en result.value (para findOneAndUpdate)
+            const updatedPatient = result.value || result;
+            
+            if (!updatedPatient) {
+                console.error('❌ No se pudo obtener el documento actualizado');
+                return null;
+            }
+
+            console.log('✅ Paciente actualizado correctamente:', updatedPatient.nombre);
+            
+            return updatedPatient;
         } catch (error) {
-            console.error("Error al actualizar paciente:", error.message);
+            console.error("❌ Error al actualizar paciente:", error.message);
+            console.error("Stack:", error.stack);
             throw error;
         }
     },

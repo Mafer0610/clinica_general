@@ -10,24 +10,20 @@ router.get('/profile/:email', async (req, res) => {
         const emailBuscado = decodeURIComponent(req.params.email);
         console.log('📥 Obteniendo perfil del paciente con email:', emailBuscado);
         
-        // Buscar paciente por email
         const patient = await PatientRepository.findByEmail(emailBuscado);
         
         if (!patient) {
             console.log('⚠️ Paciente no encontrado con email:', emailBuscado);
-            console.log('💡 Tip: Verifica que el email en localStorage coincida con el de la BD');
             return res.json({
                 success: true,
                 hasProfile: false,
                 patient: null,
-                searchedEmail: emailBuscado // Para debugging
+                searchedEmail: emailBuscado
             });
         }
 
         console.log('✅ Paciente encontrado:', patient.nombre);
-        console.log('📧 Email en BD:', patient.correo);
         
-        // Obtener citas del paciente
         const appointments = await AppointmentRepository.findByPatientId(patient._id.toString());
         
         res.json({
@@ -41,7 +37,8 @@ router.get('/profile/:email', async (req, res) => {
         console.error('❌ Error obteniendo perfil del paciente:', error);
         res.status(500).json({
             success: false,
-            error: 'Error al obtener perfil del paciente'
+            error: 'Error al obtener perfil del paciente',
+            details: error.message
         });
     }
 });
@@ -49,8 +46,8 @@ router.get('/profile/:email', async (req, res) => {
 // ========== CREAR O ACTUALIZAR PERFIL DEL PACIENTE ==========
 router.post('/profile/upsert', async (req, res) => {
     try {
-        console.log('📥 Crear/Actualizar perfil del paciente');
-        console.log('📋 Body recibido:', JSON.stringify(req.body, null, 2));
+        console.log('📥 POST /api/patient-profile/profile/upsert');
+        console.log('📦 Body recibido:', JSON.stringify(req.body, null, 2));
         
         const {
             email,
@@ -66,11 +63,20 @@ router.post('/profile/upsert', async (req, res) => {
             tipoSanguineo
         } = req.body;
 
-        // Validaciones
-        if (!email || !nombre || !apellidos) {
+        // Validaciones básicas
+        if (!email) {
+            console.error('❌ Email no proporcionado');
             return res.status(400).json({
                 success: false,
-                error: 'Email, nombre y apellidos son requeridos'
+                error: 'Email es requerido'
+            });
+        }
+
+        if (!nombre || !apellidos) {
+            console.error('❌ Nombre o apellidos no proporcionados');
+            return res.status(400).json({
+                success: false,
+                error: 'Nombre y apellidos son requeridos'
             });
         }
 
@@ -78,43 +84,65 @@ router.post('/profile/upsert', async (req, res) => {
         let patient = await PatientRepository.findByEmail(email);
 
         if (patient) {
-            // Actualizar paciente existente
+            // ===== ACTUALIZAR PACIENTE EXISTENTE =====
             console.log('🔄 Actualizando paciente existente:', patient._id);
             
             const updateData = {};
-            if (nombre) updateData.nombre = nombre;
-            if (apellidos) updateData.apellidos = apellidos;
-            if (fechaNacimiento) {
-                updateData.fechaNacimiento = new Date(fechaNacimiento);
-                // Calcular edad
-                const birthDate = new Date(fechaNacimiento);
-                const today = new Date();
-                let edad = today.getFullYear() - birthDate.getFullYear();
-                const monthDiff = today.getMonth() - birthDate.getMonth();
-                if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
-                    edad--;
-                }
-                updateData.edad = edad;
-            }
-            if (sexo) updateData.sexo = sexo;
-            if (telefono) updateData.telefono = telefono;
-            if (telefonoEmergencia) updateData.telefonoEmergencia = telefonoEmergencia;
-            if (domicilio) updateData.domicilio = domicilio;
-            if (alergias !== undefined) updateData.alergias = alergias;
-            if (padecimientos !== undefined) updateData.padecimientos = padecimientos;
             
-            // CORRECCIÓN CRÍTICA: Guardar tipo de sangre incluso si es vacío
+            // Solo actualizar campos que vienen en el request
+            if (nombre !== undefined) updateData.nombre = nombre;
+            if (apellidos !== undefined) updateData.apellidos = apellidos;
+            
+            if (fechaNacimiento !== undefined && fechaNacimiento !== null) {
+                try {
+                    updateData.fechaNacimiento = new Date(fechaNacimiento);
+                    
+                    // Calcular edad
+                    const birthDate = new Date(fechaNacimiento);
+                    const today = new Date();
+                    let edad = today.getFullYear() - birthDate.getFullYear();
+                    const monthDiff = today.getMonth() - birthDate.getMonth();
+                    if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
+                        edad--;
+                    }
+                    updateData.edad = edad;
+                    console.log('📅 Edad calculada:', edad);
+                } catch (error) {
+                    console.error('❌ Error procesando fechaNacimiento:', error);
+                    // No actualizar fechaNacimiento si hay error
+                }
+            }
+            
+            if (sexo !== undefined) updateData.sexo = sexo;
+            if (telefono !== undefined) updateData.telefono = telefono;
+            if (telefonoEmergencia !== undefined) updateData.telefonoEmergencia = telefonoEmergencia;
+            if (domicilio !== undefined) updateData.domicilio = domicilio;
+            if (alergias !== undefined) updateData.alergias = alergias || 'Ninguna';
+            if (padecimientos !== undefined) updateData.padecimientos = padecimientos || 'Sin padecimientos';
+            
+            // Tipo sanguíneo: aceptar null, vacío o valores válidos
             if (tipoSanguineo !== undefined) {
-                updateData.tipoSanguineo = tipoSanguineo || null;
-                console.log('💉 Actualizando tipo sanguíneo:', tipoSanguineo);
+                if (tipoSanguineo === '' || tipoSanguineo === null) {
+                    updateData.tipoSanguineo = null;
+                } else {
+                    updateData.tipoSanguineo = tipoSanguineo;
+                }
+                console.log('💉 Actualizando tipo sanguíneo:', updateData.tipoSanguineo);
             }
 
             console.log('📝 Datos a actualizar:', JSON.stringify(updateData, null, 2));
 
             const updatedPatient = await PatientRepository.update(patient._id.toString(), updateData);
 
+            if (!updatedPatient) {
+                console.error('❌ No se pudo actualizar el paciente');
+                return res.status(500).json({
+                    success: false,
+                    error: 'Error al actualizar paciente'
+                });
+            }
+
             console.log('✅ Paciente actualizado:', updatedPatient.nombre);
-            console.log('💉 Tipo sanguíneo guardado:', updatedPatient.tipoSanguineo);
 
             return res.json({
                 success: true,
@@ -122,19 +150,28 @@ router.post('/profile/upsert', async (req, res) => {
                 patient: updatedPatient,
                 isNew: false
             });
+            
         } else {
-            // Crear nuevo paciente
+            // ===== CREAR NUEVO PACIENTE =====
             console.log('✨ Creando nuevo perfil de paciente');
             
             // Calcular edad si hay fecha de nacimiento
             let edad = null;
+            let fechaNacimientoDate = null;
+            
             if (fechaNacimiento) {
-                const birthDate = new Date(fechaNacimiento);
-                const today = new Date();
-                edad = today.getFullYear() - birthDate.getFullYear();
-                const monthDiff = today.getMonth() - birthDate.getMonth();
-                if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
-                    edad--;
+                try {
+                    fechaNacimientoDate = new Date(fechaNacimiento);
+                    const today = new Date();
+                    edad = today.getFullYear() - fechaNacimientoDate.getFullYear();
+                    const monthDiff = today.getMonth() - fechaNacimientoDate.getMonth();
+                    if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < fechaNacimientoDate.getDate())) {
+                        edad--;
+                    }
+                    console.log('📅 Edad calculada:', edad);
+                } catch (error) {
+                    console.error('❌ Error procesando fechaNacimiento:', error);
+                    fechaNacimientoDate = null;
                 }
             }
 
@@ -142,7 +179,7 @@ router.post('/profile/upsert', async (req, res) => {
                 correo: email,
                 nombre: nombre,
                 apellidos: apellidos,
-                fechaNacimiento: fechaNacimiento ? new Date(fechaNacimiento) : null,
+                fechaNacimiento: fechaNacimientoDate,
                 edad: edad,
                 sexo: sexo || null,
                 telefono: telefono || '',
@@ -150,18 +187,33 @@ router.post('/profile/upsert', async (req, res) => {
                 domicilio: domicilio || '',
                 alergias: alergias || 'Ninguna',
                 padecimientos: padecimientos || 'Sin padecimientos',
-                tipoSanguineo: tipoSanguineo || null, // CORRECCIÓN: Asegurar que se guarde
+                tipoSanguineo: tipoSanguineo || null,
                 historialMedico: []
             };
 
             console.log('📝 Datos del nuevo paciente:', JSON.stringify(patientData, null, 2));
-            console.log('💉 Tipo sanguíneo a guardar:', tipoSanguineo);
 
             const result = await PatientRepository.save(patientData);
+            
+            if (!result || !result.insertedId) {
+                console.error('❌ No se pudo crear el paciente');
+                return res.status(500).json({
+                    success: false,
+                    error: 'Error al crear paciente'
+                });
+            }
+            
             const newPatient = await PatientRepository.findById(result.insertedId.toString());
 
+            if (!newPatient) {
+                console.error('❌ No se pudo recuperar el paciente creado');
+                return res.status(500).json({
+                    success: false,
+                    error: 'Error al recuperar paciente creado'
+                });
+            }
+
             console.log('✅ Nuevo paciente creado:', newPatient.nombre);
-            console.log('💉 Tipo sanguíneo guardado:', newPatient.tipoSanguineo);
 
             return res.status(201).json({
                 success: true,
@@ -171,7 +223,7 @@ router.post('/profile/upsert', async (req, res) => {
             });
         }
     } catch (error) {
-        console.error('❌ Error en upsert de perfil:', error);
+        console.error('❌ ERROR CRÍTICO en upsert de perfil:', error);
         console.error('Stack:', error.stack);
         res.status(500).json({
             success: false,
@@ -197,7 +249,6 @@ router.get('/appointments/upcoming/:email', async (req, res) => {
 
         const appointments = await AppointmentRepository.findByPatientId(patient._id.toString());
         
-        // Filtrar solo citas futuras y ordenar por fecha
         const now = new Date();
         const upcomingAppointments = appointments
             .filter(apt => new Date(apt.fecha) >= now)
@@ -233,7 +284,6 @@ router.get('/appointments/history/:email', async (req, res) => {
 
         const appointments = await AppointmentRepository.findByPatientId(patient._id.toString());
         
-        // Filtrar solo citas pasadas y ordenar por fecha descendente
         const now = new Date();
         const pastAppointments = appointments
             .filter(apt => new Date(apt.fecha) < now)

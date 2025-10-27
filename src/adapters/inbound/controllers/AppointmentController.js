@@ -4,12 +4,23 @@ const PatientRepository = require('../../../infrastructure/database/PatientRepos
 
 const router = express.Router();
 
+// ========== FUNCIÓN AUXILIAR PARA CONVERTIR TIPO ==========
+function obtenerTipoPorNumero(numero) {
+    const tipos = {
+        '1': 'Consulta médica',
+        '2': 'Consulta General',
+        '3': 'Revision General',
+        '4': 'Consulta de Control',
+        '5': 'Consulta de Seguimiento'
+    };
+    return tipos[numero] || 'Consulta General';
+}
+
 // ========== OBTENER TODAS LAS CITAS ==========
 router.get('/', async (req, res) => {
     try {
         const appointments = await AppointmentRepository.findAll();
         
-        // Enriquecer con información del paciente
         const enrichedAppointments = await Promise.all(
             appointments.map(async (appointment) => {
                 const patient = await PatientRepository.findById(appointment.pacienteId);
@@ -67,7 +78,6 @@ router.get('/medico/:medicoId', async (req, res) => {
     try {
         const appointments = await AppointmentRepository.findByMedicoId(req.params.medicoId);
         
-        // Enriquecer con información del paciente
         const enrichedAppointments = await Promise.all(
             appointments.map(async (appointment) => {
                 const patient = await PatientRepository.findById(appointment.pacienteId);
@@ -114,40 +124,54 @@ router.get('/patient/:patientId', async (req, res) => {
 // ========== CREAR CITA ==========
 router.post('/', async (req, res) => {
     try {
+        console.log('📥 POST /api/appointments');
+        console.log('📦 Body recibido:', JSON.stringify(req.body, null, 2));
+        
         const {
             pacienteId,
             pacienteNombre,
             medicoId,
             fecha,
             hora,
+            tipo,
             tipoCita,
-            descripcion
+            descripcion,
+            sintomas
         } = req.body;
         
         // Validaciones
-        if (!pacienteId || !medicoId || !fecha || !hora || !tipoCita) {
+        if (!pacienteId || !medicoId || !fecha || !hora) {
+            console.error('❌ Faltan campos requeridos');
             return res.status(400).json({
                 success: false,
-                error: 'Faltan campos requeridos'
+                error: 'Faltan campos requeridos: pacienteId, medicoId, fecha, hora'
             });
         }
         
         const ObjectId = require('mongodb').ObjectId;
         
+        // Usar 'tipo' si existe, sino 'tipoCita', sino default
+        const tipoFinal = tipo || (tipoCita ? obtenerTipoPorNumero(tipoCita) : 'Consulta General');
+        
         const appointmentData = {
             pacienteId: new ObjectId(pacienteId),
-            pacienteNombre: pacienteNombre,
+            pacienteNombre: pacienteNombre || 'Paciente',
             medicoId: medicoId,
             fecha: new Date(fecha),
             hora: hora,
-            tipoCita: tipoCita,
+            tipo: tipoFinal,
             descripcion: descripcion || '',
+            sintomas: sintomas || descripcion || '',
             estado: 'pendiente',
             recordatorioEnviado: false,
             confirmada: false
         };
         
+        console.log('💾 Datos a guardar:', JSON.stringify(appointmentData, null, 2));
+        
         const result = await AppointmentRepository.save(appointmentData);
+        
+        console.log('✅ Cita guardada con ID:', result.insertedId);
         
         res.status(201).json({
             success: true,
@@ -155,10 +179,12 @@ router.post('/', async (req, res) => {
             appointmentId: result.insertedId
         });
     } catch (error) {
-        console.error('Error creando cita:', error);
+        console.error('❌ Error creando cita:', error);
+        console.error('Stack:', error.stack);
         res.status(500).json({
             success: false,
-            error: 'Error al crear cita'
+            error: 'Error al crear cita',
+            details: error.message
         });
     }
 });
@@ -167,7 +193,7 @@ router.post('/', async (req, res) => {
 router.put('/:id', async (req, res) => {
     try {
         const updateData = { ...req.body };
-        delete updateData._id; // No actualizar el _id
+        delete updateData._id;
         
         if (updateData.fecha) {
             updateData.fecha = new Date(updateData.fecha);

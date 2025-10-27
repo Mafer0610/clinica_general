@@ -2,10 +2,12 @@ const mongoose = require('mongoose');
 
 // ========== SCHEMA DE PACIENTES ==========
 const PatientSchema = new mongoose.Schema({
-    userId: {
-        type: String, // Referencia al _id del usuario en la BD auth
+    correo: {
+        type: String,
         required: true,
-        unique: true
+        unique: true,
+        trim: true,
+        lowercase: true
     },
     nombre: {
         type: String,
@@ -19,16 +21,20 @@ const PatientSchema = new mongoose.Schema({
     },
     fechaNacimiento: {
         type: Date,
-        required: true
+        default: null
+    },
+    edad: {
+        type: Number,
+        default: null
     },
     sexo: {
         type: String,
-        enum: ['Masculino', 'Femenino'],
-        required: true
+        enum: ['Masculino', 'Femenino', null],
+        default: null
     },
     tipoSanguineo: {
         type: String,
-        enum: ['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-'],
+        enum: ['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-', null, ''],
         default: null
     },
     alergias: {
@@ -41,15 +47,15 @@ const PatientSchema = new mongoose.Schema({
     },
     telefono: {
         type: String,
-        required: true
+        default: ''
     },
     telefonoEmergencia: {
         type: String,
-        required: true
+        default: ''
     },
     domicilio: {
         type: String,
-        required: true
+        default: ''
     },
     historialMedico: [{
         fecha: Date,
@@ -70,8 +76,7 @@ const PatientSchema = new mongoose.Schema({
     collection: 'patients'
 });
 
-// Índices
-PatientSchema.index({ userId: 1 });
+PatientSchema.index({ correo: 1 });
 PatientSchema.index({ nombre: 1, apellidos: 1 });
 
 // ========== SCHEMA DE CITAS ==========
@@ -81,8 +86,12 @@ const AppointmentSchema = new mongoose.Schema({
         ref: 'Patient',
         required: true
     },
+    pacienteNombre: {
+        type: String,
+        default: 'Paciente'
+    },
     medicoId: {
-        type: String, // Referencia al userId del médico en BD auth
+        type: String,
         required: true
     },
     fecha: {
@@ -98,12 +107,17 @@ const AppointmentSchema = new mongoose.Schema({
         enum: [
             'Consulta General',
             'Consulta de Seguimiento',
+            'Consulta médica',
             'Revision General',
             'Consulta de Control',
             'Consulta de Emergencia',
             'Primera Consulta'
         ],
         default: 'Consulta General'
+    },
+    tipoCita: {
+        type: String,
+        default: null
     },
     descripcion: {
         type: String,
@@ -143,7 +157,6 @@ const AppointmentSchema = new mongoose.Schema({
     collection: 'appointments'
 });
 
-// Índices
 AppointmentSchema.index({ pacienteId: 1 });
 AppointmentSchema.index({ medicoId: 1 });
 AppointmentSchema.index({ fecha: 1 });
