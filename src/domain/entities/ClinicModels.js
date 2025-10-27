@@ -59,7 +59,7 @@ const PatientSchema = new mongoose.Schema({
     },
     historialMedico: [{
         fecha: Date,
-        tipo: String,
+        tipoCita: String,
         descripcion: String,
         medicamentosPrevios: [String]
     }],
@@ -102,22 +102,9 @@ const AppointmentSchema = new mongoose.Schema({
         type: String,
         required: true
     },
-    tipo: {
-        type: String,
-        enum: [
-            'Consulta General',
-            'Consulta de Seguimiento',
-            'Consulta médica',
-            'Revision General',
-            'Consulta de Control',
-            'Consulta de Emergencia',
-            'Primera Consulta'
-        ],
-        default: 'Consulta General'
-    },
     tipoCita: {
         type: String,
-        default: null
+        default: '2'
     },
     descripcion: {
         type: String,

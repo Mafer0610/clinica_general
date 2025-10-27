@@ -249,16 +249,19 @@ async function cargarCitasMedico(medicoId) {
   }
 }
 
-// ===== RENDERIZAR CITAS EN CALENDARIO =====
 function renderizarCitasEnCalendario(appointments) {
   document.querySelectorAll('.appointment-simple').forEach(el => el.remove());
 
   const hoy = new Date();
-  const diaSemana = hoy.getDay();
+  console.log('📅 HOY:', hoy.toISOString());
+  
+  const diaSemana = hoy.getDay(); 
   const diff = diaSemana === 0 ? -6 : 1 - diaSemana;
   const lunes = new Date(hoy);
   lunes.setDate(hoy.getDate() + diff);
   lunes.setHours(0, 0, 0, 0);
+
+  console.log('📅 LUNES DE LA SEMANA:', lunes.toISOString());
 
   const fechasSemana = [];
   for (let i = 0; i < 5; i++) {
@@ -267,33 +270,48 @@ function renderizarCitasEnCalendario(appointments) {
     fechasSemana.push(fecha);
   }
 
-  appointments.forEach(cita => {
-    // CORRECCIÓN: Extraer fecha sin convertir a Date para evitar zona horaria
-    const fechaISO = cita.fecha.split('T')[0]; // Obtener solo YYYY-MM-DD
+  appointments.forEach((cita, index) => {
+    const fechaISO = cita.fecha.split('T')[0]; 
     const [year, month, day] = fechaISO.split('-');
     
-    // Crear fecha local correcta
     const fechaCita = new Date(parseInt(year), parseInt(month) - 1, parseInt(day));
     fechaCita.setHours(0, 0, 0, 0);
+    
+    console.log('   - Fecha procesada:', fechaCita.toLocaleDateString('es-MX'));
+    console.log('   - Fecha ISO:', fechaCita.toISOString());
     
     const diaIndex = fechasSemana.findIndex(fecha => 
       fecha.toDateString() === fechaCita.toDateString()
     );
 
+    console.log('   - Índice en semana:', diaIndex);
+
     if (diaIndex !== -1) {
       const [hora] = cita.hora.split(':');
       const horaInt = parseInt(hora);
+      
+      console.log('   - Hora extraída:', horaInt);
 
       if (horaInt >= 9 && horaInt <= 21) {
         const filaIndex = horaInt - 9;
         const columnaIndex = diaIndex + 1;
+        
+        console.log('   - Fila:', filaIndex, 'Columna:', columnaIndex);
 
         const filas = document.querySelectorAll('.schedule tbody tr');
         if (filas[filaIndex]) {
           const celda = filas[filaIndex].cells[columnaIndex];
           
           if (celda) {
-            const tipoCita = TIPOS_CITA[cita.tipoCita] || 'Consulta';
+            const TIPOS_CITA = {
+              '1': 'Consulta médica',
+              '2': 'Consulta general',
+              '3': 'Revisión',
+              '4': 'Control',
+              '5': 'Seguimiento'
+            };
+            
+            const tipoCita = TIPOS_CITA[cita.tipoCita] || cita.tipo || 'Consulta';
             
             const citaElement = document.createElement('div');
             citaElement.className = 'appointment-simple';
@@ -307,9 +325,22 @@ function renderizarCitasEnCalendario(appointments) {
             });
             
             celda.appendChild(citaElement);
+            console.log('   ✅ Cita renderizada en calendario');
+          } else {
+            console.log('   ❌ Celda no encontrada');
           }
+        } else {
+          console.log('   ❌ Fila no encontrada');
         }
+      } else {
+        console.log('   ⚠️ Hora fuera de rango (9-21):', horaInt);
       }
+    } else {
+      console.log('   ⚠️ Cita fuera de la semana actual');
+      console.log('   - Fechas de la semana:');
+      fechasSemana.forEach((f, i) => {
+        console.log(`     ${i}: ${f.toLocaleDateString('es-MX')}`);
+      });
     }
   });
 }

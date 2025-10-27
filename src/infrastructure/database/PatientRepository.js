@@ -129,24 +129,18 @@ const PatientRepository = {
                 { _id: new ObjectId(patientId) },
                 { $set: dataWithTimestamp },
                 { 
-                    returnDocument: 'after', // Devolver documento actualizado
-                    returnOriginal: false    // No devolver el original
+                    returnDocument: 'after'  // ✅ Devolver documento actualizado
                 }
             );
 
-            console.log('📊 Resultado de la actualización:', result);
+            console.log('📊 Resultado completo:', result);
 
-            // Verificar si se encontró y actualizó el documento
-            if (!result.value && !result.ok) {
-                console.error('❌ No se encontró el paciente con ID:', patientId);
-                return null;
-            }
-
-            // El documento actualizado está en result.value (para findOneAndUpdate)
+            // ✅ CAMBIO CRÍTICO: En MongoDB 4.x+ el documento está en result.value
+            // En versiones anteriores puede estar en result directamente
             const updatedPatient = result.value || result;
             
-            if (!updatedPatient) {
-                console.error('❌ No se pudo obtener el documento actualizado');
+            if (!updatedPatient || !updatedPatient._id) {
+                console.error('❌ No se encontró el paciente con ID:', patientId);
                 return null;
             }
 

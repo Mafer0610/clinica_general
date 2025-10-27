@@ -190,7 +190,7 @@ router.post('/:id/historial', async (req, res) => {
     try {
         console.log('📥 Agregando entrada al historial del paciente:', req.params.id);
         
-        const { fecha, tipo, descripcion, medicamentosPrevios } = req.body;
+        const { fecha, tipoCita, descripcion, medicamentosPrevios } = req.body;
         
         const patient = await PatientRepository.findById(req.params.id);
         
@@ -204,7 +204,7 @@ router.post('/:id/historial', async (req, res) => {
         
         const historialEntry = {
             fecha: fecha ? new Date(fecha) : new Date(),
-            tipo: tipo || 'Consulta General',
+            tipoCita: tipoCita || 'Consulta General',
             descripcion: descripcion || '',
             medicamentosPrevios: medicamentosPrevios || []
         };

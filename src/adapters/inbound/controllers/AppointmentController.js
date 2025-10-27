@@ -133,7 +133,6 @@ router.post('/', async (req, res) => {
             medicoId,
             fecha,
             hora,
-            tipo,
             tipoCita,
             descripcion,
             sintomas
@@ -150,8 +149,7 @@ router.post('/', async (req, res) => {
         
         const ObjectId = require('mongodb').ObjectId;
         
-        // Usar 'tipo' si existe, sino 'tipoCita', sino default
-        const tipoFinal = tipo || (tipoCita ? obtenerTipoPorNumero(tipoCita) : 'Consulta General');
+        const tipoFinal = tipoCita;
         
         const appointmentData = {
             pacienteId: new ObjectId(pacienteId),
@@ -159,7 +157,7 @@ router.post('/', async (req, res) => {
             medicoId: medicoId,
             fecha: new Date(fecha),
             hora: hora,
-            tipo: tipoFinal,
+            tipoCita: tipoFinal,
             descripcion: descripcion || '',
             sintomas: sintomas || descripcion || '',
             estado: 'pendiente',

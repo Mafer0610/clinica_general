@@ -25,48 +25,11 @@ document.addEventListener('DOMContentLoaded', async function() {
     await obtenerMedicoPorDefecto();
     await cargarPerfilPaciente();
     configurarModalPerfil();
-    configurarBotonGenerarCita(); // NUEVO: Configurar botón explícitamente
 });
-
-// ===== CONFIGURAR BOTÓN GENERAR CITA =====
-function configurarBotonGenerarCita() {
-    console.log('🔧 Configurando botón Generar Cita...');
-    
-    const boton = document.querySelector('.btn-submit');
-    
-    if (!boton) {
-        console.error('❌ No se encontró el botón .btn-submit');
-        return;
-    }
-    
-    console.log('✅ Botón encontrado:', boton);
-    
-    // Remover listeners anteriores si existen
-    const nuevoBoton = boton.cloneNode(true);
-    boton.parentNode.replaceChild(nuevoBoton, boton);
-    
-    // Agregar nuevo listener
-    nuevoBoton.addEventListener('click', async function(e) {
-        e.preventDefault();
-        e.stopPropagation();
-        
-        console.log('🖱️ CLICK EN BOTÓN DETECTADO');
-        console.log('📍 Botón clickeado:', this);
-        
-        await generarCita();
-    });
-    
-    console.log('✅ Event listener agregado al botón');
-}
 
 // ===== FUNCIÓN GENERAR CITA =====
 async function generarCita() {
-    try {
-        console.log('');
-        console.log('═══════════════════════════════════');
-        console.log('🔄 INICIANDO GENERACIÓN DE CITA');
-        console.log('═══════════════════════════════════');
-        
+    try {        
         // Obtener valores de los campos
         const nombre = document.getElementById('nombre').value.trim();
         const apellidos = document.getElementById('apellido').value.trim();
@@ -79,20 +42,6 @@ async function generarCita() {
         const alergias = document.getElementById('alergias').value.trim();
         const padecimientos = document.getElementById('padecimiento').value.trim();
         const domicilio = document.getElementById('domicilio').value.trim();
-        
-        console.log('📋 Datos del formulario:', {
-            nombre,
-            apellidos,
-            fecha,
-            hora,
-            sintomas,
-            telefono,
-            emergencia,
-            tipoSanguineo,
-            alergias,
-            padecimientos,
-            domicilio
-        });
         
         // Validaciones
         if (!nombre || !apellidos) {
@@ -126,13 +75,6 @@ async function generarCita() {
         }
         
         console.log('✅ Todas las validaciones pasaron');
-        
-        // Paso 1: Crear o actualizar perfil del paciente
-        console.log('');
-        console.log('───────────────────────────────────');
-        console.log('📝 PASO 1: Actualizando perfil del paciente');
-        console.log('───────────────────────────────────');
-        
         const profilePayload = {
             email: currentUserEmail,
             nombre: nombre,
@@ -147,9 +89,6 @@ async function generarCita() {
             fechaNacimiento: currentPatientData?.fechaNacimiento || null
         };
         
-        console.log('📤 Enviando a:', `${API_BASE_URL}/patient-profile/profile/upsert`);
-        console.log('📦 Payload:', JSON.stringify(profilePayload, null, 2));
-        
         const profileResponse = await fetch(`${API_BASE_URL}/patient-profile/profile/upsert`, {
             method: 'POST',
             headers: {
@@ -158,21 +97,14 @@ async function generarCita() {
             body: JSON.stringify(profilePayload)
         });
 
-        console.log('📥 Response status:', profileResponse.status);
-        console.log('📥 Response ok:', profileResponse.ok);
-
         const profileData = await profileResponse.json();
-        console.log('📥 Response data:', JSON.stringify(profileData, null, 2));
 
         if (!profileData.success) {
             console.error('❌ Error en respuesta del perfil:', profileData.error);
             
-            // Si ya existe un perfil, intentar obtenerlo directamente
             if (currentPatientData && currentPatientData._id) {
                 console.log('⚠️ Usando paciente existente:', currentPatientData._id);
                 const patientId = currentPatientData._id;
-                
-                // Continuar con la cita usando el ID existente
                 await crearCita(patientId, nombre, apellidos, fecha, hora, sintomas);
                 return;
             }
@@ -191,26 +123,21 @@ async function generarCita() {
             throw new Error('No se pudo obtener el ID del paciente');
         }
 
-        // Paso 2: Crear la cita
-        console.log('');
-        console.log('───────────────────────────────────');
-        console.log('📅 PASO 2: Creando cita');
-        console.log('───────────────────────────────────');
         
+        // ✅ FORMATO ESTANDARIZADO - Igual que médico
         const appointmentPayload = {
             pacienteId: patientId,
             pacienteNombre: `${nombre} ${apellidos}`,
             medicoId: defaultMedicoId,
             fecha: fecha,
             hora: hora,
-            tipo: 'Consulta General',
+            tipoCita: '2',
             descripcion: sintomas,
             sintomas: sintomas,
-            estado: 'pendiente'
+            estado: 'pendiente',
+            recordatorioEnviado: false,
+            confirmada: false
         };
-        
-        console.log('📤 Enviando a:', `${API_BASE_URL}/appointments`);
-        console.log('📦 Payload:', JSON.stringify(appointmentPayload, null, 2));
         
         const appointmentResponse = await fetch(`${API_BASE_URL}/appointments`, {
             method: 'POST',
@@ -220,8 +147,6 @@ async function generarCita() {
             body: JSON.stringify(appointmentPayload)
         });
 
-        console.log('📥 Response status:', appointmentResponse.status);
-        console.log('📥 Response ok:', appointmentResponse.ok);
 
         const appointmentData = await appointmentResponse.json();
         console.log('📥 Response data:', JSON.stringify(appointmentData, null, 2));
@@ -232,27 +157,13 @@ async function generarCita() {
         }
 
         console.log('✅ Cita creada correctamente');
-        console.log('🆔 Appointment ID:', appointmentData.appointmentId);
-        
-        console.log('');
-        console.log('═══════════════════════════════════');
-        console.log('✅ CITA GENERADA EXITOSAMENTE');
-        console.log('═══════════════════════════════════');
-        console.log('');
         
         alert('✅ ¡Cita generada correctamente!\n\nFecha: ' + fecha + '\nHora: ' + hora);
         
         window.location.href = 'proximaCitaPaciente.html';
         
     } catch (error) {
-        console.error('');
-        console.error('═══════════════════════════════════');
         console.error('❌ ERROR CRÍTICO');
-        console.error('═══════════════════════════════════');
-        console.error('Mensaje:', error.message);
-        console.error('Stack:', error.stack);
-        console.error('═══════════════════════════════════');
-        console.error('');
         
         alert('❌ Error al generar la cita: ' + error.message);
     }
@@ -475,3 +386,4 @@ async function guardarCambiosPerfil() {
         alert('❌ Error al guardar cambios: ' + error.message);
     }
 }
+window.generarCitaManual = generarCita;
