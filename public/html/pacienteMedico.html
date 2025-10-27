@@ -179,58 +179,61 @@
     </div>
   </div>
 
-  <!-- MODAL PERFIL -->
-  <div id="modalPerfilPacientes" class="modal">
-    <div class="modal-content modal-content-perfil">
-      <!-- Botón cerrar -->
-      <button class="modal-close" onclick="closeModalPerfilPacientes()">
-        <i class="fas fa-times"></i>
-      </button>
+<!-- MODAL PERFIL -->
+<div id="modalPerfilPacientes" class="modal">
+  <div class="modal-content modal-content-perfil">
+    <!-- Botón cerrar -->
+    <button class="modal-close" onclick="closeModalPerfilPacientes()">
+      <i class="fas fa-times"></i>
+    </button>
 
-      <!-- Título del modal -->
-      <h2 class="modal-title">Perfil</h2>
+    <!-- Título del modal -->
+    <h2 class="modal-title">Perfil</h2>
 
-      <!-- Formulario de perfil -->
-      <form class="modal-form-perfil" id="formPerfilPacientes">
-        <!-- Fila 1: Nombre y Apellidos -->
-        <div class="form-row">
-          <div class="form-col">
-            <label for="nombrePacientes">Nombre(s)</label>
-            <input type="text" id="nombrePacientes" class="form-input-perfil" value="Daniel Alejandro" placeholder="Nombre(s)">
-          </div>
-          <div class="form-col">
-            <label for="apellidosPacientes">Apellidos</label>
-            <input type="text" id="apellidosPacientes" class="form-input-perfil" value="Hernandez Perez" placeholder="Apellidos">
-          </div>
+    <!-- Formulario de perfil -->
+    <form class="modal-form-perfil" id="formPerfilPacientes">
+      <!-- Fila 1: Nombre y Apellidos -->
+      <div class="form-row">
+        <div class="form-col">
+          <label for="nombrePacientes">Nombre(s)</label>
+          <input type="text" id="nombrePacientes" class="form-input-perfil" placeholder="Nombre(s)">
         </div>
-
-        <!-- Fila 2: Cédula y Teléfono -->
-        <div class="form-row">
-          <div class="form-col">
-            <label for="cedulaPacientes">Cedula</label>
-            <input type="text" id="cedulaPacientes" class="form-input-perfil" value="4567890" placeholder="Cédula">
-          </div>
-          <div class="form-col">
-            <label for="telefonoPacientes">Teléfono</label>
-            <input type="tel" id="telefonoPacientes" class="form-input-perfil" value="961-117-4267" placeholder="Teléfono">
-          </div>
+        <div class="form-col">
+          <label for="apellidosPacientes">Apellidos</label>
+          <input type="text" id="apellidosPacientes" class="form-input-perfil" placeholder="Apellidos">
         </div>
+      </div>
 
-        <!-- Fila 3: Correo (ancho completo) -->
-        <div class="form-row">
-          <div class="form-col-full">
-            <label for="correoPacientes">Correo</label>
-            <input type="email" id="correoPacientes" class="form-input-perfil" value="correo_de_ejemplo@gmail.com" placeholder="Correo electrónico">
-          </div>
+      <!-- Fila 2: Cédula y Teléfono -->
+      <div class="form-row">
+        <div class="form-col">
+          <label for="cedulaPacientes">Cédula</label>
+          <input type="text" id="cedulaPacientes" class="form-input-perfil" placeholder="Cédula">
         </div>
+        <div class="form-col">
+          <label for="telefonoPacientes">Teléfono</label>
+          <input type="tel" id="telefonoPacientes" class="form-input-perfil" placeholder="Teléfono">
+        </div>
+      </div>
 
-        <!-- Botón Guardar -->
-        <div class="modal-buttons-perfil">
-          <button type="submit" class="btn-guardar-perfil">Guardar</button>
+      <!-- Fila 3: Correo (ancho completo y readonly) -->
+      <div class="form-row">
+        <div class="form-col-full">
+          <label for="correoPacientes">Correo</label>
+          <input type="email" id="correoPacientes" class="form-input-perfil" placeholder="Correo electrónico" readonly style="background-color: #f0f0f0; cursor: not-allowed;">
+          <small style="color: #6B8199; font-size: 11px; margin-top: 5px; display: block;">
+            * El correo no puede ser modificado
+          </small>
         </div>
-      </form>
-    </div>
+      </div>
+
+      <!-- Botón Guardar -->
+      <div class="modal-buttons-perfil">
+        <button type="submit" class="btn-guardar-perfil">Guardar Cambios</button>
+      </div>
+    </form>
   </div>
+</div>
 
   <!-- MODAL AÑADIR PACIENTE -->
   <div id="modalAddPaciente" class="modal">

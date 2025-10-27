@@ -94,9 +94,8 @@ function mostrarProximaCita() {
         document.getElementById('apellido-paciente').value = nombres.slice(1).join(' ') || '';
     }
 
-    // Datos de la Cita
-    const fecha = new Date(proximaCita.fecha);
-    const fechaISO = fecha.toISOString().split('T')[0];
+    // CORRECCIÓN: Datos de la Cita - Formatear fecha correctamente
+    const fechaISO = proximaCita.fecha.split('T')[0]; // Obtener solo YYYY-MM-DD
     
     document.getElementById('fecha-cita').value = fechaISO;
     document.getElementById('hora-cita').value = proximaCita.hora || '';

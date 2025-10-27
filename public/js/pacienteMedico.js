@@ -1,9 +1,117 @@
 // ===== CONFIGURACIÓN API =====
 const API_BASE_URL = 'http://localhost:3002/api';
 
-// ===== CARGAR PACIENTES AL INICIO =====
+// ===== CONFIGURAR MODAL DE PERFIL DEL MÉDICO EN PÁGINA DE PACIENTES =====
 document.addEventListener('DOMContentLoaded', async function() {
   await cargarPacientes();
+  
+  // Configurar modal de perfil
+  const profileIcon = document.getElementById('profileIconPacientes');
+  if (profileIcon) {
+    profileIcon.addEventListener('click', async (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      console.log('👤 Click en icono de perfil detectado');
+      await cargarPerfilMedicoEnPacientes();
+      openModalPerfilPacientes();
+    });
+  }
+});
+
+// ===== CARGAR PERFIL DEL MÉDICO =====
+async function cargarPerfilMedicoEnPacientes() {
+  console.log('📥 Cargando perfil del médico...');
+  
+  try {
+    const userId = localStorage.getItem('userId');
+    
+    if (!userId) {
+      console.error('❌ No se encontró ID de usuario');
+      limpiarCamposPerfilMedico();
+      return;
+    }
+
+    const response = await fetch(`http://localhost:3001/auth/user/${userId}`);
+    const data = await response.json();
+
+    if (data.success && data.user) {
+      const user = data.user;
+      
+      document.getElementById('nombrePacientes').value = user.nombre || '';
+      document.getElementById('apellidosPacientes').value = user.apellidos || '';
+      document.getElementById('cedulaPacientes').value = user.cedula || '';
+      document.getElementById('telefonoPacientes').value = user.telefono || '';
+      document.getElementById('correoPacientes').value = user.email || '';
+      
+      console.log('✅ Perfil cargado correctamente');
+    } else {
+      console.warn('⚠️ No se encontraron datos del usuario');
+      limpiarCamposPerfilMedico();
+    }
+  } catch (error) {
+    console.error('❌ Error cargando perfil:', error);
+    limpiarCamposPerfilMedico();
+  }
+}
+
+function limpiarCamposPerfilMedico() {
+  document.getElementById('nombrePacientes').value = '';
+  document.getElementById('apellidosPacientes').value = '';
+  document.getElementById('cedulaPacientes').value = '';
+  document.getElementById('telefonoPacientes').value = '';
+  document.getElementById('correoPacientes').value = '';
+}
+
+// ===== GUARDAR CAMBIOS DEL PERFIL =====
+document.getElementById('formPerfilPacientes').addEventListener('submit', async function(e) {
+  e.preventDefault();
+  
+  try {
+    const userId = localStorage.getItem('userId');
+    
+    if (!userId) {
+      alert('❌ Error: No se encontró ID de usuario');
+      return;
+    }
+
+    const nombre = document.getElementById('nombrePacientes').value.trim();
+    const apellidos = document.getElementById('apellidosPacientes').value.trim();
+    const cedula = document.getElementById('cedulaPacientes').value.trim();
+    const telefono = document.getElementById('telefonoPacientes').value.trim();
+
+    const updateData = {};
+    if (nombre) updateData.nombre = nombre;
+    if (apellidos) updateData.apellidos = apellidos;
+    if (cedula) updateData.cedula = cedula;
+    if (telefono) updateData.telefono = telefono;
+
+    if (Object.keys(updateData).length === 0) {
+      alert('⚠️ No hay cambios para guardar');
+      return;
+    }
+
+    const response = await fetch(`http://localhost:3001/auth/user/${userId}`, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json'
+      },
+      body: JSON.stringify(updateData)
+    });
+
+    const data = await response.json();
+
+    if (response.ok && data.success) {
+      alert('✅ Perfil actualizado correctamente!');
+      closeModalPerfilPacientes();
+      await cargarPerfilMedicoEnPacientes();
+    } else {
+      alert('❌ Error: ' + (data.error || 'No se pudo actualizar el perfil'));
+    }
+  } catch (error) {
+    console.error('❌ Error:', error);
+    alert('❌ Error de conexión: ' + error.message);
+  }
 });
 
 // ===== FUNCIÓN PARA CARGAR PACIENTES DESDE LA BD =====
@@ -120,25 +228,15 @@ async function abrirModalPaciente(patientId) {
         });
 
         citasOrdenadas.forEach(cita => {
-          console.log('Procesando cita:', {
-            fecha: cita.fecha,
-            hora: cita.hora,
-            tipoCita: cita.tipoCita,
-            descripcion: cita.descripcion
-          });
-
           const citaElement = document.createElement('div');
           citaElement.className = 'historial-item';
           
-          const fecha = new Date(cita.fecha);
-          const fechaFormateada = fecha.toLocaleDateString('es-MX', {
-            day: '2-digit',
-            month: '2-digit',
-            year: 'numeric'
-          });
+          // CORRECCIÓN: Formatear fecha correctamente sin perder un día
+          const fechaISO = cita.fecha.split('T')[0]; // Obtener solo YYYY-MM-DD
+          const [year, month, day] = fechaISO.split('-');
+          const fechaFormateada = `${day}/${month}/${year}`;
           
           const tipoCita = TIPOS_CITA[cita.tipoCita] || cita.tipo || 'Consulta General';
-          
           const hora = cita.hora || 'N/A';
                     
           citaElement.innerHTML = `

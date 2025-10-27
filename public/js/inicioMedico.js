@@ -268,7 +268,13 @@ function renderizarCitasEnCalendario(appointments) {
   }
 
   appointments.forEach(cita => {
-    const fechaCita = new Date(cita.fecha);
+    // CORRECCIÓN: Extraer fecha sin convertir a Date para evitar zona horaria
+    const fechaISO = cita.fecha.split('T')[0]; // Obtener solo YYYY-MM-DD
+    const [year, month, day] = fechaISO.split('-');
+    
+    // Crear fecha local correcta
+    const fechaCita = new Date(parseInt(year), parseInt(month) - 1, parseInt(day));
+    fechaCita.setHours(0, 0, 0, 0);
     
     const diaIndex = fechasSemana.findIndex(fecha => 
       fecha.toDateString() === fechaCita.toDateString()
@@ -310,7 +316,14 @@ function renderizarCitasEnCalendario(appointments) {
 
 // ===== MOSTRAR DETALLES DE CITA =====
 function mostrarDetallesCita(cita) {
-  const fechaFormateada = new Date(cita.fecha).toLocaleDateString('es-MX', {
+  // CORRECCIÓN: Formatear fecha correctamente
+  const fechaISO = cita.fecha.split('T')[0]; // Obtener solo YYYY-MM-DD
+  const [year, month, day] = fechaISO.split('-');
+  
+  // Crear fecha local correcta para formatear
+  const fechaObj = new Date(parseInt(year), parseInt(month) - 1, parseInt(day));
+  
+  const fechaFormateada = fechaObj.toLocaleDateString('es-MX', {
     weekday: 'long',
     year: 'numeric',
     month: 'long',

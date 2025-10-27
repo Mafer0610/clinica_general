@@ -57,12 +57,10 @@ function mostrarHistorialCitas(appointments) {
     container.innerHTML = ''; // Limpiar contenido actual
 
     appointments.forEach((cita, index) => {
-        const fecha = new Date(cita.fecha);
-        const fechaFormateada = fecha.toLocaleDateString('es-MX', {
-            day: '2-digit',
-            month: '2-digit',
-            year: 'numeric'
-        });
+        // CORRECCIÓN: Formatear fecha correctamente sin perder un día
+        const fechaISO = cita.fecha.split('T')[0]; // Obtener solo YYYY-MM-DD
+        const [year, month, day] = fechaISO.split('-');
+        const fechaFormateada = `${day}/${month}/${year}`;
 
         const tipoCita = TIPOS_CITA[cita.tipoCita] || cita.tipo || 'Consulta General';
         const hora = cita.hora || 'N/A';
