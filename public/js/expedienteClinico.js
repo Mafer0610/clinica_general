@@ -1,4 +1,3 @@
-// ========== INICIALIZACIÓN ==========
 document.addEventListener('DOMContentLoaded', function() {
   inicializarFechas();
   inicializarEventos();
@@ -6,13 +5,11 @@ document.addEventListener('DOMContentLoaded', function() {
   verificarJsPDF();
 });
 
-// ========== FUNCIONES DE INICIALIZACIÓN ==========
 function inicializarFechas() {
   const ahora = new Date();
   const fechaHoy = ahora.toISOString().split('T')[0];
   const horaActual = ahora.toTimeString().slice(0, 5);
   
-  // Establecer fechas automáticas
   document.getElementById('fechaApertura').textContent = fechaHoy;
   document.getElementById('horaApertura').textContent = horaActual;
   document.getElementById('fechaConsulta').value = fechaHoy;
@@ -24,14 +21,11 @@ function inicializarFechas() {
 }
 
 function inicializarEventos() {
-  // Calcular edad automáticamente
   document.getElementById('fechaNacimiento').addEventListener('change', calcularEdad);
   
-  // Calcular IMC automáticamente
   document.getElementById('peso').addEventListener('input', calcularIMC);
   document.getElementById('talla').addEventListener('input', calcularIMC);
   
-  // Validar campos antes de imprimir
   const printOriginal = window.print;
   window.print = function() {
     if (validarCamposObligatorios()) {
@@ -56,7 +50,6 @@ function verificarJsPDF() {
   }
 }
 
-// ========== FUNCIONES DE CÁLCULO ==========
 function calcularEdad() {
   const fechaNac = new Date(this.value);
   const hoy = new Date();
@@ -89,7 +82,6 @@ function calcularIMC() {
   }
 }
 
-// ========== FUNCIONES DE FORMULARIOS ==========
 function agregarFilaMedicamento() {
   const tabla = document.getElementById('tablaMedicamentos');
   const nuevaFila = tabla.insertRow();
@@ -127,7 +119,6 @@ function toggleReferencia() {
   document.getElementById('terapeuticaEmpleada').disabled = !solicita;
 }
 
-// ========== VALIDACIÓN ==========
 function validarCamposObligatorios() {
   const camposObligatorios = [
     {id: 'nombrePaciente', label: 'Nombre Completo'},
@@ -163,7 +154,6 @@ function validarCamposObligatorios() {
   return true;
 }
 
-// ========== FUNCIONES DE UTILIDAD ==========
 function formatearFecha(fecha) {
   return fecha.toLocaleDateString('es-MX', {
     year: 'numeric',
@@ -187,7 +177,6 @@ function volverPacientes() {
   window.location.href = 'pacienteMedico.html';
 }
 
-// ========== GENERACIÓN DE PDF ==========
 function generarPDFExpediente() {
   if (typeof window.jspdf === 'undefined') {
     alert('Error: La librería jsPDF no se ha cargado correctamente. Por favor, recarga la página.');
@@ -205,7 +194,6 @@ function generarPDFExpediente() {
     format: 'a4'
   });
 
-  // Configuración inicial
   const config = {
     margenIzq: 12,
     margenDer: 198,
@@ -214,59 +202,42 @@ function generarPDFExpediente() {
     y: 10
   };
 
-  // Función para dibujar marco en cada página
   function dibujarMarco() {
     doc.setDrawColor(15, 55, 89);
     doc.setLineWidth(0.5);
     doc.rect(8, 8, 194, 279);
   }
 
-  // Dibujar marco en la primera página
   dibujarMarco();
 
-  // ========== SOLO SECCIONES OBLIGATORIAS ==========
-  
-  // 1. HEADER Y DATOS ESTABLECIMIENTO (NOM 5.2)
   config.y = generarHeaderPDF(doc, config);
   
-  // 2. DATOS GENERALES DEL PACIENTE (NOM 5.2.3)
   config.y = generarDatosPacientePDF(doc, config);
   
-  // 3. HISTORIA CLÍNICA COMPLETA (NOM 6.1)
   config.y = generarHistoriaClinicaPDF(doc, config);
   
-  // 4. PADECIMIENTO ACTUAL (NOM 6.1.1)
   config.y = generarPadecimientoActualPDF(doc, config);
   
-  // 5. EXPLORACIÓN FÍSICA (NOM 6.1.2)
   config.y = generarExploracionFisicaPDF(doc, config);
   
-  // 6. RESULTADOS DE ESTUDIOS (NOM 6.1.3)
   config.y = generarResultadosEstudiosPDF(doc, config);
   
-  // 7. DIAGNÓSTICO(S) (NOM 6.1.4)
   config.y = generarDiagnosticosPDF(doc, config);
   
-  // 8. PRONÓSTICO (NOM 6.1.5)
   config.y = generarPronosticoPDF(doc, config);
   
-  // 9. INDICACIÓN TERAPÉUTICA (NOM 6.1.6)
   config.y = generarTratamientoPDF(doc, config);
   
-  // FIRMAS (NOM 5.10)
   generarFirmasPDF(doc, config);
 
-  // Descargar PDF
   const nombrePaciente = getValue('nombrePaciente').replace(/\s+/g, '_') || 'Paciente';
   const fecha = getValue('fechaConsulta').replace(/-/g, '');
   doc.save(`Expediente_${nombrePaciente}_${fecha}.pdf`);
 }
 
-// ========== FUNCIONES AUXILIARES PARA PDF ==========
 function generarHeaderPDF(doc, config) {
   let y = config.y;
   
-  // Logo
   doc.setFillColor(15, 55, 89);
   doc.rect(config.margenIzq, y, 20, 18, 'F');
   doc.setTextColor(255, 255, 255);
@@ -274,14 +245,12 @@ function generarHeaderPDF(doc, config) {
   doc.setFont(undefined, 'bold');
   doc.text('DJFA', 22, y + 12, { align: 'center' });
 
-  // Título
   doc.setFillColor(184, 205, 224);
   doc.roundedRect(70, y, 85, 12, 3, 3, 'F');
   doc.setTextColor(15, 55, 89);
   doc.setFontSize(13);
   doc.text('EXPEDIENTE CLÍNICO', 112.5, y + 8, { align: 'center' });
 
-  // Número de expediente
   doc.setFillColor(240, 240, 240);
   doc.roundedRect(160, y, 38, 12, 2, 2, 'F');
   doc.setFontSize(7);
@@ -293,7 +262,6 @@ function generarHeaderPDF(doc, config) {
 
   y += 20;
 
-  // Datos del establecimiento
   doc.setFillColor(248, 249, 250);
   doc.rect(config.margenIzq, y, config.anchoUtil, 8, 'F');
   doc.setTextColor(15, 55, 89);

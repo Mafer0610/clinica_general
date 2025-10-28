@@ -1,7 +1,5 @@
-// ===== CONFIGURACIÓN API =====
 const API_BASE_URL = 'http://localhost:3002/api';
 
-// ===== MAPA DE TIPOS DE CITA =====
 const TIPOS_CITA = {
   '1': 'Consulta médica',
   '2': 'Consulta general',
@@ -10,7 +8,6 @@ const TIPOS_CITA = {
   '5': 'Seguimiento'
 };
 
-// ===== GESTIÓN DE MODALES =====
 const Modal = {
   abrir: (id) => {
     const modal = document.getElementById(`modal${id.charAt(0).toUpperCase() + id.slice(1)}`);
@@ -26,12 +23,8 @@ const Modal = {
   }
 };
 
-// ===== CARGAR DATOS AL INICIAR =====
-document.addEventListener('DOMContentLoaded', async function() {
-  console.log('🔄 Inicializando aplicación...');
-  
+document.addEventListener('DOMContentLoaded', async function() { 
   const medicoId = localStorage.getItem('userId');
-  console.log('👤 ID del médico:', medicoId);
   
   if (medicoId) {
     await cargarCitasMedico(medicoId);
@@ -44,9 +37,7 @@ document.addEventListener('DOMContentLoaded', async function() {
   configurarFormularios();
 });
 
-// ===== CONFIGURAR EVENT LISTENERS =====
 function configurarEventListeners() {
-  console.log('🔧 Configurando event listeners...');
 
   document.addEventListener('click', async (e) => {
     const modalTrigger = e.target.closest('[data-modal]');
