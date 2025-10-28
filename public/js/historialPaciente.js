@@ -10,6 +10,10 @@ const TIPOS_CITA = {
   '5': 'Seguimiento'
 };
 
+// ===== VARIABLES GLOBALES =====
+let currentUserEmail = null;
+let patientData = null;
+
 // ===== CARGAR HISTORIAL AL INICIAR =====
 document.addEventListener('DOMContentLoaded', async function() {
     console.log('🔄 Cargando historial de citas...');
@@ -23,9 +27,32 @@ document.addEventListener('DOMContentLoaded', async function() {
         return;
     }
 
+    currentUserEmail = userEmail;
+    await cargarDatosPaciente();
     await cargarHistorialCitas(userEmail);
     configurarModalPerfil();
 });
+
+// ===== CARGAR DATOS DEL PACIENTE =====
+async function cargarDatosPaciente() {
+    try {
+        console.log('📥 Cargando perfil del paciente...');
+        
+        const response = await fetch(`${API_BASE_URL}/patient-profile/profile/${encodeURIComponent(currentUserEmail)}`);
+        const data = await response.json();
+
+        if (data.success && data.hasProfile && data.patient) {
+            patientData = data.patient;
+            console.log('✅ Perfil del paciente cargado');
+        } else {
+            console.log('⚠️ No se encontró perfil del paciente');
+            patientData = null;
+        }
+    } catch (error) {
+        console.error('❌ Error cargando datos del paciente:', error);
+        patientData = null;
+    }
+}
 
 // ===== CARGAR HISTORIAL DE CITAS =====
 async function cargarHistorialCitas(email) {
@@ -54,11 +81,10 @@ async function cargarHistorialCitas(email) {
 // ===== MOSTRAR HISTORIAL DE CITAS =====
 function mostrarHistorialCitas(appointments) {
     const container = document.querySelector('.container');
-    container.innerHTML = ''; // Limpiar contenido actual
+    container.innerHTML = '';
 
     appointments.forEach((cita, index) => {
-        // CORRECCIÓN: Formatear fecha correctamente sin perder un día
-        const fechaISO = cita.fecha.split('T')[0]; // Obtener solo YYYY-MM-DD
+        const fechaISO = cita.fecha.split('T')[0];
         const [year, month, day] = fechaISO.split('-');
         const fechaFormateada = `${day}/${month}/${year}`;
 
@@ -154,8 +180,10 @@ function configurarModalPerfil() {
     const profileIcon = document.getElementById('profileIconPacientes');
     const modal = document.getElementById('modalPerfil');
     const closeBtn = modal.querySelector('.modal-close');
+    const form = modal.querySelector('.modal-form-perfil');
 
-    profileIcon.addEventListener('click', () => {
+    profileIcon.addEventListener('click', async () => {
+        await cargarDatosModalPerfil();
         modal.style.display = 'block';
     });
 
@@ -168,4 +196,114 @@ function configurarModalPerfil() {
             modal.style.display = 'none';
         }
     });
+
+    form.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        await guardarCambiosPerfil();
+    });
+}
+
+// ===== CARGAR DATOS EN MODAL DE PERFIL =====
+async function cargarDatosModalPerfil() {
+    try {
+        console.log('📥 Cargando datos del modal de perfil...');
+        
+        const userId = localStorage.getItem('userId');
+        console.log('🆔 User ID:', userId);
+        
+        const response = await fetch(`http://localhost:3001/auth/user/${userId}`);
+        const data = await response.json();
+
+        console.log('📋 Respuesta auth:', data);
+
+        if (data.success && data.user) {
+            if (patientData) {
+                console.log('✅ Usando datos del perfil del paciente');
+                document.getElementById('nombre').value = patientData.nombre || '';
+                document.getElementById('apellidos').value = patientData.apellidos || '';
+                document.getElementById('telefono').value = patientData.telefono || '';
+                document.getElementById('emergencia').value = patientData.telefonoEmergencia || '';
+            } else {
+                console.log('⚠️ Usando datos del auth (sin perfil completo)');
+                document.getElementById('nombre').value = data.user.nombre || '';
+                document.getElementById('apellidos').value = data.user.apellidos || '';
+                document.getElementById('telefono').value = data.user.telefono || '';
+                document.getElementById('emergencia').value = '';
+            }
+            
+            document.getElementById('correo').value = data.user.email || '';
+            
+            console.log('✅ Modal de perfil cargado');
+        } else {
+            console.error('❌ No se encontraron datos del usuario');
+        }
+    } catch (error) {
+        console.error('❌ Error cargando datos del modal:', error);
+    }
+}
+
+// ===== GUARDAR CAMBIOS DEL PERFIL =====
+async function guardarCambiosPerfil() {
+    try {
+        const nombre = document.getElementById('nombre').value.trim();
+        const apellidos = document.getElementById('apellidos').value.trim();
+        const telefono = document.getElementById('telefono').value.trim();
+        const emergencia = document.getElementById('emergencia').value.trim();
+
+        const userId = localStorage.getItem('userId');
+        const authResponse = await fetch(`http://localhost:3001/auth/user/${userId}`, {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                nombre: nombre,
+                apellidos: apellidos,
+                telefono: telefono
+            })
+        });
+
+        const authData = await authResponse.json();
+
+        if (!authData.success) {
+            throw new Error('Error al actualizar usuario');
+        }
+
+        if (patientData) {
+            const profileResponse = await fetch(`${API_BASE_URL}/patient-profile/profile/upsert`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    email: currentUserEmail,
+                    nombre: nombre,
+                    apellidos: apellidos,
+                    telefono: telefono,
+                    telefonoEmergencia: emergencia,
+                    domicilio: patientData.domicilio,
+                    alergias: patientData.alergias,
+                    padecimientos: patientData.padecimientos,
+                    tipoSanguineo: patientData.tipoSanguineo,
+                    sexo: patientData.sexo,
+                    fechaNacimiento: patientData.fechaNacimiento
+                })
+            });
+
+            const profileData = await profileResponse.json();
+
+            if (!profileData.success) {
+                throw new Error('Error al actualizar perfil de paciente');
+            }
+        }
+
+        alert('✅ Perfil actualizado correctamente');
+        document.getElementById('modalPerfil').style.display = 'none';
+        
+        await cargarDatosPaciente();
+        
+    } catch (error) {
+        console.error('❌ Error guardando perfil:', error);
+        alert('❌ Error al guardar cambios: ' + error.message);
+    }
 }
