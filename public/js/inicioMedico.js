@@ -95,7 +95,6 @@ function configurarEventListeners() {
   }
 }
 
-// ===== BUSQUEDA DE PACIENTES CON SUGERENCIAS =====
 function configurarBusquedaPacientes() {
   const searchInput = document.getElementById('pacienteSearch');
   const suggestionsDiv = document.getElementById('pacienteSuggestions');
@@ -103,7 +102,6 @@ function configurarBusquedaPacientes() {
   
   let pacientes = [];
   
-  // Cargar todos los pacientes al inicio
   async function cargarPacientes() {
     try {
       const response = await fetch(`${API_BASE_URL}/patients`);
@@ -120,7 +118,6 @@ function configurarBusquedaPacientes() {
   
   cargarPacientes();
   
-  // Búsqueda en tiempo real
   searchInput.addEventListener('input', function() {
     const searchTerm = this.value.toLowerCase().trim();
     
@@ -170,7 +167,6 @@ function configurarBusquedaPacientes() {
     suggestionsDiv.classList.add('show');
   }
   
-  // Cerrar sugerencias al hacer clic fuera
   document.addEventListener('click', (e) => {
     if (!searchInput.contains(e.target) && !suggestionsDiv.contains(e.target)) {
       suggestionsDiv.classList.remove('show');
@@ -178,7 +174,6 @@ function configurarBusquedaPacientes() {
   });
 }
 
-// ===== CARGAR PERFIL DEL MÉDICO =====
 async function cargarPerfilMedico() {
   console.log('📥 Cargando perfil del médico...');
   
@@ -222,7 +217,6 @@ function limpiarCamposPerfil() {
   document.getElementById('correo').value = '';
 }
 
-// ===== CARGAR CITAS DEL MÉDICO =====
 async function cargarCitasMedico(medicoId) {
   try {
     console.log('📅 Cargando citas del médico...');
@@ -241,7 +235,6 @@ async function cargarCitasMedico(medicoId) {
 }
 
 function renderizarCitasEnCalendario(appointments) {
-  // Limpiar citas existentes
   document.querySelectorAll('.appointment-simple').forEach(el => el.remove());
 
   if (!appointments || appointments.length === 0) {
@@ -251,19 +244,17 @@ function renderizarCitasEnCalendario(appointments) {
 
   console.log(`📅 Renderizando ${appointments.length} citas en el calendario`);
 
-  // ✅ CORRECCIÓN: Calcular correctamente el lunes de la semana actual
   const hoy = new Date();
   hoy.setHours(0, 0, 0, 0);
   
-  const diaSemana = hoy.getDay(); // 0=Domingo, 1=Lunes, ..., 6=Sábado
+  const diaSemana = hoy.getDay();
   
-  // Calcular cuántos días retroceder para llegar al lunes
   let diasHastaLunes;
-  if (diaSemana === 0) { // Domingo
+  if (diaSemana === 0) {
     diasHastaLunes = -6;
-  } else if (diaSemana === 1) { // Lunes
+  } else if (diaSemana === 1) {
     diasHastaLunes = 0;
-  } else { // Martes a Sábado
+  } else {
     diasHastaLunes = -(diaSemana - 1);
   }
   
@@ -273,7 +264,6 @@ function renderizarCitasEnCalendario(appointments) {
   console.log('📅 HOY:', hoy.toLocaleDateString('es-MX'), `(día ${diaSemana})`);
   console.log('📅 LUNES DE LA SEMANA:', lunes.toLocaleDateString('es-MX'));
 
-  // Crear array con las fechas de la semana (Lunes a Viernes)
   const fechasSemana = [];
   for (let i = 0; i < 5; i++) {
     const fecha = new Date(lunes);
@@ -287,25 +277,21 @@ function renderizarCitasEnCalendario(appointments) {
     console.log(`   ${dias[i]}: ${fecha.toLocaleDateString('es-MX')}`);
   });
 
-  // Procesar cada cita
   let citasRenderizadas = 0;
   
   appointments.forEach((cita, index) => {
     console.log(`\n🔍 Procesando cita ${index + 1}/${appointments.length}:`);
     console.log('   - Paciente:', cita.pacienteNombre);
     
-    // Extraer fecha de la cita (formato YYYY-MM-DD)
     const fechaISO = cita.fecha.split('T')[0];
     const [year, month, day] = fechaISO.split('-');
     
-    // Crear fecha local (sin zona horaria)
     const fechaCita = new Date(parseInt(year), parseInt(month) - 1, parseInt(day));
     fechaCita.setHours(0, 0, 0, 0);
     
     console.log('   - Fecha de la cita:', fechaCita.toLocaleDateString('es-MX'));
     console.log('   - Fecha ISO original:', fechaISO);
     
-    // ✅ CORRECCIÓN: Buscar comparando día, mes y año individualmente
     const diaIndex = fechasSemana.findIndex(fecha => 
       fecha.getDate() === fechaCita.getDate() &&
       fecha.getMonth() === fechaCita.getMonth() &&
@@ -315,27 +301,23 @@ function renderizarCitasEnCalendario(appointments) {
     if (diaIndex !== -1) {
       console.log('   ✅ Cita encontrada en día:', ['LUN', 'MAR', 'MIE', 'JUE', 'VIE'][diaIndex]);
       
-      // Extraer hora
       const [hora, minutos] = cita.hora.split(':');
       const horaInt = parseInt(hora);
       
       console.log('   - Hora:', cita.hora, '→', horaInt);
 
-      // Validar que la hora esté en el rango del calendario (9-21)
       if (horaInt >= 9 && horaInt <= 21) {
-        const filaIndex = horaInt - 9;  // 9:00 → fila 0, 10:00 → fila 1, etc.
-        const columnaIndex = diaIndex + 1;  // +1 porque la columna 0 es la hora
+        const filaIndex = horaInt - 9;
+        const columnaIndex = diaIndex + 1;
         
         console.log('   - Posición: Fila', filaIndex, ', Columna', columnaIndex);
 
-        // Obtener la celda correspondiente
         const filas = document.querySelectorAll('.schedule tbody tr');
         
         if (filas[filaIndex]) {
           const celda = filas[filaIndex].cells[columnaIndex];
           
           if (celda) {
-            // Crear elemento de la cita
             const tipoCita = TIPOS_CITA[cita.tipoCita] || 'Consulta';
             
             const citaElement = document.createElement('div');
@@ -345,12 +327,10 @@ function renderizarCitasEnCalendario(appointments) {
               <div class="appointment-update">${tipoCita}</div>
             `;
             
-            // Agregar evento click
             citaElement.addEventListener('click', () => {
               mostrarDetallesCita(cita);
             });
             
-            // Agregar al calendario
             celda.appendChild(citaElement);
             citasRenderizadas++;
             
@@ -376,13 +356,10 @@ function renderizarCitasEnCalendario(appointments) {
   console.log(`\n✅ Total de citas renderizadas: ${citasRenderizadas}/${appointments.length}`);
 }
 
-// ===== MOSTRAR DETALLES DE CITA =====
 function mostrarDetallesCita(cita) {
-  // CORRECCIÓN: Formatear fecha correctamente
-  const fechaISO = cita.fecha.split('T')[0]; // Obtener solo YYYY-MM-DD
+  const fechaISO = cita.fecha.split('T')[0];
   const [year, month, day] = fechaISO.split('-');
   
-  // Crear fecha local correcta para formatear
   const fechaObj = new Date(parseInt(year), parseInt(month) - 1, parseInt(day));
   
   const fechaFormateada = fechaObj.toLocaleDateString('es-MX', {
@@ -403,7 +380,6 @@ function mostrarDetallesCita(cita) {
   `.trim());
 }
 
-// ===== CONFIGURAR FORMULARIOS =====
 function configurarFormularios() {
   const forms = {
     cita: async () => {
@@ -417,7 +393,6 @@ function configurarFormularios() {
       const tipoCita = document.getElementById('tipoCita').value;
       const medicoId = localStorage.getItem('userId');
 
-      // Validaciones
       if (!pacienteId || !pacienteNombre) {
         alert('⚠️ Por favor selecciona un paciente de la lista');
         return;
@@ -466,17 +441,36 @@ function configurarFormularios() {
       }
     },
     
-    reportes: () => {
+    reportes: async (e) => {
+      e.preventDefault();
+      
       const inicio = document.getElementById('fechaInicio').value;
       const final = document.getElementById('fechaFinal').value;
 
       if (!inicio || !final) {
-        alert('Por favor seleccione ambas fechas');
+        alert('⚠️ Por favor seleccione ambas fechas');
+        return;
+      }
+      
+      if (new Date(inicio) > new Date(final)) {
+        alert('⚠️ La fecha de inicio no puede ser mayor que la fecha final');
+        return;
+      }
+      
+      const hoy = new Date();
+      hoy.setHours(0, 0, 0, 0);
+      
+      if (new Date(inicio) > hoy || new Date(final) > hoy) {
+        alert('⚠️ No se pueden seleccionar fechas futuras');
         return;
       }
 
-      alert(`Generando reporte PDF desde ${inicio} hasta ${final}`);
-      Modal.cerrar('reportes');
+      if (typeof generarReportePDF === 'function') {
+        await generarReportePDF(e);
+      } else {
+        console.error('❌ generarReportePDF no está disponible');
+        alert('❌ Error: No se pudo generar el reporte');
+      }
     },
     
     perfil: async () => {
@@ -533,12 +527,11 @@ function configurarFormularios() {
     form.addEventListener('submit', (e) => {
       e.preventDefault();
       const formName = form.dataset.form;
-      forms[formName]();
+      forms[formName](e);
     });
   });
 }
 
-// ===== LIMPIAR FORMULARIO DE CITA =====
 function limpiarFormularioCita() {
   document.getElementById('pacienteSearch').value = '';
   document.getElementById('pacienteId').value = '';

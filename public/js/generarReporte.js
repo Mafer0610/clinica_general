@@ -29,13 +29,6 @@ document.addEventListener('DOMContentLoaded', function() {
     
     console.log('✅ Restricciones de fecha configuradas');
   }
-  
-  // Configurar el botón de generar PDF
-  const btnGenerar = document.querySelector('.btn-generar-pdf');
-  if (btnGenerar) {
-    btnGenerar.addEventListener('click', generarReportePDF);
-    console.log('✅ Event listener del botón configurado');
-  }
 });
 
 // ===== FUNCIÓN PRINCIPAL PARA GENERAR REPORTE =====
@@ -145,7 +138,11 @@ async function generarReportePDF(e) {
 
     // ✅ GENERAR PDF CON DATOS REALES
     const { jsPDF } = window.jspdf;
-    const doc = new jsPDF();
+    const doc = new jsPDF({
+      orientation: 'portrait',
+      unit: 'mm',
+      format: 'a4'
+    });
 
     // Colores
     const COLORS = {
@@ -155,19 +152,24 @@ async function generarReportePDF(e) {
       gray: [120, 120, 120]
     };
 
-    const LAYOUT = {
-      table: {
-        startY: 55,
-        rowHeight: 10,
-        columnWidth: 45
-      }
-    };
-
     const headers = ['No.', 'Paciente', 'Diagnóstico', 'Fecha'];
     const dataRows = citasParaPDF;
 
-    const tableTotalWidth = headers.length * LAYOUT.table.columnWidth;
-    const tableStartX = (210 - tableTotalWidth) / 2;
+    // Calcular ancho de columnas dinámicamente
+    const pageWidth = 210;
+    const margins = 20;
+    const availableWidth = pageWidth - (2 * margins);
+    
+    const columnWidths = {
+      no: 15,
+      paciente: availableWidth * 0.35,
+      diagnostico: availableWidth * 0.40,
+      fecha: availableWidth * 0.25 - 15
+    };
+
+    const tableTotalWidth = columnWidths.no + columnWidths.paciente + 
+                           columnWidths.diagnostico + columnWidths.fecha;
+    const tableStartX = (pageWidth - tableTotalWidth) / 2;
 
     // Fondo blanco
     doc.setFillColor(...COLORS.white);
@@ -195,48 +197,95 @@ async function generarReportePDF(e) {
     doc.setTextColor(...COLORS.gray);
     doc.text(`Total de citas: ${dataRows.length}`, 105, 48, { align: 'center' });
 
+    const tableStartY = 55;
+
     // Encabezado de tabla
     doc.setFillColor(...COLORS.primary);
-    doc.rect(tableStartX - 2, LAYOUT.table.startY - 6, tableTotalWidth + 4, 8, 'F');
+    doc.rect(tableStartX - 2, tableStartY - 6, tableTotalWidth + 4, 8, 'F');
 
     doc.setFontSize(11);
     doc.setTextColor(...COLORS.white);
     doc.setFont(undefined, 'bold');
 
-    headers.forEach((header, index) => {
-      doc.text(
-        header,
-        tableStartX + index * LAYOUT.table.columnWidth + 2,
-        LAYOUT.table.startY - 1
-      );
-    });
+    // Dibujar encabezados con posiciones correctas
+    let currentX = tableStartX + 2;
+    doc.text('No.', currentX, tableStartY - 1);
+    currentX += columnWidths.no;
+    doc.text('Paciente', currentX, tableStartY - 1);
+    currentX += columnWidths.paciente;
+    doc.text('Diagnóstico', currentX, tableStartY - 1);
+    currentX += columnWidths.diagnostico;
+    doc.text('Fecha', currentX, tableStartY - 1);
 
     // Filas de datos
     doc.setFont(undefined, 'normal');
     doc.setTextColor(...COLORS.primary);
     doc.setFontSize(10);
 
-    dataRows.forEach((row, rowIndex) => {
-      const y = LAYOUT.table.startY + 10 + rowIndex * LAYOUT.table.rowHeight;
+    let currentY = tableStartY + 10;
+    const rowHeight = 10;
 
-      row.forEach((cell, cellIndex) => {
-        doc.text(cell, tableStartX + cellIndex * LAYOUT.table.columnWidth + 2, y);
-      });
+    dataRows.forEach((row, rowIndex) => {
+      // Verificar si necesitamos nueva página
+      if (currentY > 270) {
+        doc.addPage();
+        currentY = 20;
+        
+        // Redibujar encabezado en nueva página
+        doc.setFillColor(...COLORS.primary);
+        doc.rect(tableStartX - 2, currentY - 6, tableTotalWidth + 4, 8, 'F');
+        doc.setTextColor(...COLORS.white);
+        doc.setFont(undefined, 'bold');
+        
+        let headerX = tableStartX + 2;
+        doc.text('No.', headerX, currentY - 1);
+        headerX += columnWidths.no;
+        doc.text('Paciente', headerX, currentY - 1);
+        headerX += columnWidths.paciente;
+        doc.text('Diagnóstico', headerX, currentY - 1);
+        headerX += columnWidths.diagnostico;
+        doc.text('Fecha', headerX, currentY - 1);
+        
+        currentY += 10;
+        doc.setTextColor(...COLORS.primary);
+        doc.setFont(undefined, 'normal');
+      }
+
+      // Dibujar datos de la fila
+      currentX = tableStartX + 2;
+      
+      // Número
+      doc.text(row[0], currentX, currentY);
+      currentX += columnWidths.no;
+      
+      // Paciente - ajustar texto si es muy largo
+      const pacienteTexto = doc.splitTextToSize(row[1], columnWidths.paciente - 5);
+      doc.text(pacienteTexto[0], currentX, currentY);
+      currentX += columnWidths.paciente;
+      
+      // Diagnóstico - ajustar texto si es muy largo
+      const diagnosticoTexto = doc.splitTextToSize(row[2], columnWidths.diagnostico - 5);
+      doc.text(diagnosticoTexto[0], currentX, currentY);
+      currentX += columnWidths.diagnostico;
+      
+      // Fecha
+      doc.text(row[3], currentX, currentY);
 
       // Línea divisoria
       doc.setDrawColor(200, 200, 200);
       doc.setLineWidth(0.2);
-      doc.line(tableStartX, y + 2, tableStartX + tableTotalWidth, y + 2);
+      doc.line(tableStartX, currentY + 2, tableStartX + tableTotalWidth, currentY + 2);
+      
+      currentY += rowHeight;
     });
 
     // Pie de página
-    const footerY = LAYOUT.table.startY + 15 + dataRows.length * LAYOUT.table.rowHeight;
     doc.setFontSize(8);
     doc.setTextColor(150, 150, 150);
     doc.text(
       `Generado el ${new Date().toLocaleDateString('es-MX')} - DJFA Systems`,
       105,
-      footerY,
+      currentY + 5,
       { align: 'center' }
     );
 
@@ -277,3 +326,6 @@ function formatearFecha(fecha) {
   const [año, mes, día] = fecha.split('-');
   return `${día}/${mes}/${año}`;
 }
+
+// ===== HACER LA FUNCIÓN GLOBAL =====
+window.generarReportePDF = generarReportePDF;
