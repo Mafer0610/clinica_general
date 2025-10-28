@@ -250,19 +250,39 @@ async function cargarCitasMedico(medicoId) {
 }
 
 function renderizarCitasEnCalendario(appointments) {
+  // Limpiar citas existentes
   document.querySelectorAll('.appointment-simple').forEach(el => el.remove());
 
+  if (!appointments || appointments.length === 0) {
+    console.log('⚠️ No hay citas para mostrar');
+    return;
+  }
+
+  console.log(`📅 Renderizando ${appointments.length} citas en el calendario`);
+
+  // ✅ CORRECCIÓN: Calcular correctamente el lunes de la semana actual
   const hoy = new Date();
-  console.log('📅 HOY:', hoy.toISOString());
+  hoy.setHours(0, 0, 0, 0);
   
-  const diaSemana = hoy.getDay(); 
-  const diff = diaSemana === 0 ? -6 : 1 - diaSemana;
+  const diaSemana = hoy.getDay(); // 0=Domingo, 1=Lunes, ..., 6=Sábado
+  
+  // Calcular cuántos días retroceder para llegar al lunes
+  let diasHastaLunes;
+  if (diaSemana === 0) { // Domingo
+    diasHastaLunes = -6;
+  } else if (diaSemana === 1) { // Lunes
+    diasHastaLunes = 0;
+  } else { // Martes a Sábado
+    diasHastaLunes = -(diaSemana - 1);
+  }
+  
   const lunes = new Date(hoy);
-  lunes.setDate(hoy.getDate() + diff);
-  lunes.setHours(0, 0, 0, 0);
+  lunes.setDate(hoy.getDate() + diasHastaLunes);
+  
+  console.log('📅 HOY:', hoy.toLocaleDateString('es-MX'), `(día ${diaSemana})`);
+  console.log('📅 LUNES DE LA SEMANA:', lunes.toLocaleDateString('es-MX'));
 
-  console.log('📅 LUNES DE LA SEMANA:', lunes.toISOString());
-
+  // Crear array con las fechas de la semana (Lunes a Viernes)
   const fechasSemana = [];
   for (let i = 0; i < 5; i++) {
     const fecha = new Date(lunes);
@@ -270,48 +290,62 @@ function renderizarCitasEnCalendario(appointments) {
     fechasSemana.push(fecha);
   }
 
+  console.log('📅 Fechas de la semana:');
+  fechasSemana.forEach((fecha, i) => {
+    const dias = ['LUN', 'MAR', 'MIE', 'JUE', 'VIE'];
+    console.log(`   ${dias[i]}: ${fecha.toLocaleDateString('es-MX')}`);
+  });
+
+  // Procesar cada cita
+  let citasRenderizadas = 0;
+  
   appointments.forEach((cita, index) => {
-    const fechaISO = cita.fecha.split('T')[0]; 
+    console.log(`\n🔍 Procesando cita ${index + 1}/${appointments.length}:`);
+    console.log('   - Paciente:', cita.pacienteNombre);
+    
+    // Extraer fecha de la cita (formato YYYY-MM-DD)
+    const fechaISO = cita.fecha.split('T')[0];
     const [year, month, day] = fechaISO.split('-');
     
+    // Crear fecha local (sin zona horaria)
     const fechaCita = new Date(parseInt(year), parseInt(month) - 1, parseInt(day));
     fechaCita.setHours(0, 0, 0, 0);
     
-    console.log('   - Fecha procesada:', fechaCita.toLocaleDateString('es-MX'));
-    console.log('   - Fecha ISO:', fechaCita.toISOString());
+    console.log('   - Fecha de la cita:', fechaCita.toLocaleDateString('es-MX'));
+    console.log('   - Fecha ISO original:', fechaISO);
     
+    // ✅ CORRECCIÓN: Buscar comparando día, mes y año individualmente
     const diaIndex = fechasSemana.findIndex(fecha => 
-      fecha.toDateString() === fechaCita.toDateString()
+      fecha.getDate() === fechaCita.getDate() &&
+      fecha.getMonth() === fechaCita.getMonth() &&
+      fecha.getFullYear() === fechaCita.getFullYear()
     );
 
-    console.log('   - Índice en semana:', diaIndex);
-
     if (diaIndex !== -1) {
-      const [hora] = cita.hora.split(':');
+      console.log('   ✅ Cita encontrada en día:', ['LUN', 'MAR', 'MIE', 'JUE', 'VIE'][diaIndex]);
+      
+      // Extraer hora
+      const [hora, minutos] = cita.hora.split(':');
       const horaInt = parseInt(hora);
       
-      console.log('   - Hora extraída:', horaInt);
+      console.log('   - Hora:', cita.hora, '→', horaInt);
 
+      // Validar que la hora esté en el rango del calendario (9-21)
       if (horaInt >= 9 && horaInt <= 21) {
-        const filaIndex = horaInt - 9;
-        const columnaIndex = diaIndex + 1;
+        const filaIndex = horaInt - 9;  // 9:00 → fila 0, 10:00 → fila 1, etc.
+        const columnaIndex = diaIndex + 1;  // +1 porque la columna 0 es la hora
         
-        console.log('   - Fila:', filaIndex, 'Columna:', columnaIndex);
+        console.log('   - Posición: Fila', filaIndex, ', Columna', columnaIndex);
 
+        // Obtener la celda correspondiente
         const filas = document.querySelectorAll('.schedule tbody tr');
+        
         if (filas[filaIndex]) {
           const celda = filas[filaIndex].cells[columnaIndex];
           
           if (celda) {
-            const TIPOS_CITA = {
-              '1': 'Consulta médica',
-              '2': 'Consulta general',
-              '3': 'Revisión',
-              '4': 'Control',
-              '5': 'Seguimiento'
-            };
-            
-            const tipoCita = TIPOS_CITA[cita.tipoCita] || cita.tipo || 'Consulta';
+            // Crear elemento de la cita
+            const tipoCita = TIPOS_CITA[cita.tipoCita] || 'Consulta';
             
             const citaElement = document.createElement('div');
             citaElement.className = 'appointment-simple';
@@ -320,11 +354,15 @@ function renderizarCitasEnCalendario(appointments) {
               <div class="appointment-update">${tipoCita}</div>
             `;
             
+            // Agregar evento click
             citaElement.addEventListener('click', () => {
               mostrarDetallesCita(cita);
             });
             
+            // Agregar al calendario
             celda.appendChild(citaElement);
+            citasRenderizadas++;
+            
             console.log('   ✅ Cita renderizada en calendario');
           } else {
             console.log('   ❌ Celda no encontrada');
@@ -337,12 +375,14 @@ function renderizarCitasEnCalendario(appointments) {
       }
     } else {
       console.log('   ⚠️ Cita fuera de la semana actual');
-      console.log('   - Fechas de la semana:');
+      console.log('   - Comparando contra:');
       fechasSemana.forEach((f, i) => {
-        console.log(`     ${i}: ${f.toLocaleDateString('es-MX')}`);
+        console.log(`     ${['LUN', 'MAR', 'MIE', 'JUE', 'VIE'][i]}: ${f.toLocaleDateString('es-MX')}`);
       });
     }
   });
+
+  console.log(`\n✅ Total de citas renderizadas: ${citasRenderizadas}/${appointments.length}`);
 }
 
 // ===== MOSTRAR DETALLES DE CITA =====
