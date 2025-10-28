@@ -249,10 +249,30 @@ router.get('/appointments/upcoming/:email', async (req, res) => {
 
         const appointments = await AppointmentRepository.findByPatientId(patient._id.toString());
         
+        // ✅ CORRECCIÓN: Comparar fecha Y hora completas
         const now = new Date();
         const upcomingAppointments = appointments
-            .filter(apt => new Date(apt.fecha) >= now)
-            .sort((a, b) => new Date(a.fecha) - new Date(b.fecha));
+            .filter(apt => {
+                // Crear fecha completa con hora
+                const [hours, minutes] = apt.hora.split(':');
+                const aptDate = new Date(apt.fecha);
+                aptDate.setHours(parseInt(hours), parseInt(minutes), 0, 0);
+                
+                // Comparar fecha+hora completa
+                return aptDate > now;
+            })
+            .sort((a, b) => {
+                // Ordenar por fecha y hora
+                const dateA = new Date(a.fecha);
+                const [hoursA, minutesA] = a.hora.split(':');
+                dateA.setHours(parseInt(hoursA), parseInt(minutesA));
+                
+                const dateB = new Date(b.fecha);
+                const [hoursB, minutesB] = b.hora.split(':');
+                dateB.setHours(parseInt(hoursB), parseInt(minutesB));
+                
+                return dateA - dateB;
+            });
 
         res.json({
             success: true,
@@ -284,10 +304,30 @@ router.get('/appointments/history/:email', async (req, res) => {
 
         const appointments = await AppointmentRepository.findByPatientId(patient._id.toString());
         
+        // ✅ CORRECCIÓN: Comparar fecha Y hora completas
         const now = new Date();
         const pastAppointments = appointments
-            .filter(apt => new Date(apt.fecha) < now)
-            .sort((a, b) => new Date(b.fecha) - new Date(a.fecha));
+            .filter(apt => {
+                // Crear fecha completa con hora
+                const [hours, minutes] = apt.hora.split(':');
+                const aptDate = new Date(apt.fecha);
+                aptDate.setHours(parseInt(hours), parseInt(minutes), 0, 0);
+                
+                // Solo citas que ya pasaron (fecha+hora < ahora)
+                return aptDate < now;
+            })
+            .sort((a, b) => {
+                // Ordenar por fecha y hora (más reciente primero)
+                const dateA = new Date(a.fecha);
+                const [hoursA, minutesA] = a.hora.split(':');
+                dateA.setHours(parseInt(hoursA), parseInt(minutesA));
+                
+                const dateB = new Date(b.fecha);
+                const [hoursB, minutesB] = b.hora.split(':');
+                dateB.setHours(parseInt(hoursB), parseInt(minutesB));
+                
+                return dateB - dateA; // Más reciente primero
+            });
 
         res.json({
             success: true,

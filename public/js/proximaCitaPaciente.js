@@ -41,8 +41,13 @@ async function cargarProximaCita(email) {
 
         if (data.success) {
             if (data.appointments && data.appointments.length > 0) {
-                proximaCita = data.appointments[0]; // La primera es la más próxima
-                console.log('✅ Próxima cita encontrada:', proximaCita);
+                // ✅ La API ya devuelve ordenadas, tomamos la primera
+                proximaCita = data.appointments[0];
+                console.log('✅ Próxima cita encontrada:', {
+                    fecha: proximaCita.fecha,
+                    hora: proximaCita.hora,
+                    paciente: proximaCita.pacienteNombre
+                });
                 
                 // Cargar datos del paciente
                 await cargarDatosPaciente(email);

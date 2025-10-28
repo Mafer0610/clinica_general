@@ -124,7 +124,7 @@ async function generarCita() {
         }
 
         
-        // ✅ FORMATO ESTANDARIZADO - Igual que médico
+        // ✅ FORMATO ESTANDARIZADO - Igual que médico - SIN DUPLICAR SINTOMAS
         const appointmentPayload = {
             pacienteId: patientId,
             pacienteNombre: `${nombre} ${apellidos}`,
@@ -133,7 +133,6 @@ async function generarCita() {
             hora: hora,
             tipoCita: '2',
             descripcion: sintomas,
-            sintomas: sintomas,
             estado: 'pendiente',
             recordatorioEnviado: false,
             confirmada: false
