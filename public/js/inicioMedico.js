@@ -1,4 +1,4 @@
-//inicioMedico.js
+//inicioMedico.js - VERSIÓN CORREGIDA COMPLETA
 const API_BASE_URL = 'http://localhost:3002/api';
 
 const TIPOS_CITA = {
@@ -218,33 +218,43 @@ function limpiarCamposPerfil() {
 
 async function cargarCitasMedico(medicoId) {
   try {
+    console.log('📥 Cargando citas del médico:', medicoId);
     const response = await fetch(`${API_BASE_URL}/appointments/medico/${medicoId}`);
     const data = await response.json();
 
     if (data.success && data.appointments) {
-      console.log(`✅ Se cargaron ${data.appointments.length} citas`);
+      console.log(`✅ Se cargaron ${data.appointments.length} citas del servidor`);
       
+      // ✅ MEJORADO: Enriquecimiento más robusto
       const enrichedAppointments = await Promise.all(
         data.appointments.map(async (appointment) => {
           try {
+            // Guardar nombre existente como fallback
+            const nombreExistente = appointment.pacienteNombre;
             let patient = null;
             
             if (appointment.pacienteId) {
-              const patientResponse = await fetch(`${API_BASE_URL}/patients/${appointment.pacienteId}`);
-              const patientData = await patientResponse.json();
-              if (patientData.success) {
-                patient = patientData.patient;
+              try {
+                const patientResponse = await fetch(`${API_BASE_URL}/patients/${appointment.pacienteId}`);
+                const patientData = await patientResponse.json();
+                
+                if (patientData.success && patientData.patient) {
+                  patient = patientData.patient;
+                }
+              } catch (fetchError) {
+                console.warn(`⚠️ No se pudo cargar paciente ${appointment.pacienteId}:`, fetchError.message);
               }
             }
             
+            // ✅ Prioridad: 1) BD, 2) Nombre en cita, 3) Desconocido
             return {
               ...appointment,
               pacienteNombre: patient 
                 ? `${patient.nombre} ${patient.apellidos}` 
-                : appointment.pacienteNombre || 'Paciente desconocido'
+                : nombreExistente || 'Paciente desconocido'
             };
           } catch (error) {
-            console.error('Error cargando paciente:', error);
+            console.error('❌ Error procesando cita:', error);
             return {
               ...appointment,
               pacienteNombre: appointment.pacienteNombre || 'Paciente desconocido'
@@ -253,7 +263,7 @@ async function cargarCitasMedico(medicoId) {
         })
       );
       
-      console.log('✅ Citas enriquecidas:', enrichedAppointments);
+      console.log('✅ Citas enriquecidas:', enrichedAppointments.length);
       renderizarCitasEnCalendario(enrichedAppointments);
     } else {
       console.error('❌ Error al cargar citas:', data.error);
@@ -264,6 +274,7 @@ async function cargarCitasMedico(medicoId) {
 }
 
 function renderizarCitasEnCalendario(appointments) {
+  // Limpiar citas existentes
   document.querySelectorAll('.appointment-simple').forEach(el => el.remove());
 
   if (!appointments || appointments.length === 0) {
@@ -271,6 +282,7 @@ function renderizarCitasEnCalendario(appointments) {
     return;
   }
 
+  // ✅ Calcular semana actual correctamente
   const hoy = new Date();
   hoy.setHours(0, 0, 0, 0);
   
@@ -297,7 +309,7 @@ function renderizarCitasEnCalendario(appointments) {
     fechasSemana.push(fecha);
   }
 
-  console.log('📅 Fechas de la semana:');
+  console.log('📅 Semana actual (Lun-Vie):');
   fechasSemana.forEach((fecha, i) => {
     const dias = ['LUN', 'MAR', 'MIE', 'JUE', 'VIE'];
     console.log(`   ${dias[i]}: ${fecha.toLocaleDateString('es-MX')}`);
@@ -307,18 +319,25 @@ function renderizarCitasEnCalendario(appointments) {
   
   appointments.forEach((cita, index) => {
     console.log(`\n🔍 Procesando cita ${index + 1}/${appointments.length}:`);
-    console.log('   - Paciente:', cita.pacienteNombre);  // ✅ Ya viene enriquecido
-    console.log('   - Paciente ID:', cita.pacienteId);
+    console.log('   📋 Datos completos:', {
+      pacienteNombre: cita.pacienteNombre,
+      pacienteId: cita.pacienteId,
+      fecha: cita.fecha,
+      hora: cita.hora,
+      tipoCita: cita.tipoCita,
+      estado: cita.estado
+    });
     
+    // Parsear fecha
     const fechaISO = cita.fecha.split('T')[0];
     const [year, month, day] = fechaISO.split('-');
     
     const fechaCita = new Date(parseInt(year), parseInt(month) - 1, parseInt(day));
     fechaCita.setHours(0, 0, 0, 0);
     
-    console.log('   - Fecha de la cita:', fechaCita.toLocaleDateString('es-MX'));
-    console.log('   - Fecha ISO original:', fechaISO);
+    console.log('   📅 Fecha parseada:', fechaCita.toLocaleDateString('es-MX'));
     
+    // Buscar día en la semana
     const diaIndex = fechasSemana.findIndex(fecha => 
       fecha.getDate() === fechaCita.getDate() &&
       fecha.getMonth() === fechaCita.getMonth() &&
@@ -326,18 +345,19 @@ function renderizarCitasEnCalendario(appointments) {
     );
 
     if (diaIndex !== -1) {
-      console.log('   ✅ Cita encontrada en día:', ['LUN', 'MAR', 'MIE', 'JUE', 'VIE'][diaIndex]);
+      console.log('   ✅ Día encontrado:', ['LUN', 'MAR', 'MIE', 'JUE', 'VIE'][diaIndex]);
       
+      // Parsear hora
       const [hora, minutos] = cita.hora.split(':');
       const horaInt = parseInt(hora);
       
-      console.log('   - Hora:', cita.hora, '→', horaInt);
+      console.log('   🕐 Hora:', cita.hora, '→', horaInt);
 
       if (horaInt >= 9 && horaInt <= 21) {
         const filaIndex = horaInt - 9;
         const columnaIndex = diaIndex + 1;
         
-        console.log('   - Posición: Fila', filaIndex, ', Columna', columnaIndex);
+        console.log('   📍 Posición tabla: Fila', filaIndex, 'Columna', columnaIndex);
 
         const filas = document.querySelectorAll('.schedule tbody tr');
         
@@ -346,11 +366,12 @@ function renderizarCitasEnCalendario(appointments) {
           
           if (celda) {
             const tipoCita = TIPOS_CITA[cita.tipoCita] || 'Consulta';
+            const nombreMostrar = cita.pacienteNombre || 'Paciente';
             
             const citaElement = document.createElement('div');
             citaElement.className = 'appointment-simple';
             citaElement.innerHTML = `
-              <div class="appointment-title">${cita.pacienteNombre || 'Paciente'}</div>
+              <div class="appointment-title">${nombreMostrar}</div>
               <div class="appointment-update">${tipoCita}</div>
             `;
             
@@ -361,22 +382,24 @@ function renderizarCitasEnCalendario(appointments) {
             celda.appendChild(citaElement);
             citasRenderizadas++;
             
-            console.log('   ✅ Cita renderizada en calendario');
+            console.log('   ✅ RENDERIZADA:', nombreMostrar, '-', tipoCita);
           } else {
-            console.log('   ❌ Celda no encontrada');
+            console.log('   ❌ Celda no encontrada en columna', columnaIndex);
           }
         } else {
-          console.log('   ❌ Fila no encontrada');
+          console.log('   ❌ Fila no encontrada:', filaIndex);
         }
       } else {
-        console.log('   ⚠️ Hora fuera de rango (9-21):', horaInt);
+        console.log('   ⚠️ Hora fuera de rango (9-21h):', horaInt);
       }
     } else {
-      console.log('   ⚠️ Cita fuera de la semana actual');
+      console.log('   ⚠️ Cita fuera de semana actual');
+      console.log('   📅 Cita:', fechaCita.toLocaleDateString('es-MX'));
+      console.log('   📅 Semana:', fechasSemana[0].toLocaleDateString('es-MX'), '-', fechasSemana[4].toLocaleDateString('es-MX'));
     }
   });
 
-  console.log(`\n✅ Total de citas renderizadas: ${citasRenderizadas}/${appointments.length}`);
+  console.log(`\n📊 RESUMEN: ${citasRenderizadas}/${appointments.length} citas renderizadas`);
 }
 
 function mostrarDetallesCita(cita) {
@@ -430,7 +453,6 @@ function configurarFormularios() {
       }
 
       try {
-        // ✅ CORRECCIÓN: Normalizar fecha como lo hace la vista de paciente
         const [year, month, day] = fecha.split('-');
         const fechaISO = `${year}-${month}-${day}T00:00:00.000`;
         
@@ -443,7 +465,7 @@ function configurarFormularios() {
             pacienteId: pacienteId,
             pacienteNombre: pacienteNombre,
             medicoId: medicoId,
-            fecha: fechaISO,  // ✅ CAMBIO: usar fechaISO en lugar de fecha
+            fecha: fechaISO,
             hora: hora,
             tipoCita: tipoCita,
             descripcion: descripcion || ''
@@ -515,10 +537,10 @@ function configurarFormularios() {
       }
     }
   };
+
   document.querySelectorAll('[data-form]').forEach(form => {
     const formName = form.dataset.form;
     
-    // ⚠️ IGNORAR el formulario de reportes
     if (formName === 'reportes') {
       console.log('⏭️ Formulario de reportes manejado por generarReporte.js');
       return;

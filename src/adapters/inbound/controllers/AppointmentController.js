@@ -1,4 +1,4 @@
-//AppointmentController.js
+//AppointmentController.js - VERSIÓN CORREGIDA COMPLETA
 const express = require('express');
 const AppointmentRepository = require('../../../infrastructure/database/AppointmentRepository');
 const PatientRepository = require('../../../infrastructure/database/PatientRepository');
@@ -138,17 +138,36 @@ router.get('/range', async (req, res) => {
 // ========== OBTENER CITAS DE UN MÉDICO ==========
 router.get('/medico/:medicoId', async (req, res) => {
     try {
+        console.log('📥 GET /medico/:medicoId - ID:', req.params.medicoId);
+        
         const appointments = await AppointmentRepository.findByMedicoId(req.params.medicoId);
+        
+        console.log(`📊 Citas encontradas en BD: ${appointments.length}`);
+        
+        // Log cada cita para debug
+        appointments.forEach((apt, i) => {
+            console.log(`  ${i+1}. ${apt.pacienteNombre} - ${apt.fecha} - Estado: ${apt.estado}`);
+        });
         
         const enrichedAppointments = await Promise.all(
             appointments.map(async (appointment) => {
-                const patient = await PatientRepository.findById(appointment.pacienteId);
-                return {
-                    ...appointment,
-                    pacienteNombre: patient ? `${patient.nombre} ${patient.apellidos}` : 'Paciente desconocido'
-                };
+                try {
+                    const patient = await PatientRepository.findById(appointment.pacienteId);
+                    return {
+                        ...appointment,
+                        pacienteNombre: patient ? `${patient.nombre} ${patient.apellidos}` : appointment.pacienteNombre || 'Paciente desconocido'
+                    };
+                } catch (error) {
+                    console.warn(`⚠️ Error cargando paciente ${appointment.pacienteId}:`, error.message);
+                    return {
+                        ...appointment,
+                        pacienteNombre: appointment.pacienteNombre || 'Paciente desconocido'
+                    };
+                }
             })
         );
+        
+        console.log(`✅ Enviando ${enrichedAppointments.length} citas al frontend`);
         
         res.json({
             success: true,
@@ -156,7 +175,7 @@ router.get('/medico/:medicoId', async (req, res) => {
             count: enrichedAppointments.length
         });
     } catch (error) {
-        console.error('Error obteniendo citas del médico:', error);
+        console.error('❌ Error obteniendo citas del médico:', error);
         res.status(500).json({
             success: false,
             error: 'Error al obtener citas'

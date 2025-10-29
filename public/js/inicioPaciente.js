@@ -200,25 +200,27 @@ async function crearCita(patientId, nombre, apellidos, fechaISO, hora, sintomas)
     }
 }
 
-// ===== OBTENER MÉDICO POR DEFECTO =====
 async function obtenerMedicoPorDefecto() {
     try {
-        console.log('🔍 Buscando médico por defecto...');
         
-        const response = await fetch('http://localhost:3001/auth/users?role=medico');
-        const data = await response.json();
-
-        if (data.success && data.users && data.users.length > 0) {
-            defaultMedicoId = data.users[0]._id || data.users[0].id;
-            console.log('✅ Médico por defecto encontrado:', defaultMedicoId);
-            localStorage.setItem('defaultMedicoId', defaultMedicoId);
-        } else {
-            defaultMedicoId = localStorage.getItem('userId') || 'medico_default';
-            console.log('⚠️ No se encontraron médicos, usando fallback:', defaultMedicoId);
+        defaultMedicoId = '68f6eea656098b06a1707209';
+        localStorage.setItem('defaultMedicoId', defaultMedicoId);
+        
+        try {
+            const response = await fetch(`http://localhost:3001/auth/user/${defaultMedicoId}`);
+            const data = await response.json();
+            
+            if (data.success && data.user) {
+                console.log('✅ Médico verificado:', data.user.username);
+            } else {
+                console.warn('⚠️ No se pudo verificar el médico, pero se usará igual');
+            }
+        } catch (verifyError) {
+            console.warn('⚠️ Error verificando médico:', verifyError.message);
         }
     } catch (error) {
         console.error('❌ Error obteniendo médico:', error);
-        defaultMedicoId = localStorage.getItem('userId') || 'medico_default';
+        defaultMedicoId = '68f6eea656098b06a1707209';
     }
 }
 

@@ -44,13 +44,37 @@ const AppointmentRepository = {
                 throw new Error('MongoDB Clinic no está conectado');
             }
 
+            console.log('🔍 Buscando citas para médico:', medicoId);
+            console.log('📋 Tipo de medicoId:', typeof medicoId);
+            
+            // ✅ IMPORTANTE: No convertir medicoId a ObjectId porque es un string
             const appointments = await clinicConn.collection('appointments')
-                .find({ medicoId: medicoId })
+                .find({ 
+                    medicoId: medicoId  // Buscar como string
+                })
                 .toArray();
+            
+            console.log(`📊 Total de citas encontradas: ${appointments.length}`);
+            
+            // Mostrar todas las citas en la BD (para debug)
+            if (appointments.length === 0) {
+                console.log('⚠️ No se encontraron citas. Buscando TODAS las citas en la BD...');
+                const todasCitas = await clinicConn.collection('appointments').find({}).toArray();
+                console.log(`📋 Total de citas en BD: ${todasCitas.length}`);
+                todasCitas.forEach((apt, i) => {
+                    console.log(`  ${i+1}. medicoId="${apt.medicoId}" (tipo: ${typeof apt.medicoId})`);
+                    console.log(`      pacienteId="${apt.pacienteId}" - ${apt.pacienteNombre}`);
+                });
+            } else {
+                // Mostrar las citas encontradas
+                appointments.forEach((apt, i) => {
+                    console.log(`  ${i+1}. ${apt.pacienteNombre} - Fecha: ${apt.fecha} - Estado: ${apt.estado}`);
+                });
+            }
             
             return appointments;
         } catch (error) {
-            console.error("Error al buscar citas por médico:", error.message);
+            console.error("❌ Error al buscar citas por médico:", error.message);
             throw error;
         }
     },
