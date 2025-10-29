@@ -7,10 +7,7 @@
   <link rel="stylesheet" href="../css/stylesMedico.css" />
   <link href="https://fonts.googleapis.com/css2?family=Inknut+Antiqua:wght@700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
-  <script src="../js/inicioMedico.js" defer></script>
-  <script src="../js/generarReporte.js" defer></script>
 </head>
 <body>
   <header>
@@ -225,24 +222,39 @@
     </div>
   </div>
 
-  <!-- MODAL REPORTES -->
   <div id="modalReportes" class="modal" data-modal-id="reportes">
     <div class="modal-content modal-content-small">
       <button class="modal-close" data-close="reportes"><i class="fas fa-times"></i></button>
       <h2 class="modal-title-reportes">Seleccione el rango de fechas</h2>
-      <form class="modal-form-reportes" data-form="reportes">
+      
+      <!-- ✅ IMPORTANTE: onsubmit llama a window.generarReportePDF -->
+      <form class="modal-form-reportes" id="formReportes" onsubmit="window.generarReportePDF(event)">
         <div class="form-group-reportes">
           <div class="input-with-icon" data-picker="fechaInicio">
-            <input type="date" id="fechaInicio" class="form-input-reportes" placeholder="Fecha de inicio">
+            <input 
+              type="date" 
+              id="fechaInicio" 
+              class="form-input-reportes" 
+              placeholder="Fecha de inicio"
+              required
+            >
             <i class="fas fa-calendar-alt input-icon-right"></i>
           </div>
         </div>
+        
         <div class="form-group-reportes">
           <div class="input-with-icon" data-picker="fechaFinal">
-            <input type="date" id="fechaFinal" class="form-input-reportes" placeholder="Fecha final">
+            <input 
+              type="date" 
+              id="fechaFinal" 
+              class="form-input-reportes" 
+              placeholder="Fecha final"
+              required
+            >
             <i class="fas fa-calendar-alt input-icon-right"></i>
           </div>
         </div>
+        
         <div class="modal-buttons-reportes">
           <button type="submit" class="btn-generar-pdf">Generar PDF</button>
         </div>
@@ -291,5 +303,8 @@
       </form>
     </div>
   </div>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script src="../js/inicioMedico.js" defer></script>
+  <script src="../js/generarReporte.js" defer></script>
 </body>
 </html>

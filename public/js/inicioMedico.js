@@ -441,38 +441,6 @@ function configurarFormularios() {
       }
     },
     
-    reportes: async (e) => {
-      e.preventDefault();
-      
-      const inicio = document.getElementById('fechaInicio').value;
-      const final = document.getElementById('fechaFinal').value;
-
-      if (!inicio || !final) {
-        alert('⚠️ Por favor seleccione ambas fechas');
-        return;
-      }
-      
-      if (new Date(inicio) > new Date(final)) {
-        alert('⚠️ La fecha de inicio no puede ser mayor que la fecha final');
-        return;
-      }
-      
-      const hoy = new Date();
-      hoy.setHours(0, 0, 0, 0);
-      
-      if (new Date(inicio) > hoy || new Date(final) > hoy) {
-        alert('⚠️ No se pueden seleccionar fechas futuras');
-        return;
-      }
-
-      if (typeof generarReportePDF === 'function') {
-        await generarReportePDF(e);
-      } else {
-        console.error('❌ generarReportePDF no está disponible');
-        alert('❌ Error: No se pudo generar el reporte');
-      }
-    },
-    
     perfil: async () => {
       try {
         const userId = localStorage.getItem('userId');
@@ -523,11 +491,22 @@ function configurarFormularios() {
     }
   };
 
+  // Solo configurar los formularios de cita y perfil
+  // El formulario de reportes se maneja directamente con onsubmit en el HTML
   document.querySelectorAll('[data-form]').forEach(form => {
+    const formName = form.dataset.form;
+    
+    // ⚠️ IGNORAR el formulario de reportes
+    if (formName === 'reportes') {
+      console.log('⏭️ Formulario de reportes manejado por generarReporte.js');
+      return;
+    }
+    
     form.addEventListener('submit', (e) => {
       e.preventDefault();
-      const formName = form.dataset.form;
-      forms[formName](e);
+      if (forms[formName]) {
+        forms[formName](e);
+      }
     });
   });
 }

@@ -1,6 +1,3 @@
-// ===== CONFIGURACIÓN API =====
-const API_BASE_URL = 'http://localhost:3002/api';
-
 // ===== MAPA DE TIPOS DE CITA =====
 const TIPOS_CITA = {
   '1': 'Consulta médica',
@@ -22,14 +19,32 @@ document.addEventListener('DOMContentLoaded', function() {
     fechaInicio.setAttribute('max', hoy);
     fechaFinal.setAttribute('max', hoy);
     
-    // Validar que fecha final no sea menor que fecha inicio
     fechaInicio.addEventListener('change', function() {
       fechaFinal.setAttribute('min', this.value);
+      if (fechaFinal.value && fechaFinal.value < this.value) {
+        fechaFinal.value = '';
+        console.log('⚠️ Fecha final limpiada porque era menor que la fecha de inicio');
+      }
+    });
+    
+    fechaFinal.addEventListener('change', function() {
+      if (fechaInicio.value && this.value < fechaInicio.value) {
+        alert('⚠️ La fecha final no puede ser menor que la fecha de inicio');
+        this.value = '';
+      }
     });
     
     console.log('✅ Restricciones de fecha configuradas');
+  } else {
+    console.error('❌ No se encontraron elementos de fecha en el DOM');
   }
 });
+
+// ===== FUNCIÓN AUXILIAR PARA FORMATEAR FECHAS =====
+function formatearFecha(fecha) {
+  const [año, mes, día] = fecha.split('-');
+  return `${día}/${mes}/${año}`;
+}
 
 // ===== FUNCIÓN PRINCIPAL PARA GENERAR REPORTE =====
 async function generarReportePDF(e) {
@@ -37,39 +52,42 @@ async function generarReportePDF(e) {
   
   console.log('🚀 Iniciando generación de reporte...');
 
-  const fechaInicio = document.getElementById('fechaInicio').value;
-  const fechaFinal = document.getElementById('fechaFinal').value;
+  const fechaInicioElem = document.getElementById('fechaInicio');
+  const fechaFinalElem = document.getElementById('fechaFinal');
+  
+  if (!fechaInicioElem || !fechaFinalElem) {
+    console.error('❌ Elementos de fecha no encontrados');
+    alert('⚠️ Error: No se encontraron los campos de fecha. Recarga la página.');
+    return;
+  }
 
-  // ✅ VALIDACIÓN 1: Verificar que ambas fechas estén seleccionadas
+  const fechaInicio = fechaInicioElem.value;
+  const fechaFinal = fechaFinalElem.value;
+
+  // Validaciones
   if (!fechaInicio || !fechaFinal) {
     alert('⚠️ Por favor selecciona ambas fechas (inicio y final)');
-    console.error('❌ Fechas no seleccionadas');
     return;
   }
 
-  console.log('📅 Fechas seleccionadas:', fechaInicio, 'al', fechaFinal);
-
-  // ✅ VALIDACIÓN 2: Verificar que la fecha de inicio no sea mayor que la fecha final
-  if (new Date(fechaInicio) > new Date(fechaFinal)) {
-    alert('⚠️ La fecha de inicio no puede ser mayor que la fecha final');
-    console.error('❌ Rango de fechas inválido');
-    return;
-  }
-
-  // ✅ VALIDACIÓN 3: Verificar que no sean fechas futuras
-  const hoy = new Date();
-  hoy.setHours(0, 0, 0, 0);
+  const fechaInicioDate = new Date(fechaInicio);
+  const fechaFinalDate = new Date(fechaFinal);
   
-  if (new Date(fechaInicio) > hoy || new Date(fechaFinal) > hoy) {
-    alert('⚠️ No se pueden seleccionar fechas futuras');
-    console.error('❌ Fechas futuras detectadas');
+  if (fechaInicioDate > fechaFinalDate) {
+    alert('⚠️ La fecha de inicio no puede ser mayor que la fecha final');
     return;
   }
 
-  // ✅ VERIFICAR QUE JSPDF ESTÉ DISPONIBLE
+  const hoy = new Date();
+  hoy.setHours(23, 59, 59, 999);
+  
+  if (fechaInicioDate > hoy || fechaFinalDate > hoy) {
+    alert('⚠️ No se pueden seleccionar fechas futuras');
+    return;
+  }
+
   if (typeof window.jspdf === 'undefined') {
     alert('❌ Error: La librería jsPDF no está cargada. Por favor recarga la página.');
-    console.error('❌ jsPDF no disponible');
     return;
   }
 
@@ -77,66 +95,65 @@ async function generarReportePDF(e) {
   const textoOriginal = btnOriginal.innerHTML;
 
   try {
-    // Mostrar mensaje de carga
     btnOriginal.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Generando...';
     btnOriginal.disabled = true;
 
-    // ✅ OBTENER CITAS REALES DEL RANGO SELECCIONADO
-    console.log('📥 Obteniendo citas del servidor...');
+    // Preparar fechas
+    fechaInicioDate.setHours(0, 0, 0, 0);
+    fechaFinalDate.setHours(23, 59, 59, 999);
     
-    const url = `${API_BASE_URL}/appointments/range?startDate=${fechaInicio}&endDate=${fechaFinal}`;
+    const url = `${API_BASE_URL}/appointments/range?startDate=${fechaInicioDate.toISOString()}&endDate=${fechaFinalDate.toISOString()}`;
     console.log('🌐 URL:', url);
     
     const response = await fetch(url);
     
     if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
+      throw new Error(`Error del servidor: ${response.status}`);
     }
     
     const data = await response.json();
     console.log('📦 Datos recibidos:', data);
 
-    if (!data.success) {
-      throw new Error('Error al obtener las citas del servidor');
+    if (!data.success || !data.appointments || !Array.isArray(data.appointments)) {
+      throw new Error('Respuesta del servidor inválida');
     }
 
-    console.log(`✅ Se encontraron ${data.appointments.length} citas`);
-
-    // ✅ VALIDACIÓN 4: Verificar que haya citas en el rango
     if (data.appointments.length === 0) {
-      alert('⚠️ No se encontraron citas en el rango de fechas seleccionado');
-      console.warn('⚠️ No hay citas para mostrar');
+      alert('⚠️ No se encontraron citas en el rango seleccionado');
       btnOriginal.innerHTML = textoOriginal;
       btnOriginal.disabled = false;
       return;
     }
 
-    // ✅ PREPARAR DATOS PARA EL PDF
-    console.log('📊 Preparando datos para PDF...');
-    
+    console.log(`✅ ${data.appointments.length} citas encontradas`);
+
+    // Preparar datos
     const citasParaPDF = data.appointments.map((cita, index) => {
-      // Formatear fecha
-      const fechaISO = cita.fecha.split('T')[0];
-      const [year, month, day] = fechaISO.split('-');
-      const fechaFormateada = `${day}/${month}/${year.slice(2)}`;
+      let fechaFormateada = 'N/A';
       
-      // Obtener diagnóstico o descripción
+      try {
+        if (cita.fecha) {
+          const fechaISO = cita.fecha.split('T')[0];
+          const [year, month, day] = fechaISO.split('-');
+          fechaFormateada = `${day}/${month}/${year.slice(2)}`;
+        }
+      } catch (error) {
+        console.error('Error formateando fecha:', error);
+      }
+      
       const diagnostico = cita.diagnostico || cita.descripcion || cita.sintomas || 'Pendiente';
-      const diagnosticoCorto = diagnostico.length > 35 
-        ? diagnostico.substring(0, 35) + '...' 
-        : diagnostico;
+      const diagnosticoCorto = diagnostico.length > 35 ? diagnostico.substring(0, 35) + '...' : diagnostico;
+      const nombrePaciente = cita.pacienteNombre || 'Paciente';
       
       return [
         (index + 1).toString(),
-        cita.pacienteNombre || 'Paciente',
+        nombrePaciente,
         diagnosticoCorto,
         fechaFormateada
       ];
     });
 
-    console.log('📄 Generando PDF...');
-
-    // ✅ GENERAR PDF CON DATOS REALES
+    // Generar PDF
     const { jsPDF } = window.jspdf;
     const doc = new jsPDF({
       orientation: 'portrait',
@@ -144,7 +161,6 @@ async function generarReportePDF(e) {
       format: 'a4'
     });
 
-    // Colores
     const COLORS = {
       primary: [15, 55, 89],
       secondary: [28, 77, 140],
@@ -152,10 +168,6 @@ async function generarReportePDF(e) {
       gray: [120, 120, 120]
     };
 
-    const headers = ['No.', 'Paciente', 'Diagnóstico', 'Fecha'];
-    const dataRows = citasParaPDF;
-
-    // Calcular ancho de columnas dinámicamente
     const pageWidth = 210;
     const margins = 20;
     const availableWidth = pageWidth - (2 * margins);
@@ -167,11 +179,10 @@ async function generarReportePDF(e) {
       fecha: availableWidth * 0.25 - 15
     };
 
-    const tableTotalWidth = columnWidths.no + columnWidths.paciente + 
-                           columnWidths.diagnostico + columnWidths.fecha;
+    const tableTotalWidth = columnWidths.no + columnWidths.paciente + columnWidths.diagnostico + columnWidths.fecha;
     const tableStartX = (pageWidth - tableTotalWidth) / 2;
 
-    // Fondo blanco
+    // Fondo
     doc.setFillColor(...COLORS.white);
     doc.rect(0, 0, 210, 297, 'F');
 
@@ -192,14 +203,14 @@ async function generarReportePDF(e) {
     doc.setTextColor(...COLORS.secondary);
     doc.text(`Del ${formatearFecha(fechaInicio)} al ${formatearFecha(fechaFinal)}`, 105, 40, { align: 'center' });
 
-    // Total de citas
+    // Total
     doc.setFontSize(10);
     doc.setTextColor(...COLORS.gray);
-    doc.text(`Total de citas: ${dataRows.length}`, 105, 48, { align: 'center' });
+    doc.text(`Total de citas: ${citasParaPDF.length}`, 105, 48, { align: 'center' });
 
     const tableStartY = 55;
 
-    // Encabezado de tabla
+    // Cabecera tabla
     doc.setFillColor(...COLORS.primary);
     doc.rect(tableStartX - 2, tableStartY - 6, tableTotalWidth + 4, 8, 'F');
 
@@ -207,7 +218,6 @@ async function generarReportePDF(e) {
     doc.setTextColor(...COLORS.white);
     doc.setFont(undefined, 'bold');
 
-    // Dibujar encabezados con posiciones correctas
     let currentX = tableStartX + 2;
     doc.text('No.', currentX, tableStartY - 1);
     currentX += columnWidths.no;
@@ -217,7 +227,7 @@ async function generarReportePDF(e) {
     currentX += columnWidths.diagnostico;
     doc.text('Fecha', currentX, tableStartY - 1);
 
-    // Filas de datos
+    // Filas
     doc.setFont(undefined, 'normal');
     doc.setTextColor(...COLORS.primary);
     doc.setFontSize(10);
@@ -225,13 +235,11 @@ async function generarReportePDF(e) {
     let currentY = tableStartY + 10;
     const rowHeight = 10;
 
-    dataRows.forEach((row, rowIndex) => {
-      // Verificar si necesitamos nueva página
+    citasParaPDF.forEach((row) => {
       if (currentY > 270) {
         doc.addPage();
         currentY = 20;
         
-        // Redibujar encabezado en nueva página
         doc.setFillColor(...COLORS.primary);
         doc.rect(tableStartX - 2, currentY - 6, tableTotalWidth + 4, 8, 'F');
         doc.setTextColor(...COLORS.white);
@@ -251,27 +259,20 @@ async function generarReportePDF(e) {
         doc.setFont(undefined, 'normal');
       }
 
-      // Dibujar datos de la fila
       currentX = tableStartX + 2;
-      
-      // Número
       doc.text(row[0], currentX, currentY);
       currentX += columnWidths.no;
       
-      // Paciente - ajustar texto si es muy largo
       const pacienteTexto = doc.splitTextToSize(row[1], columnWidths.paciente - 5);
       doc.text(pacienteTexto[0], currentX, currentY);
       currentX += columnWidths.paciente;
       
-      // Diagnóstico - ajustar texto si es muy largo
       const diagnosticoTexto = doc.splitTextToSize(row[2], columnWidths.diagnostico - 5);
       doc.text(diagnosticoTexto[0], currentX, currentY);
       currentX += columnWidths.diagnostico;
       
-      // Fecha
       doc.text(row[3], currentX, currentY);
 
-      // Línea divisoria
       doc.setDrawColor(200, 200, 200);
       doc.setLineWidth(0.2);
       doc.line(tableStartX, currentY + 2, tableStartX + tableTotalWidth, currentY + 2);
@@ -282,50 +283,48 @@ async function generarReportePDF(e) {
     // Pie de página
     doc.setFontSize(8);
     doc.setTextColor(150, 150, 150);
-    doc.text(
-      `Generado el ${new Date().toLocaleDateString('es-MX')} - DJFA Systems`,
-      105,
-      currentY + 5,
-      { align: 'center' }
-    );
+    doc.text(`Generado el ${new Date().toLocaleDateString('es-MX')} - DJFA Systems`, 105, currentY + 5, { align: 'center' });
 
-    // Guardar PDF
+    // Guardar
     const nombreArchivo = `Reporte_Clinico_${fechaInicio}_${fechaFinal}.pdf`;
-    console.log('💾 Guardando PDF:', nombreArchivo);
     doc.save(nombreArchivo);
 
     console.log('✅ PDF generado exitosamente');
 
-    // Restaurar botón
+    // Restaurar y limpiar
     btnOriginal.innerHTML = textoOriginal;
     btnOriginal.disabled = false;
 
-    // Cerrar modal
     const modal = document.getElementById('modalReportes');
     if (modal) {
       modal.style.display = 'none';
     }
 
-    // Limpiar campos
-    document.getElementById('fechaInicio').value = '';
-    document.getElementById('fechaFinal').value = '';
+    fechaInicioElem.value = '';
+    fechaFinalElem.value = '';
 
   } catch (error) {
-    console.error('❌ Error generando reporte:', error);
-    console.error('Stack:', error.stack);
-    alert('❌ Error al generar el reporte: ' + error.message);
+    console.error('❌ ERROR:', error);
     
-    // Restaurar botón
+    let mensaje = 'Error al generar el reporte:\n\n';
+    
+    if (error.message.includes('fetch')) {
+      mensaje += '• No se pudo conectar con el servidor\n• Verifica que esté corriendo en puerto 3002';
+    } else if (error.message.includes('JSON')) {
+      mensaje += '• Error procesando respuesta del servidor';
+    } else {
+      mensaje += error.message;
+    }
+    
+    alert('❌ ' + mensaje);
+    
     btnOriginal.innerHTML = textoOriginal;
     btnOriginal.disabled = false;
   }
 }
 
-// ===== FUNCIÓN AUXILIAR =====
-function formatearFecha(fecha) {
-  const [año, mes, día] = fecha.split('-');
-  return `${día}/${mes}/${año}`;
-}
-
-// ===== HACER LA FUNCIÓN GLOBAL =====
+// ===== EXPORTAR COMO GLOBAL =====
 window.generarReportePDF = generarReportePDF;
+
+console.log('✅ generarReporte.js cargado');
+console.log('✅ window.generarReportePDF:', typeof window.generarReportePDF);

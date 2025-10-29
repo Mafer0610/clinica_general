@@ -1,3 +1,4 @@
+//AppointmentController.js
 const express = require('express');
 const AppointmentRepository = require('../../../infrastructure/database/AppointmentRepository');
 const PatientRepository = require('../../../infrastructure/database/PatientRepository');
@@ -48,27 +49,88 @@ router.get('/', async (req, res) => {
 // ========== OBTENER CITAS POR RANGO DE FECHAS ==========
 router.get('/range', async (req, res) => {
     try {
+        console.log('📥 GET /api/appointments/range');
+        console.log('📋 Query params:', req.query);
+        
         const { startDate, endDate } = req.query;
         
+        // Validación de parámetros
         if (!startDate || !endDate) {
+            console.error('❌ Faltan parámetros de fecha');
             return res.status(400).json({
                 success: false,
-                error: 'Fechas de inicio y fin requeridas'
+                error: 'Fechas de inicio y fin requeridas',
+                received: { startDate, endDate }
             });
         }
         
-        const appointments = await AppointmentRepository.findByDateRange(startDate, endDate);
+        // Validar formato de fechas
+        const fechaInicio = new Date(startDate);
+        const fechaFin = new Date(endDate);
         
+        if (isNaN(fechaInicio.getTime()) || isNaN(fechaFin.getTime())) {
+            console.error('❌ Fechas inválidas:', { startDate, endDate });
+            return res.status(400).json({
+                success: false,
+                error: 'Formato de fechas inválido'
+            });
+        }
+        
+        console.log('📅 Rango de fechas:', {
+            inicio: fechaInicio.toISOString(),
+            fin: fechaFin.toISOString()
+        });
+        
+        // Obtener citas del repositorio
+        const appointments = await AppointmentRepository.findByDateRange(
+            fechaInicio.toISOString(),
+            fechaFin.toISOString()
+        );
+        
+        console.log(`✅ Se encontraron ${appointments.length} citas`);
+        
+        // Enriquecer con información del paciente
+        const enrichedAppointments = await Promise.all(
+            appointments.map(async (appointment) => {
+                try {
+                    const patient = await PatientRepository.findById(appointment.pacienteId.toString());
+                    return {
+                        ...appointment,
+                        pacienteNombre: patient 
+                            ? `${patient.nombre} ${patient.apellidos}` 
+                            : appointment.pacienteNombre || 'Paciente desconocido'
+                    };
+                } catch (error) {
+                    console.error('Error obteniendo paciente:', error);
+                    return {
+                        ...appointment,
+                        pacienteNombre: appointment.pacienteNombre || 'Paciente desconocido'
+                    };
+                }
+            })
+        );
+        
+        console.log('✅ Citas enriquecidas con información de pacientes');
+        
+        // Respuesta exitosa
         res.json({
             success: true,
-            appointments: appointments,
-            count: appointments.length
+            appointments: enrichedAppointments,
+            count: enrichedAppointments.length,
+            dateRange: {
+                start: fechaInicio.toISOString(),
+                end: fechaFin.toISOString()
+            }
         });
+        
     } catch (error) {
-        console.error('Error obteniendo citas por rango:', error);
+        console.error('❌ Error obteniendo citas por rango:', error);
+        console.error('Stack:', error.stack);
+        
         res.status(500).json({
             success: false,
-            error: 'Error al obtener citas'
+            error: 'Error al obtener citas',
+            details: process.env.NODE_ENV === 'development' ? error.message : undefined
         });
     }
 });
