@@ -223,7 +223,38 @@ async function cargarCitasMedico(medicoId) {
 
     if (data.success && data.appointments) {
       console.log(`✅ Se cargaron ${data.appointments.length} citas`);
-      renderizarCitasEnCalendario(data.appointments);
+      
+      const enrichedAppointments = await Promise.all(
+        data.appointments.map(async (appointment) => {
+          try {
+            let patient = null;
+            
+            if (appointment.pacienteId) {
+              const patientResponse = await fetch(`${API_BASE_URL}/patients/${appointment.pacienteId}`);
+              const patientData = await patientResponse.json();
+              if (patientData.success) {
+                patient = patientData.patient;
+              }
+            }
+            
+            return {
+              ...appointment,
+              pacienteNombre: patient 
+                ? `${patient.nombre} ${patient.apellidos}` 
+                : appointment.pacienteNombre || 'Paciente desconocido'
+            };
+          } catch (error) {
+            console.error('Error cargando paciente:', error);
+            return {
+              ...appointment,
+              pacienteNombre: appointment.pacienteNombre || 'Paciente desconocido'
+            };
+          }
+        })
+      );
+      
+      console.log('✅ Citas enriquecidas:', enrichedAppointments);
+      renderizarCitasEnCalendario(enrichedAppointments);
     } else {
       console.error('❌ Error al cargar citas:', data.error);
     }
@@ -244,7 +275,6 @@ function renderizarCitasEnCalendario(appointments) {
   hoy.setHours(0, 0, 0, 0);
   
   const diaSemana = hoy.getDay();
-  
   let diasHastaLunes;
   
   if (diaSemana === 0) {
@@ -277,7 +307,8 @@ function renderizarCitasEnCalendario(appointments) {
   
   appointments.forEach((cita, index) => {
     console.log(`\n🔍 Procesando cita ${index + 1}/${appointments.length}:`);
-    console.log('   - Paciente:', cita.pacienteNombre);
+    console.log('   - Paciente:', cita.pacienteNombre);  // ✅ Ya viene enriquecido
+    console.log('   - Paciente ID:', cita.pacienteId);
     
     const fechaISO = cita.fecha.split('T')[0];
     const [year, month, day] = fechaISO.split('-');
@@ -342,10 +373,6 @@ function renderizarCitasEnCalendario(appointments) {
       }
     } else {
       console.log('   ⚠️ Cita fuera de la semana actual');
-      console.log('   - Comparando contra:');
-      fechasSemana.forEach((f, i) => {
-        console.log(`     ${['LUN', 'MAR', 'MIE', 'JUE', 'VIE'][i]}: ${f.toLocaleDateString('es-MX')}`);
-      });
     }
   });
 
@@ -379,8 +406,6 @@ function mostrarDetallesCita(cita) {
 function configurarFormularios() {
   const forms = {
     cita: async () => {
-      console.log('📅 Guardando cita...');
-      
       const pacienteId = document.getElementById('pacienteId').value;
       const pacienteNombre = document.getElementById('pacienteSearch').value;
       const descripcion = document.getElementById('descripcion').value;
@@ -405,6 +430,10 @@ function configurarFormularios() {
       }
 
       try {
+        // ✅ CORRECCIÓN: Normalizar fecha como lo hace la vista de paciente
+        const [year, month, day] = fecha.split('-');
+        const fechaISO = `${year}-${month}-${day}T00:00:00.000`;
+        
         const response = await fetch(`${API_BASE_URL}/appointments`, {
           method: 'POST',
           headers: {
@@ -414,7 +443,7 @@ function configurarFormularios() {
             pacienteId: pacienteId,
             pacienteNombre: pacienteNombre,
             medicoId: medicoId,
-            fecha: fecha,
+            fecha: fechaISO,  // ✅ CAMBIO: usar fechaISO en lugar de fecha
             hora: hora,
             tipoCita: tipoCita,
             descripcion: descripcion || ''
@@ -486,9 +515,6 @@ function configurarFormularios() {
       }
     }
   };
-
-  // Solo configurar los formularios de cita y perfil
-  // El formulario de reportes se maneja directamente con onsubmit en el HTML
   document.querySelectorAll('[data-form]').forEach(form => {
     const formName = form.dataset.form;
     
