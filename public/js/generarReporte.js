@@ -1,13 +1,3 @@
-// ===== MAPA DE TIPOS DE CITA =====
-const TIPOS_CITA = {
-  '1': 'Consulta médica',
-  '2': 'Consulta general',
-  '3': 'Revisión',
-  '4': 'Control',
-  '5': 'Seguimiento'
-};
-
-// ===== CONFIGURAR RESTRICCIONES DE FECHA AL CARGAR =====
 document.addEventListener('DOMContentLoaded', function() {
   console.log('✅ generarReporte.js cargado');
   
