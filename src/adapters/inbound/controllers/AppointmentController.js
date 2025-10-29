@@ -213,11 +213,23 @@ router.post('/', async (req, res) => {
         
         const tipoFinal = tipoCita;
         
+        let fechaDate;
+        
+        if (fecha.includes('T')) {
+            fechaDate = new Date(fecha);
+            console.log('📅 Fecha ISO recibida:', fecha);
+        } else {
+            const [year, month, day] = fecha.split('-');
+            fechaDate = new Date(parseInt(year), parseInt(month) - 1, parseInt(day), 0, 0, 0, 0);
+            console.log('📅 Fecha simple recibida:', fecha);
+        }
+        
+        
         const appointmentData = {
             pacienteId: new ObjectId(pacienteId),
             pacienteNombre: pacienteNombre || 'Paciente',
             medicoId: medicoId,
-            fecha: new Date(fecha),
+            fecha: fechaDate,
             hora: hora,
             tipoCita: tipoFinal,
             descripcion: descripcion || '',
@@ -227,12 +239,7 @@ router.post('/', async (req, res) => {
             confirmada: false
         };
         
-        console.log('💾 Datos a guardar:', JSON.stringify(appointmentData, null, 2));
-        
         const result = await AppointmentRepository.save(appointmentData);
-        
-        console.log('✅ Cita guardada con ID:', result.insertedId);
-        
         res.status(201).json({
             success: true,
             message: 'Cita creada exitosamente',

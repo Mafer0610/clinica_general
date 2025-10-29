@@ -1,3 +1,4 @@
+//inicioMedico.js
 const API_BASE_URL = 'http://localhost:3002/api';
 
 const TIPOS_CITA = {
@@ -175,8 +176,6 @@ function configurarBusquedaPacientes() {
 }
 
 async function cargarPerfilMedico() {
-  console.log('📥 Cargando perfil del médico...');
-  
   try {
     const userId = localStorage.getItem('userId');
     
@@ -219,7 +218,6 @@ function limpiarCamposPerfil() {
 
 async function cargarCitasMedico(medicoId) {
   try {
-    console.log('📅 Cargando citas del médico...');
     const response = await fetch(`${API_BASE_URL}/appointments/medico/${medicoId}`);
     const data = await response.json();
 
@@ -242,16 +240,17 @@ function renderizarCitasEnCalendario(appointments) {
     return;
   }
 
-  console.log(`📅 Renderizando ${appointments.length} citas en el calendario`);
-
   const hoy = new Date();
   hoy.setHours(0, 0, 0, 0);
   
   const diaSemana = hoy.getDay();
   
   let diasHastaLunes;
+  
   if (diaSemana === 0) {
     diasHastaLunes = -6;
+  } else if (diaSemana === 6) {
+    diasHastaLunes = -5;
   } else if (diaSemana === 1) {
     diasHastaLunes = 0;
   } else {
@@ -260,9 +259,6 @@ function renderizarCitasEnCalendario(appointments) {
   
   const lunes = new Date(hoy);
   lunes.setDate(hoy.getDate() + diasHastaLunes);
-  
-  console.log('📅 HOY:', hoy.toLocaleDateString('es-MX'), `(día ${diaSemana})`);
-  console.log('📅 LUNES DE LA SEMANA:', lunes.toLocaleDateString('es-MX'));
 
   const fechasSemana = [];
   for (let i = 0; i < 5; i++) {
