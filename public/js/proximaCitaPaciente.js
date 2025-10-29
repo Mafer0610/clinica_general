@@ -14,6 +14,7 @@ const TIPOS_CITA = {
 let proximaCita = null;
 let patientData = null;
 let currentUserEmail = null;
+let medicoData = null;
 
 // ===== CARGAR PRÓXIMA CITA AL INICIAR =====
 document.addEventListener('DOMContentLoaded', async function() {
@@ -29,10 +30,40 @@ document.addEventListener('DOMContentLoaded', async function() {
     }
 
     currentUserEmail = userEmail;
+    await cargarDatosMedico();
     await cargarProximaCita(userEmail);
     configurarModalPerfil();
     configurarBotones();
 });
+
+// ===== CARGAR DATOS DEL MÉDICO =====
+async function cargarDatosMedico() {
+    try {
+        console.log('👨‍⚕️ Cargando datos del médico...');
+        
+        const medicoId = '68f6eea656098b06a1707209';
+        
+        const response = await fetch(`http://localhost:3001/auth/user/${medicoId}`);
+        const data = await response.json();
+
+        if (data.success && data.user) {
+            medicoData = data.user;
+            console.log('✅ Médico cargado:', medicoData.nombre, medicoData.apellidos);
+        } else {
+            console.warn('⚠️ No se pudo cargar info del médico');
+            medicoData = {
+                nombre: 'Dr.',
+                apellidos: 'Asignado'
+            };
+        }
+    } catch (error) {
+        console.error('❌ Error cargando médico:', error);
+        medicoData = {
+            nombre: 'Dr.',
+            apellidos: 'Asignado'
+        };
+    }
+}
 
 // ===== CARGAR PRÓXIMA CITA ==========
 async function cargarProximaCita(email) {
@@ -79,8 +110,14 @@ async function cargarDatosPaciente(email) {
 function mostrarProximaCita() {
     if (!proximaCita) return;
 
-    document.getElementById('nombre-doctor').value = 'Dr. Asignado';
-    document.getElementById('apellido-doctor').value = 'Sistema DJFA';
+    // Mostrar datos reales del médico
+    if (medicoData) {
+        document.getElementById('nombre-doctor').value = medicoData.nombre || 'Dr.';
+        document.getElementById('apellido-doctor').value = medicoData.apellidos || 'Asignado';
+    } else {
+        document.getElementById('nombre-doctor').value = 'Dr.';
+        document.getElementById('apellido-doctor').value = 'Asignado';
+    }
 
     if (patientData) {
         document.getElementById('nombre-paciente').value = patientData.nombre || '';
@@ -130,7 +167,30 @@ function actualizarEstadoConfirmacion() {
 // ===== MOSTRAR MENSAJE SIN CITAS =====
 function mostrarMensajeSinCitas() {
     const container = document.querySelector('.container');
+    
+    let nombreMedico = 'Dr.';
+    let apellidoMedico = 'Asignado';
+    
+    if (medicoData) {
+        nombreMedico = medicoData.nombre || 'Dr.';
+        apellidoMedico = medicoData.apellidos || 'Asignado';
+    }
+    
     container.innerHTML = `
+        <div class="form-section">
+            <h2 class="section-title">Doctor Asignado</h2>
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="nombre-doctor">Nombre</label>
+                    <input type="text" id="nombre-doctor" value="${nombreMedico}" readonly>
+                </div>
+                <div class="form-group">
+                    <label for="apellido-doctor">Apellido</label>
+                    <input type="text" id="apellido-doctor" value="${apellidoMedico}" readonly>
+                </div>
+            </div>
+        </div>
+        
         <div class="form-section" style="text-align: center; padding: 60px 20px;">
             <i class="fas fa-calendar-check" style="font-size: 64px; color: #6B8199; margin-bottom: 20px;"></i>
             <h2 style="color: #0F3759; margin-bottom: 15px;">No tienes próximas citas</h2>
@@ -164,16 +224,20 @@ function mostrarMensajeError() {
 // ===== CONFIGURAR BOTONES =====
 function configurarBotones() {
     const btnConfirmar = document.querySelector('.btn-submit:first-of-type');
-    btnConfirmar.addEventListener('click', async (e) => {
-        e.preventDefault();
-        await confirmarAsistencia();
-    });
+    if (btnConfirmar) {
+        btnConfirmar.addEventListener('click', async (e) => {
+            e.preventDefault();
+            await confirmarAsistencia();
+        });
+    }
 
     const btnCancelar = document.querySelector('.btn-submit:last-of-type');
-    btnCancelar.addEventListener('click', async (e) => {
-        e.preventDefault();
-        await cancelarCita();
-    });
+    if (btnCancelar) {
+        btnCancelar.addEventListener('click', async (e) => {
+            e.preventDefault();
+            await cancelarCita();
+        });
+    }
 }
 
 // ===== CONFIRMAR ASISTENCIA =====
