@@ -1,3 +1,11 @@
+// ===== CONFIGURACIÓN API =====
+const API_BASE_URL = 'http://localhost:3002/api';
+
+// ===== VARIABLES GLOBALES =====
+let expedienteId = null;
+let pacienteId = null;
+
+// ===== INICIALIZACIÓN =====
 document.addEventListener('DOMContentLoaded', function() {
   inicializarFechas();
   inicializarEventos();
@@ -5,6 +13,7 @@ document.addEventListener('DOMContentLoaded', function() {
   verificarJsPDF();
 });
 
+// ===== INICIALIZAR FECHAS =====
 function inicializarFechas() {
   const ahora = new Date();
   const fechaHoy = ahora.toISOString().split('T')[0];
@@ -20,6 +29,7 @@ function inicializarFechas() {
   document.getElementById('fechaFirmaPaciente').textContent = fechaHoy;
 }
 
+// ===== INICIALIZAR EVENTOS =====
 function inicializarEventos() {
   document.getElementById('fechaNacimiento').addEventListener('change', calcularEdad);
   
@@ -34,13 +44,296 @@ function inicializarEventos() {
   };
 }
 
-function cargarDatosPaciente() {
-  const urlParams = new URLSearchParams(window.location.search);
-  const nombrePaciente = urlParams.get('paciente');
-  
-  if (nombrePaciente) {
-    document.getElementById('nombrePaciente').value = nombrePaciente;
+// ===== CARGAR DATOS DEL PACIENTE =====
+async function cargarDatosPaciente() {
+  try {
+    const urlParams = new URLSearchParams(window.location.search);
+    pacienteId = urlParams.get('pacienteId');
+    
+    if (!pacienteId) {
+      alert('⚠️ No se especificó ID de paciente');
+      return;
+    }
+
+    console.log('📥 Cargando expediente del paciente:', pacienteId);
+    
+    const response = await fetch(`${API_BASE_URL}/expedientes/paciente/${pacienteId}`);
+    const data = await response.json();
+
+    if (!data.success) {
+      throw new Error(data.error || 'Error al cargar expediente');
+    }
+
+    expedienteId = data.data.expediente._id;
+    console.log('✅ Expediente ID:', expedienteId);
+    console.log('📋 Número de expediente:', data.data.expediente.numeroExpediente);
+
+    // ✅ IMPORTANTE: Convertir ObjectId a string si es necesario
+    if (typeof expedienteId === 'object' && expedienteId.$oid) {
+      expedienteId = expedienteId.$oid;
+      console.log('🔄 ID convertido a string:', expedienteId);
+    } else if (typeof expedienteId === 'object' && expedienteId.toString) {
+      expedienteId = expedienteId.toString();
+      console.log('🔄 ID convertido a string:', expedienteId);
+    }
+
+    // Cargar datos del paciente
+    const paciente = data.data.paciente;
+    const expediente = data.data.expediente;
+
+    // 1. Datos generales del paciente
+    document.getElementById('numExpediente').textContent = expediente.numeroExpediente;
+    document.getElementById('nombrePaciente').value = `${paciente.nombre} ${paciente.apellidos}`;
+    document.getElementById('fechaNacimiento').value = paciente.fechaNacimiento ? 
+      new Date(paciente.fechaNacimiento).toISOString().split('T')[0] : '';
+    document.getElementById('edadPaciente').value = paciente.edad ? paciente.edad + ' años' : '';
+    document.getElementById('sexoPaciente').value = paciente.sexo || '';
+    document.getElementById('domicilio').value = paciente.domicilio || '';
+    document.getElementById('telefono').value = paciente.telefono || '';
+    document.getElementById('telEmergencia').value = paciente.telefonoEmergencia || '';
+    document.getElementById('correo').value = paciente.correo || '';
+
+    // 2. Historia Clínica
+    if (expediente.historiaClinica) {
+      const hc = expediente.historiaClinica;
+      
+      document.getElementById('antecedentesHF').value = hc.antecedentesHF || '';
+      document.getElementById('tipoSangre').value = hc.tipoSanguineo || paciente.tipoSanguineo || '';
+      document.getElementById('tabaquismo').value = hc.tabaquismo || 'No';
+      document.getElementById('cigarrosDia').value = hc.cigarrosDia || '';
+      document.getElementById('anosFumando').value = hc.anosFumando || '';
+      document.getElementById('alcoholismo').value = hc.alcoholismo || 'No';
+      document.getElementById('sustancias').value = hc.sustancias || 'No';
+      document.getElementById('especificarSustancia').value = hc.especificarSustancia || '';
+      document.getElementById('habitosGenerales').value = hc.habitosGenerales || '';
+      document.getElementById('alergias').value = hc.alergias || paciente.alergias || 'Ninguna';
+      document.getElementById('cirugias').value = hc.cirugias || '';
+      document.getElementById('enfermedadesCronicas').value = hc.enfermedadesCronicas?.otras || '';
+      document.getElementById('interrogatorioSistemas').value = hc.interrogatorioSistemas || '';
+      
+      // Checkboxes de enfermedades crónicas
+      if (hc.enfermedadesCronicas) {
+        document.getElementById('diabetesCheck').checked = hc.enfermedadesCronicas.diabetes || false;
+        document.getElementById('hipertensionCheck').checked = hc.enfermedadesCronicas.hipertension || false;
+        document.getElementById('asmaCheck').checked = hc.enfermedadesCronicas.asma || false;
+        document.getElementById('epilepsiaCheck').checked = hc.enfermedadesCronicas.epilepsia || false;
+        document.getElementById('cancerCheck').checked = hc.enfermedadesCronicas.cancer || false;
+        document.getElementById('tuberculosisCheck').checked = hc.enfermedadesCronicas.tuberculosis || false;
+        document.getElementById('vihCheck').checked = hc.enfermedadesCronicas.vih || false;
+      }
+    }
+
+    // 5. Resultados de estudios
+    document.getElementById('resultadosEstudios').value = expediente.resultadosEstudios || '';
+
+    console.log('✅ Datos del expediente cargados correctamente');
+  } catch (error) {
+    console.error('❌ Error cargando datos del paciente:', error);
+    alert('Error al cargar datos del expediente: ' + error.message);
   }
+}
+
+// ===== GUARDAR EXPEDIENTE =====
+async function guardarExpediente() {
+  try {
+    if (!expedienteId || !pacienteId) {
+      alert('⚠️ No se puede guardar: faltan datos del expediente');
+      return false;
+    }
+
+    if (!validarCamposObligatorios()) {
+      return false;
+    }
+
+    console.log('💾 Guardando expediente...');
+
+    const medicoId = localStorage.getItem('userId');
+
+    // 1. Guardar Historia Clínica
+    const historiaClinica = {
+      antecedentesHF: getValue('antecedentesHF'),
+      tipoSanguineo: getValue('tipoSangre') || null,
+      tabaquismo: getValue('tabaquismo'),
+      cigarrosDia: parseInt(getValue('cigarrosDia')) || null,
+      anosFumando: parseInt(getValue('anosFumando')) || null,
+      alcoholismo: getValue('alcoholismo'),
+      sustancias: getValue('sustancias'),
+      especificarSustancia: getValue('especificarSustancia'),
+      habitosGenerales: getValue('habitosGenerales'),
+      alergias: getValue('alergias'),
+      cirugias: getValue('cirugias'),
+      enfermedadesCronicas: {
+        diabetes: document.getElementById('diabetesCheck').checked,
+        hipertension: document.getElementById('hipertensionCheck').checked,
+        asma: document.getElementById('asmaCheck').checked,
+        epilepsia: document.getElementById('epilepsiaCheck').checked,
+        cancer: document.getElementById('cancerCheck').checked,
+        tuberculosis: document.getElementById('tuberculosisCheck').checked,
+        vih: document.getElementById('vihCheck').checked,
+        otras: getValue('enfermedadesCronicas')
+      },
+      interrogatorioSistemas: getValue('interrogatorioSistemas')
+    };
+
+    const responseHC = await fetch(`${API_BASE_URL}/expedientes/${expedienteId}/historia-clinica`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ historiaClinica })
+    });
+
+    if (!responseHC.ok) throw new Error('Error guardando historia clínica');
+
+    // 2. Guardar Resultados de Estudios
+    const responseEstudios = await fetch(`${API_BASE_URL}/expedientes/${expedienteId}/resultados-estudios`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ resultadosEstudios: getValue('resultadosEstudios') })
+    });
+
+    if (!responseEstudios.ok) throw new Error('Error guardando resultados de estudios');
+
+    // 3. Guardar Consulta Actual
+    const medicamentosArray = [];
+    const tablaMed = document.getElementById('tablaMedicamentos');
+    const filasMed = tablaMed.getElementsByTagName('tr');
+    
+    for (let i = 0; i < filasMed.length; i++) {
+      const inputs = filasMed[i].getElementsByTagName('input');
+      const selects = filasMed[i].getElementsByTagName('select');
+      
+      if (inputs.length > 0 && inputs[0].value) {
+        medicamentosArray.push({
+          nombre: inputs[0].value,
+          presentacion: inputs[1].value,
+          dosis: inputs[2].value,
+          via: selects[0].value,
+          frecuencia: inputs[3].value,
+          duracion: inputs[4].value
+        });
+      }
+    }
+
+    const consultaData = {
+      fechaConsulta: getValue('fechaConsulta'),
+      horaConsulta: getValue('horaConsulta'),
+      tipoConsulta: getValue('tipoConsulta'),
+      padecimientoActual: getValue('padecimientoActual'),
+      signosVitales: {
+        peso: parseFloat(getValue('peso')) || null,
+        talla: parseFloat(getValue('talla')) || null,
+        imc: getValue('imc'),
+        temperatura: parseFloat(getValue('temperatura')) || null,
+        presion: getValue('presion'),
+        frecuenciaCardiaca: parseInt(getValue('frecuenciaCardiaca')) || null,
+        frecuenciaRespiratoria: parseInt(getValue('frecuenciaRespiratoria')) || null,
+        saturacion: parseInt(getValue('saturacion')) || null,
+        glucosa: parseInt(getValue('glucosa')) || null
+      },
+      exploracionFisica: {
+        habitusExterior: getValue('habitusExterior'),
+        cabezaCuello: getValue('exploracionCabeza'),
+        torax: getValue('exploracionTorax'),
+        abdomen: getValue('exploracionAbdomen'),
+        miembros: getValue('exploracionMiembros'),
+        genitales: getValue('exploracionGenitales'),
+        neurologico: getValue('neurologico')
+      },
+      diagnosticoPrincipal: getValue('diagnosticoPrincipal'),
+      diagnosticosSecundarios: getValue('diagnosticosSecundarios'),
+      pronostico: {
+        tipo: getValue('pronostico'),
+        observaciones: getValue('observacionesPronostico')
+      },
+      planEstudios: getValue('planEstudios'),
+      medicamentos: medicamentosArray,
+      indicacionesGenerales: getValue('indicacionesGenerales'),
+      solicitaInterconsulta: getValue('solicitaInterconsulta') === 'Sí',
+      especialidadInterconsulta: getValue('especialidadInterconsulta'),
+      motivoInterconsulta: getValue('motivoInterconsulta'),
+      solicitaReferencia: getValue('solicitaReferencia') === 'Sí',
+      establecimientoReceptor: getValue('establecimientoReceptor'),
+      motivoEnvio: getValue('motivoEnvio'),
+      terapeuticaEmpleada: getValue('terapeuticaEmpleada'),
+      observacionesAdicionales: getValue('observacionesAdicionales'),
+      requiereConsentimiento: getValue('requiereConsentimiento') === 'Sí',
+      tipoProcedimiento: getValue('tipoProcedimiento'),
+      creadoPor: medicoId
+    };
+
+    const responseConsulta = await fetch(`${API_BASE_URL}/expedientes/${expedienteId}/consulta`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(consultaData)
+    });
+
+    if (!responseConsulta.ok) throw new Error('Error guardando consulta');
+
+    console.log('✅ Expediente guardado correctamente');
+    return true;
+  } catch (error) {
+    console.error('❌ Error guardando expediente:', error);
+    alert('Error al guardar expediente: ' + error.message);
+    return false;
+  }
+}
+
+// ===== GENERAR PDF =====
+async function generarPDFExpediente() {
+  // Primero guardar el expediente
+  const guardado = await guardarExpediente();
+  
+  if (!guardado) {
+    return;
+  }
+
+  if (typeof window.jspdf === 'undefined') {
+    alert('Error: La librería jsPDF no se ha cargado correctamente. Por favor, recarga la página.');
+    return;
+  }
+
+  if (!validarCamposObligatorios()) {
+    return;
+  }
+
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF({
+    orientation: 'portrait',
+    unit: 'mm',
+    format: 'a4'
+  });
+
+  const config = {
+    margenIzq: 12,
+    margenDer: 198,
+    anchoUtil: 186,
+    lineHeight: 5,
+    y: 10
+  };
+
+  function dibujarMarco() {
+    doc.setDrawColor(15, 55, 89);
+    doc.setLineWidth(0.5);
+    doc.rect(8, 8, 194, 279);
+  }
+
+  dibujarMarco();
+
+  config.y = generarHeaderPDF(doc, config);
+  config.y = generarDatosPacientePDF(doc, config);
+  config.y = generarHistoriaClinicaPDF(doc, config);
+  config.y = generarPadecimientoActualPDF(doc, config);
+  config.y = generarExploracionFisicaPDF(doc, config);
+  config.y = generarResultadosEstudiosPDF(doc, config);
+  config.y = generarDiagnosticosPDF(doc, config);
+  config.y = generarPronosticoPDF(doc, config);
+  config.y = generarTratamientoPDF(doc, config);
+  generarFirmasPDF(doc, config);
+
+  const nombrePaciente = getValue('nombrePaciente').replace(/\s+/g, '_') || 'Paciente';
+  const fecha = getValue('fechaConsulta').replace(/-/g, '');
+  doc.save(`Expediente_${nombrePaciente}_${fecha}.pdf`);
+  
+  alert('✅ Expediente guardado y PDF generado correctamente');
 }
 
 function verificarJsPDF() {
@@ -175,64 +468,6 @@ function getValue(id) {
 
 function volverPacientes() {
   window.location.href = 'pacienteMedico.html';
-}
-
-function generarPDFExpediente() {
-  if (typeof window.jspdf === 'undefined') {
-    alert('Error: La librería jsPDF no se ha cargado correctamente. Por favor, recarga la página.');
-    return;
-  }
-
-  if (!validarCamposObligatorios()) {
-    return;
-  }
-
-  const { jsPDF } = window.jspdf;
-  const doc = new jsPDF({
-    orientation: 'portrait',
-    unit: 'mm',
-    format: 'a4'
-  });
-
-  const config = {
-    margenIzq: 12,
-    margenDer: 198,
-    anchoUtil: 186,
-    lineHeight: 5,
-    y: 10
-  };
-
-  function dibujarMarco() {
-    doc.setDrawColor(15, 55, 89);
-    doc.setLineWidth(0.5);
-    doc.rect(8, 8, 194, 279);
-  }
-
-  dibujarMarco();
-
-  config.y = generarHeaderPDF(doc, config);
-  
-  config.y = generarDatosPacientePDF(doc, config);
-  
-  config.y = generarHistoriaClinicaPDF(doc, config);
-  
-  config.y = generarPadecimientoActualPDF(doc, config);
-  
-  config.y = generarExploracionFisicaPDF(doc, config);
-  
-  config.y = generarResultadosEstudiosPDF(doc, config);
-  
-  config.y = generarDiagnosticosPDF(doc, config);
-  
-  config.y = generarPronosticoPDF(doc, config);
-  
-  config.y = generarTratamientoPDF(doc, config);
-  
-  generarFirmasPDF(doc, config);
-
-  const nombrePaciente = getValue('nombrePaciente').replace(/\s+/g, '_') || 'Paciente';
-  const fecha = getValue('fechaConsulta').replace(/-/g, '');
-  doc.save(`Expediente_${nombrePaciente}_${fecha}.pdf`);
 }
 
 function generarHeaderPDF(doc, config) {

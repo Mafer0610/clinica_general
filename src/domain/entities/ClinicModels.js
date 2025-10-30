@@ -150,76 +150,164 @@ AppointmentSchema.index({ fecha: 1 });
 AppointmentSchema.index({ estado: 1 });
 
 // ========== SCHEMA DE EXPEDIENTES MÉDICOS ==========
-const MedicalRecordSchema = new mongoose.Schema({
+const ExpedienteSchema = new mongoose.Schema({
+    // ===== RELACIÓN CON PACIENTE =====
     pacienteId: {
         type: mongoose.Schema.Types.ObjectId,
         ref: 'Patient',
         required: true
     },
-    citaId: {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: 'Appointment',
-        default: null
-    },
-    fecha: {
-        type: Date,
+    numeroExpediente: {
+        type: String,
         required: true,
-        default: Date.now
+        unique: true
     },
-    diagnostico: {
-        type: String,
-        required: true
-    },
-    tratamiento: {
-        type: String,
-        default: ''
-    },
-    signos_vitales: {
-        peso: { type: Number, default: null },
-        estatura: { type: Number, default: null },
-        imc: { type: Number, default: null },
-        fc: { type: Number, default: null },  // Frecuencia cardíaca
-        fr: { type: Number, default: null },  // Frecuencia respiratoria
-        ta: { type: String, default: '' },    // Tensión arterial
-        temp: { type: Number, default: null }, // Temperatura
-        saturacion: { type: Number, default: null } // SpO2
-    },
-    prescripcion: {
-        type: String,
-        default: ''
-    },
-    recomendaciones: {
-        type: String,
-        default: ''
-    },
-    estudios_realizados: [{
-        tipo: String,
-        resultado: String,
-        fecha: Date
-    }],
-    antecedentes: {
-        heredofamiliares: String,
-        personales_no_patologicos: String,
-        personales_patologicos: String,
-        interrogatorio_sistemas: String
-    },
-    exploracion_fisica: {
-        habitus_exterior: String,
-        cabeza_cuello: String,
-        torax: String,
-        abdomen: String,
-        extremidades: String,
-        genitales: String,
-        neurologico: String
-    },
-    pronostico: {
-        tipo: {
+    
+    // ===== 2. HISTORIA CLÍNICA (NOM 6.1) =====
+    historiaClinica: {
+        // 2.1 Antecedentes Heredo-Familiares
+        antecedentesHF: {
             type: String,
-            enum: ['Bueno', 'Favorable', 'Reservado', 'Reservado a evolución', 'Grave', 'Malo'],
-            default: 'Favorable'
+            default: ''
         },
-        observaciones: String
+        
+        // 2.2 Antecedentes Personales No Patológicos
+        tipoSanguineo: {
+            type: String,
+            enum: ['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-', null, ''],
+            default: null
+        },
+        tabaquismo: {
+            type: String,
+            enum: ['No', 'Sí', 'Ex-fumador'],
+            default: 'No'
+        },
+        cigarrosDia: { type: Number, default: null },
+        anosFumando: { type: Number, default: null },
+        alcoholismo: {
+            type: String,
+            enum: ['No', 'Ocasional', 'Frecuente', 'Crónico'],
+            default: 'No'
+        },
+        sustancias: {
+            type: String,
+            enum: ['No', 'Sí'],
+            default: 'No'
+        },
+        especificarSustancia: { type: String, default: '' },
+        habitosGenerales: { type: String, default: '' },
+        
+        // 2.3 Antecedentes Personales Patológicos
+        alergias: { type: String, default: 'Ninguna' },
+        cirugias: { type: String, default: '' },
+        enfermedadesCronicas: {
+            diabetes: { type: Boolean, default: false },
+            hipertension: { type: Boolean, default: false },
+            asma: { type: Boolean, default: false },
+            epilepsia: { type: Boolean, default: false },
+            cancer: { type: Boolean, default: false },
+            tuberculosis: { type: Boolean, default: false },
+            vih: { type: Boolean, default: false },
+            otras: { type: String, default: '' }
+        },
+        
+        // 2.4 Interrogatorio por Aparatos y Sistemas
+        interrogatorioSistemas: { type: String, default: '' }
     },
+    
+    // ===== 5. RESULTADOS DE ESTUDIOS (NOM 6.1.3) =====
+    resultadosEstudios: {
+        type: String,
+        default: ''
+    },
+    
+    // ===== CONSULTAS DEL EXPEDIENTE =====
+    consultas: [{
+        // 3. Padecimiento Actual
+        fechaConsulta: { type: Date, required: true },
+        horaConsulta: { type: String, default: '' },
+        tipoConsulta: {
+            type: String,
+            enum: ['Primera vez', 'Subsecuente', 'Urgencia'],
+            default: 'Primera vez'
+        },
+        padecimientoActual: { type: String, default: '' },
+        
+        // 4. Exploración Física - Signos Vitales
+        signosVitales: {
+            peso: { type: Number, default: null },
+            talla: { type: Number, default: null },
+            imc: { type: String, default: '' },
+            temperatura: { type: Number, default: null },
+            presion: { type: String, default: '' },
+            frecuenciaCardiaca: { type: Number, default: null },
+            frecuenciaRespiratoria: { type: Number, default: null },
+            saturacion: { type: Number, default: null },
+            glucosa: { type: Number, default: null }
+        },
+        
+        // 4.2 Exploración Física Completa
+        exploracionFisica: {
+            habitusExterior: { type: String, default: '' },
+            cabezaCuello: { type: String, default: '' },
+            torax: { type: String, default: '' },
+            abdomen: { type: String, default: '' },
+            miembros: { type: String, default: '' },
+            genitales: { type: String, default: '' },
+            neurologico: { type: String, default: '' }
+        },
+        
+        // 6. Diagnóstico(s)
+        diagnosticoPrincipal: { type: String, default: '' },
+        diagnosticosSecundarios: { type: String, default: '' },
+        
+        // 7. Pronóstico
+        pronostico: {
+            tipo: {
+                type: String,
+                enum: ['Bueno', 'Favorable', 'Reservado', 'Reservado a evolución', 'Grave', 'Malo'],
+                default: 'Favorable'
+            },
+            observaciones: { type: String, default: '' }
+        },
+        
+        // 8. Plan de Estudios
+        planEstudios: { type: String, default: '' },
+        
+        // 9. Indicación Terapéutica
+        medicamentos: [{
+            nombre: String,
+            presentacion: String,
+            dosis: String,
+            via: String,
+            frecuencia: String,
+            duracion: String
+        }],
+        indicacionesGenerales: { type: String, default: '' },
+        
+        // 10. Interconsulta
+        solicitaInterconsulta: { type: Boolean, default: false },
+        especialidadInterconsulta: { type: String, default: '' },
+        motivoInterconsulta: { type: String, default: '' },
+        
+        // 11. Referencia/Traslado
+        solicitaReferencia: { type: Boolean, default: false },
+        establecimientoReceptor: { type: String, default: '' },
+        motivoEnvio: { type: String, default: '' },
+        terapeuticaEmpleada: { type: String, default: '' },
+        
+        // 12. Observaciones Adicionales
+        observacionesAdicionales: { type: String, default: '' },
+        
+        // 13. Consentimiento Informado
+        requiereConsentimiento: { type: Boolean, default: false },
+        tipoProcedimiento: { type: String, default: '' },
+        
+        // Metadata de la consulta
+        creadoPor: { type: String, default: '' }, // ID del médico
+        fechaCreacion: { type: Date, default: Date.now }
+    }],
+    
     createdAt: {
         type: Date,
         default: Date.now
@@ -230,17 +318,17 @@ const MedicalRecordSchema = new mongoose.Schema({
     }
 }, {
     timestamps: true,
-    collection: 'medical_records'
+    collection: 'expedientes'
 });
 
-// Índices
-MedicalRecordSchema.index({ pacienteId: 1 });
-MedicalRecordSchema.index({ citaId: 1 });
-MedicalRecordSchema.index({ fecha: -1 });
+// Índices para Expedientes
+ExpedienteSchema.index({ pacienteId: 1 });
+ExpedienteSchema.index({ numeroExpediente: 1 }, { unique: true });
+ExpedienteSchema.index({ 'consultas.fechaConsulta': -1 });
 
 // Exportar modelos
 module.exports = {
     Patient: mongoose.model('Patient', PatientSchema),
     Appointment: mongoose.model('Appointment', AppointmentSchema),
-    MedicalRecord: mongoose.model('MedicalRecord', MedicalRecordSchema)
+    Expediente: mongoose.model('Expediente', ExpedienteSchema)
 };

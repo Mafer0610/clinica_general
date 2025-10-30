@@ -6,16 +6,15 @@ require('dotenv').config();
 const connections = require('../../src/infrastructure/database/connections');
 const rabbitmq = require('../../shared/rabbitmq/RabbitMQClient');
 
-// ========== IMPORTAR CONTROLADORES ==========
 const AuthController = require('../../src/adapters/inbound/controllers/AuthController');
 const PatientController = require('../../src/adapters/inbound/controllers/PatientController');
 const AppointmentController = require('../../src/adapters/inbound/controllers/AppointmentController');
-const PatientProfileController = require('../../src/adapters/inbound/controllers/PatientProfileController'); // NUEVO
+const PatientProfileController = require('../../src/adapters/inbound/controllers/PatientProfileController');
+const ExpedienteController = require('../../src/adapters/inbound/controllers/ExpedienteController');
 
 const app = express();
 const PORT = process.env.PORT || 3002;
 
-// ========== CORS CONFIGURATION ==========
 const corsOptions = {
     origin: ['http://localhost:3001', 'http://localhost:3002', 'http://127.0.0.1:3002'],
     credentials: true,
@@ -57,15 +56,10 @@ const validateMongoConnection = async (req, res, next) => {
 
 // Rutas de autenticación
 app.use('/auth', AuthController);
-
-// Rutas de pacientes (CON validación de conexión)
 app.use('/api/patients', validateMongoConnection, PatientController);
-
-// Rutas de citas (CON validación de conexión)
 app.use('/api/appointments', validateMongoConnection, AppointmentController);
-
-// NUEVO: Rutas de perfil de paciente (CON validación de conexión)
 app.use('/api/patient-profile', validateMongoConnection, PatientProfileController);
+app.use('/api/expedientes', validateMongoConnection, ExpedienteController);
 
 // Ruta raíz - Login
 app.get('/', (req, res) => {
