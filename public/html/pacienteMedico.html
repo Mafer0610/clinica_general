@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="es">
+
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -9,10 +10,11 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
   <script src="../js/pacienteMedico.js" defer></script>
 </head>
+
 <body>
   <header>
     <h1>
-      <span class="djfa">DJFA</span> 
+      <span class="djfa">DJFA</span>
       <span class="systems">System's</span>
     </h1>
 
@@ -32,6 +34,9 @@
       </button>
       <button class="nav-btn active">
         <i class="fas fa-user-injured"></i> Pacientes.
+      </button>
+      <button class="nav-btn" onclick="window.location.href='medicohistorialpaciente.html'">
+        <i class="bi bi-archive-fill"></i> Historial Pacientes.
       </button>
     </aside>
 
@@ -179,61 +184,62 @@
     </div>
   </div>
 
-<!-- MODAL PERFIL -->
-<div id="modalPerfilPacientes" class="modal">
-  <div class="modal-content modal-content-perfil">
-    <!-- Botón cerrar -->
-    <button class="modal-close" onclick="closeModalPerfilPacientes()">
-      <i class="fas fa-times"></i>
-    </button>
+  <!-- MODAL PERFIL -->
+  <div id="modalPerfilPacientes" class="modal">
+    <div class="modal-content modal-content-perfil">
+      <!-- Botón cerrar -->
+      <button class="modal-close" onclick="closeModalPerfilPacientes()">
+        <i class="fas fa-times"></i>
+      </button>
 
-    <!-- Título del modal -->
-    <h2 class="modal-title">Perfil</h2>
+      <!-- Título del modal -->
+      <h2 class="modal-title">Perfil</h2>
 
-    <!-- Formulario de perfil -->
-    <form class="modal-form-perfil" id="formPerfilPacientes">
-      <!-- Fila 1: Nombre y Apellidos -->
-      <div class="form-row">
-        <div class="form-col">
-          <label for="nombrePacientes">Nombre(s)</label>
-          <input type="text" id="nombrePacientes" class="form-input-perfil" placeholder="Nombre(s)">
+      <!-- Formulario de perfil -->
+      <form class="modal-form-perfil" id="formPerfilPacientes">
+        <!-- Fila 1: Nombre y Apellidos -->
+        <div class="form-row">
+          <div class="form-col">
+            <label for="nombrePacientes">Nombre(s)</label>
+            <input type="text" id="nombrePacientes" class="form-input-perfil" placeholder="Nombre(s)">
+          </div>
+          <div class="form-col">
+            <label for="apellidosPacientes">Apellidos</label>
+            <input type="text" id="apellidosPacientes" class="form-input-perfil" placeholder="Apellidos">
+          </div>
         </div>
-        <div class="form-col">
-          <label for="apellidosPacientes">Apellidos</label>
-          <input type="text" id="apellidosPacientes" class="form-input-perfil" placeholder="Apellidos">
-        </div>
-      </div>
 
-      <!-- Fila 2: Cédula y Teléfono -->
-      <div class="form-row">
-        <div class="form-col">
-          <label for="cedulaPacientes">Cédula</label>
-          <input type="text" id="cedulaPacientes" class="form-input-perfil" placeholder="Cédula">
+        <!-- Fila 2: Cédula y Teléfono -->
+        <div class="form-row">
+          <div class="form-col">
+            <label for="cedulaPacientes">Cédula</label>
+            <input type="text" id="cedulaPacientes" class="form-input-perfil" placeholder="Cédula">
+          </div>
+          <div class="form-col">
+            <label for="telefonoPacientes">Teléfono</label>
+            <input type="tel" id="telefonoPacientes" class="form-input-perfil" placeholder="Teléfono">
+          </div>
         </div>
-        <div class="form-col">
-          <label for="telefonoPacientes">Teléfono</label>
-          <input type="tel" id="telefonoPacientes" class="form-input-perfil" placeholder="Teléfono">
-        </div>
-      </div>
 
-      <!-- Fila 3: Correo (ancho completo y readonly) -->
-      <div class="form-row">
-        <div class="form-col-full">
-          <label for="correoPacientes">Correo</label>
-          <input type="email" id="correoPacientes" class="form-input-perfil" placeholder="Correo electrónico" readonly style="background-color: #f0f0f0; cursor: not-allowed;">
-          <small style="color: #6B8199; font-size: 11px; margin-top: 5px; display: block;">
-            * El correo no puede ser modificado
-          </small>
+        <!-- Fila 3: Correo (ancho completo y readonly) -->
+        <div class="form-row">
+          <div class="form-col-full">
+            <label for="correoPacientes">Correo</label>
+            <input type="email" id="correoPacientes" class="form-input-perfil" placeholder="Correo electrónico" readonly
+              style="background-color: #f0f0f0; cursor: not-allowed;">
+            <small style="color: #6B8199; font-size: 11px; margin-top: 5px; display: block;">
+              * El correo no puede ser modificado
+            </small>
+          </div>
         </div>
-      </div>
 
-      <!-- Botón Guardar -->
-      <div class="modal-buttons-perfil">
-        <button type="submit" class="btn-guardar-perfil">Guardar Cambios</button>
-      </div>
-    </form>
+        <!-- Botón Guardar -->
+        <div class="modal-buttons-perfil">
+          <button type="submit" class="btn-guardar-perfil">Guardar Cambios</button>
+        </div>
+      </form>
+    </div>
   </div>
-</div>
 
   <!-- MODAL AÑADIR PACIENTE -->
   <div id="modalAddPaciente" class="modal">
@@ -252,7 +258,8 @@
         <div class="form-row">
           <div class="form-col-full">
             <label for="nombreCompleto">Nombre Completo</label>
-            <input type="text" id="nombreCompleto" class="form-input-perfil" placeholder="Nombre completo del paciente" required>
+            <input type="text" id="nombreCompleto" class="form-input-perfil" placeholder="Nombre completo del paciente"
+              required>
           </div>
         </div>
 
@@ -288,7 +295,8 @@
         <div class="form-row">
           <div class="form-col-full">
             <label for="domicilioPaciente">Domicilio</label>
-            <input type="text" id="domicilioPaciente" class="form-input-perfil" placeholder="Dirección completa" required>
+            <input type="text" id="domicilioPaciente" class="form-input-perfil" placeholder="Dirección completa"
+              required>
           </div>
         </div>
 
@@ -313,4 +321,5 @@
     </div>
   </div>
 </body>
+
 </html>
