@@ -1,11 +1,8 @@
-// ===== CONFIGURACIÓN API =====
 const API_BASE_URL = 'http://localhost:3002/api';
 
-// ===== CONFIGURAR MODAL DE PERFIL DEL MÉDICO EN PÁGINA DE PACIENTES =====
 document.addEventListener('DOMContentLoaded', async function() {
   await cargarPacientes();
   
-  // Configurar modal de perfil
   const profileIcon = document.getElementById('profileIconPacientes');
   if (profileIcon) {
     profileIcon.addEventListener('click', async (e) => {
@@ -18,10 +15,7 @@ document.addEventListener('DOMContentLoaded', async function() {
   }
 });
 
-// ===== CARGAR PERFIL DEL MÉDICO =====
-async function cargarPerfilMedicoEnPacientes() {
-  console.log('📥 Cargando perfil del médico...');
-  
+async function cargarPerfilMedicoEnPacientes() {  
   try {
     const userId = localStorage.getItem('userId');
     
@@ -42,8 +36,6 @@ async function cargarPerfilMedicoEnPacientes() {
       document.getElementById('cedulaPacientes').value = user.cedula || '';
       document.getElementById('telefonoPacientes').value = user.telefono || '';
       document.getElementById('correoPacientes').value = user.email || '';
-      
-      console.log('✅ Perfil cargado correctamente');
     } else {
       console.warn('⚠️ No se encontraron datos del usuario');
       limpiarCamposPerfilMedico();
@@ -62,7 +54,6 @@ function limpiarCamposPerfilMedico() {
   document.getElementById('correoPacientes').value = '';
 }
 
-// ===== GUARDAR CAMBIOS DEL PERFIL =====
 document.getElementById('formPerfilPacientes').addEventListener('submit', async function(e) {
   e.preventDefault();
   
@@ -114,7 +105,6 @@ document.getElementById('formPerfilPacientes').addEventListener('submit', async 
   }
 });
 
-// ===== FUNCIÓN PARA CARGAR PACIENTES DESDE LA BD =====
 async function cargarPacientes() {
   try {
     const response = await fetch(`${API_BASE_URL}/patients`);
@@ -132,7 +122,6 @@ async function cargarPacientes() {
   }
 }
 
-// ===== RENDERIZAR PACIENTES EN EL GRID =====
 function renderizarPacientes(patients) {
   const patientsGrid = document.getElementById('patientsGrid');
   patientsGrid.innerHTML = '';
@@ -148,14 +137,12 @@ function renderizarPacientes(patients) {
   });
 }
 
-// ===== CREAR TARJETA DE PACIENTE =====
 function crearTarjetaPaciente(patient) {
   const card = document.createElement('div');
   card.className = 'patient-card';
   card.setAttribute('data-name', `${patient.nombre} ${patient.apellidos}`);
   card.setAttribute('data-patient-id', patient._id);
 
-  // Calcular última cita (si existe)
   let ultimaCita = 'Sin citas';
   if (patient.historialMedico && patient.historialMedico.length > 0) {
     const ultimaConsulta = patient.historialMedico[patient.historialMedico.length - 1];
@@ -176,7 +163,6 @@ function crearTarjetaPaciente(patient) {
     </div>
   `;
 
-  // Event listener para abrir modal con información
   card.addEventListener('click', async () => {
     await abrirModalPaciente(patient._id);
   });
@@ -184,7 +170,6 @@ function crearTarjetaPaciente(patient) {
   return card;
 }
 
-// ===== MAPA DE TIPOS DE CITA =====
 const TIPOS_CITA = {
   '1': 'Consulta médica',
   '2': 'Consulta general',
@@ -193,7 +178,6 @@ const TIPOS_CITA = {
   '5': 'Seguimiento'
 };
 
-// ===== ABRIR MODAL CON INFORMACIÓN DEL PACIENTE =====
 async function abrirModalPaciente(patientId) {
   try {
     
@@ -230,9 +214,7 @@ async function abrirModalPaciente(patientId) {
         citasOrdenadas.forEach(cita => {
           const citaElement = document.createElement('div');
           citaElement.className = 'historial-item';
-          
-          // CORRECCIÓN: Formatear fecha correctamente sin perder un día
-          const fechaISO = cita.fecha.split('T')[0]; // Obtener solo YYYY-MM-DD
+          const fechaISO = cita.fecha.split('T')[0];
           const [year, month, day] = fechaISO.split('-');
           const fechaFormateada = `${day}/${month}/${year}`;
           
@@ -262,7 +244,6 @@ async function abrirModalPaciente(patientId) {
   }
 }
 
-// ===== BÚSQUEDA DE PACIENTES =====
 const searchInput = document.getElementById('searchInput');
 const clearSearch = document.getElementById('clearSearch');
 const patientsGrid = document.getElementById('patientsGrid');
@@ -273,14 +254,12 @@ searchInput.addEventListener('input', function() {
   const patientCards = patientsGrid.querySelectorAll('.patient-card');
   let visibleCount = 0;
 
-  // Mostrar/ocultar botón de limpiar
   if (searchTerm) {
     clearSearch.classList.add('show');
   } else {
     clearSearch.classList.remove('show');
   }
 
-  // Filtrar tarjetas
   patientCards.forEach(card => {
     const patientName = card.getAttribute('data-name').toLowerCase();
     if (patientName.includes(searchTerm)) {
@@ -291,7 +270,6 @@ searchInput.addEventListener('input', function() {
     }
   });
 
-  // Mostrar mensaje si no hay resultados
   if (visibleCount === 0 && searchTerm) {
     noResults.style.display = 'block';
     patientsGrid.style.display = 'none';
@@ -301,19 +279,16 @@ searchInput.addEventListener('input', function() {
   }
 });
 
-// Limpiar búsqueda
 clearSearch.addEventListener('click', function() {
   searchInput.value = '';
   searchInput.dispatchEvent(new Event('input'));
   searchInput.focus();
 });
 
-// ===== MODAL INFORMACIÓN DEL PACIENTE =====
 function closeModalInfoPaciente() {
   document.getElementById('modalInfoPaciente').style.display = 'none';
 }
 
-// ===== MODAL PERFIL =====
 function openModalPerfilPacientes() {
   document.getElementById('modalPerfilPacientes').style.display = 'flex';
 }
@@ -322,7 +297,6 @@ function closeModalPerfilPacientes() {
   document.getElementById('modalPerfilPacientes').style.display = 'none';
 }
 
-// ===== MODAL AÑADIR PACIENTE =====
 function openModalAddPaciente() {
   document.getElementById('modalAddPaciente').style.display = 'flex';
 }
@@ -332,7 +306,6 @@ function closeModalAddPaciente() {
   document.getElementById('formAddPaciente').reset();
 }
 
-// Event listener para el icono de perfil
 document.addEventListener('DOMContentLoaded', function() {
   const profileIcon = document.getElementById('profileIconPacientes');
   if (profileIcon) {
@@ -340,7 +313,6 @@ document.addEventListener('DOMContentLoaded', function() {
   }
 });
 
-// Cerrar modales al hacer clic fuera
 window.onclick = function(event) {
   const modalPerfil = document.getElementById('modalPerfilPacientes');
   const modalInfo = document.getElementById('modalInfoPaciente');
@@ -357,34 +329,117 @@ window.onclick = function(event) {
   }
 }
 
-// Manejo del formulario de perfil
-document.getElementById('formPerfilPacientes').addEventListener('submit', function(e) {
-  e.preventDefault();
-  alert('Perfil actualizado correctamente!');
-  closeModalPerfilPacientes();
-});
-
-// ===== MANEJO DEL FORMULARIO DE AÑADIR PACIENTE =====
 document.getElementById('formAddPaciente').addEventListener('submit', async function(e) {
   e.preventDefault();
   
-  // Obtener valores del formulario
-  const nombreCompleto = document.getElementById('nombreCompleto').value;
-  const [nombre, ...apellidosArr] = nombreCompleto.split(' ');
-  const apellidos = apellidosArr.join(' ');
-  const edad = parseInt(document.getElementById('edadPaciente').value);
-  const sexo = document.getElementById('sexoPaciente').value;
-  const telefono = document.getElementById('telPaciente').value;
-  const email = document.getElementById('emailPaciente').value;
-  const domicilio = document.getElementById('domicilioPaciente').value;
-  const alergias = document.getElementById('alergiasPaciente').value || 'Ninguna';
-  const emergencia = document.getElementById('emergenciaPaciente').value;
+  const nombreElem = document.getElementById('nombrePaciente');
+  const apellidosElem = document.getElementById('apellidosPaciente');
+  const edadElem = document.getElementById('edadPaciente');
+  const sexoElem = document.getElementById('sexoPaciente');
+  const telElem = document.getElementById('telPaciente');
+  const emailElem = document.getElementById('emailPaciente');
+  const domicilioElem = document.getElementById('domicilioPaciente');
+  const alergiasElem = document.getElementById('alergiasPaciente');
+  const emergenciaElem = document.getElementById('emergenciaPaciente');
   
-  // Calcular fecha de nacimiento aproximada
+  if (!nombreElem) {
+    console.error('❌ Campo nombrePaciente no encontrado');
+    alert('Error: Campo de nombre no encontrado. Por favor recarga la página.');
+    return;
+  }
+
+  if (!apellidosElem) {
+    console.error('❌ Campo apellidosPaciente no encontrado');
+    alert('Error: Campo de apellidos no encontrado. Por favor recarga la página.');
+    return;
+  }
+  
+  if (!edadElem) {
+    console.error('❌ Campo edadPaciente no encontrado');
+    alert('Error: Campo de edad no encontrado. Por favor recarga la página.');
+    return;
+  }
+  
+  if (!sexoElem) {
+    console.error('❌ Campo sexoPaciente no encontrado');
+    alert('Error: Campo de sexo no encontrado. Por favor recarga la página.');
+    return;
+  }
+  
+  if (!telElem) {
+    console.error('❌ Campo telPaciente no encontrado');
+    alert('Error: Campo de teléfono no encontrado. Por favor recarga la página.');
+    return;
+  }
+  
+  if (!emailElem) {
+    console.error('❌ Campo emailPaciente no encontrado');
+    alert('Error: Campo de email no encontrado. Por favor recarga la página.');
+    return;
+  }
+  
+  if (!domicilioElem) {
+    console.error('❌ Campo domicilioPaciente no encontrado');
+    alert('Error: Campo de domicilio no encontrado. Por favor recarga la página.');
+    return;
+  }
+  
+  if (!emergenciaElem) {
+    console.error('❌ Campo emergenciaPaciente no encontrado');
+    alert('Error: Campo de teléfono de emergencia no encontrado. Por favor recarga la página.');
+    return;
+  }
+  
+  const nombre = nombreElem.value.trim();
+  const apellidos = apellidosElem.value.trim();
+  
+  const edad = parseInt(edadElem.value);
+  const sexo = sexoElem.value;
+  const telefono = telElem.value.trim();
+  const email = emailElem.value.trim();
+  const domicilio = domicilioElem.value.trim();
+  const alergias = alergiasElem ? alergiasElem.value.trim() : 'Ninguna';
+  const emergencia = emergenciaElem.value.trim();
+  
+  if (!nombre || !apellidos) {
+    alert('⚠️ Por favor ingresa nombre y apellidos completos');
+    return;
+  }
+  
+  if (!sexo) {
+    alert('⚠️ Por favor selecciona el sexo');
+    return;
+  }
+  
+  if (isNaN(edad) || edad < 0 || edad > 120) {
+    alert('⚠️ Por favor ingresa una edad válida (0-120)');
+    return;
+  }
+  
+  if (!telefono) {
+    alert('⚠️ Por favor ingresa el teléfono');
+    return;
+  }
+  
+  if (!email) {
+    alert('⚠️ Por favor ingresa el correo electrónico');
+    return;
+  }
+  
+  if (!domicilio) {
+    alert('⚠️ Por favor ingresa el domicilio');
+    return;
+  }
+  
+  if (!emergencia) {
+    alert('⚠️ Por favor ingresa el teléfono de emergencia');
+    return;
+  }
+  
   const currentYear = new Date().getFullYear();
   const fechaNacimiento = new Date(currentYear - edad, 0, 1);
 
-  try {
+  try {    
     const response = await fetch(`${API_BASE_URL}/patients`, {
       method: 'POST',
       headers: {
@@ -405,36 +460,35 @@ document.getElementById('formAddPaciente').addEventListener('submit', async func
     });
 
     const data = await response.json();
+    console.log('📥 Respuesta del servidor:', data);
 
     if (data.success) {
-      alert('¡Paciente añadido correctamente!');
+      console.log('✅ Paciente creado exitosamente');
+      alert('✅ ¡Paciente añadido correctamente!');
       closeModalAddPaciente();
-      // Recargar lista de pacientes
       await cargarPacientes();
     } else {
-      alert('Error al añadir paciente: ' + (data.error || 'Error desconocido'));
+      console.error('❌ Error del servidor:', data.error);
+      alert('❌ Error al añadir paciente: ' + (data.error || 'Error desconocido'));
     }
   } catch (error) {
-    console.error('Error al añadir paciente:', error);
-    alert('Error de conexión al añadir paciente');
+    console.error('❌ Error de conexión:', error);
+    alert('❌ Error de conexión al añadir paciente: ' + error.message);
   }
 });
 
-// ===== FUNCIÓN PARA VER EXPEDIENTE CLÍNICO =====
 function verExpedienteClinico() {
   const patientId = document.getElementById('modalInfoPaciente').getAttribute('data-current-patient-id');
   const nombrePaciente = document.getElementById('infoPacienteNombre').textContent;
   window.location.href = `expedienteClinico.html?pacienteId=${patientId}&paciente=${encodeURIComponent(nombrePaciente)}`;
 }
 
-// ===== FUNCIÓN PARA GENERAR RECETA =====
 function generarReceta() {
   const patientId = document.getElementById('modalInfoPaciente').getAttribute('data-current-patient-id');
   const nombrePaciente = document.getElementById('infoPacienteNombre').textContent;
   window.location.href = `recetaMedica.html?pacienteId=${patientId}&paciente=${encodeURIComponent(nombrePaciente)}`;
 }
 
-// ===== FUNCIÓN AUXILIAR PARA MOSTRAR ERRORES =====
 function mostrarMensajeError(mensaje) {
   const patientsGrid = document.getElementById('patientsGrid');
   patientsGrid.innerHTML = `
