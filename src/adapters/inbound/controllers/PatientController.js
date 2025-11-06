@@ -1,5 +1,19 @@
+//src/adapters/inbound/controllers/PatientController.js
+
+//src/adapters/inbound/controllers/PatientController.js
+
 const express = require('express');
 const PatientRepository = require('../../../infrastructure/database/PatientRepository');
+
+// ========== IMPORTAR VALIDACIONES ==========
+const { handleValidationErrors } = require('../middleware/validationHandler');
+const {
+    createPatientValidation,
+    updatePatientValidation,
+    patientIdValidation,
+    searchPatientValidation,
+    addHistoryValidation
+} = require('../validators/patientValidators');
 
 const router = express.Router();
 
@@ -27,7 +41,7 @@ router.get('/', async (req, res) => {
 });
 
 // ========== OBTENER PACIENTE POR ID ==========
-router.get('/:id', async (req, res) => {
+router.get('/:id', ...patientIdValidation, handleValidationErrors, async (req, res) => {
     try {
         console.log('📥 Solicitud GET /api/patients/:id recibida para ID:', req.params.id);
         const patient = await PatientRepository.findById(req.params.id);
@@ -57,7 +71,7 @@ router.get('/:id', async (req, res) => {
 });
 
 // ========== BUSCAR PACIENTES POR NOMBRE ==========
-router.get('/search/:term', async (req, res) => {
+router.get('/search/:term', ...searchPatientValidation, handleValidationErrors, async (req, res) => {
     try {
         const patients = await PatientRepository.searchByName(req.params.term);
                 
@@ -76,9 +90,9 @@ router.get('/search/:term', async (req, res) => {
     }
 });
 
-router.post('/', async (req, res) => {
+// ========== CREAR PACIENTE ==========
+router.post('/', ...createPatientValidation, handleValidationErrors, async (req, res) => {
     try {
-        
         const {
             nombre,
             apellidos,
@@ -92,14 +106,6 @@ router.post('/', async (req, res) => {
             padecimientos,
             tipoSanguineo
         } = req.body;
-        
-        // Validaciones básicas
-        if (!nombre || !apellidos || !fechaNacimiento || !sexo || !telefono || !telefonoEmergencia || !domicilio) {
-            return res.status(400).json({
-                success: false,
-                error: 'Faltan campos requeridos: nombre, apellidos, fechaNacimiento, sexo, telefono, telefonoEmergencia, domicilio'
-            });
-        }
         
         // Calcular edad
         const birthDate = new Date(fechaNacimiento);
@@ -144,7 +150,7 @@ router.post('/', async (req, res) => {
 });
 
 // ========== ACTUALIZAR PACIENTE ==========
-router.put('/:id', async (req, res) => {
+router.put('/:id', ...updatePatientValidation, handleValidationErrors, async (req, res) => {
     try {        
         const updateData = { ...req.body };
         delete updateData._id;
@@ -186,7 +192,8 @@ router.put('/:id', async (req, res) => {
     }
 });
 
-router.post('/:id/historial', async (req, res) => {
+// ========== AGREGAR ENTRADA AL HISTORIAL ==========
+router.post('/:id/historial', ...addHistoryValidation, handleValidationErrors, async (req, res) => {
     try {
         console.log('📥 Agregando entrada al historial del paciente:', req.params.id);
         
