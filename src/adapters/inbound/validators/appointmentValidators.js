@@ -1,10 +1,5 @@
-// src/adapters/inbound/validators/appointmentValidators.js
-
 const { body, param, query } = require('express-validator');
 
-/**
- * Validación para crear cita
- */
 const createAppointmentValidation = [
     body('pacienteId')
         .trim()
@@ -26,13 +21,11 @@ const createAppointmentValidation = [
     body('fecha')
         .notEmpty().withMessage('Fecha es requerida')
         .custom((value) => {
-            // Acepta formatos ISO8601 o YYYY-MM-DD
             const isoDate = new Date(value);
             if (isNaN(isoDate.getTime())) {
                 throw new Error('Fecha inválida');
             }
             
-            // No permitir fechas muy antiguas (más de 1 año atrás)
             const oneYearAgo = new Date();
             oneYearAgo.setFullYear(oneYearAgo.getFullYear() - 1);
             
@@ -40,7 +33,6 @@ const createAppointmentValidation = [
                 throw new Error('La fecha no puede ser mayor a 1 año en el pasado');
             }
             
-            // No permitir fechas muy futuras (más de 1 año adelante)
             const oneYearAhead = new Date();
             oneYearAhead.setFullYear(oneYearAhead.getFullYear() + 1);
             
@@ -56,10 +48,20 @@ const createAppointmentValidation = [
         .notEmpty().withMessage('Hora es requerida')
         .matches(/^([01]?[0-9]|2[0-3]):[0-5][0-9]$/).withMessage('Hora inválida (formato: HH:MM)'),
     
+    // ✅ CAMBIO CRÍTICO: Aceptar números de 1 dígito O texto
     body('tipoCita')
         .trim()
         .notEmpty().withMessage('Tipo de cita es requerido')
-        .isLength({ min: 3, max: 100 }).withMessage('Tipo de cita debe tener entre 3 y 100 caracteres')
+        .custom((value) => {
+            // Aceptar números del 1-5 (códigos) O texto descriptivo
+            const esCodigoValido = /^[1-5]$/.test(value);
+            const esTextoValido = value.length >= 3 && value.length <= 100;
+            
+            if (!esCodigoValido && !esTextoValido) {
+                throw new Error('Tipo de cita debe ser un código (1-5) o texto descriptivo');
+            }
+            return true;
+        })
         .escape(),
     
     body('descripcion')
@@ -116,10 +118,19 @@ const updateAppointmentValidation = [
         .trim()
         .matches(/^([01]?[0-9]|2[0-3]):[0-5][0-9]$/).withMessage('Hora inválida'),
     
+    // ✅ CAMBIO CRÍTICO: Misma validación flexible
     body('tipoCita')
         .optional()
         .trim()
-        .isLength({ min: 3, max: 100 }).withMessage('Tipo de cita inválido')
+        .custom((value) => {
+            const esCodigoValido = /^[1-5]$/.test(value);
+            const esTextoValido = value.length >= 3 && value.length <= 100;
+            
+            if (!esCodigoValido && !esTextoValido) {
+                throw new Error('Tipo de cita debe ser un código (1-5) o texto descriptivo');
+            }
+            return true;
+        })
         .escape(),
     
     body('descripcion')
@@ -178,8 +189,7 @@ const dateRangeValidation = [
                 throw new Error('Fecha de fin debe ser posterior a fecha de inicio');
             }
             
-            // Opcional: limitar el rango máximo (ej: 1 año)
-            const maxRange = 365 * 24 * 60 * 60 * 1000; // 1 año en ms
+            const maxRange = 365 * 24 * 60 * 60 * 1000;
             if ((end - start) > maxRange) {
                 throw new Error('El rango de fechas no puede ser mayor a 1 año');
             }

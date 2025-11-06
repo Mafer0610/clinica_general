@@ -6,6 +6,7 @@ require('dotenv').config();
 const connections = require('../../src/infrastructure/database/connections');
 const rabbitmq = require('../../shared/rabbitmq/RabbitMQClient');
 
+const ReminderService = require('../../src/application/services/ReminderService');
 const AuthController = require('../../src/adapters/inbound/controllers/AuthController');
 const PatientController = require('../../src/adapters/inbound/controllers/PatientController');
 const AppointmentController = require('../../src/adapters/inbound/controllers/AppointmentController');
@@ -148,10 +149,8 @@ async function initRabbitMQ() {
     }
 }
 
-// ========== INICIAR SERVIDOR ==========
 async function startServer() {
-    try {        
-        // Paso 1: Conectar a MongoDB Auth
+    try {
         await connections.connectAuth();
         await new Promise(resolve => setTimeout(resolve, 1000));
         
@@ -162,7 +161,6 @@ async function startServer() {
             return;
         }
         
-        // Paso 2: Conectar a MongoDB Clinic
         await connections.connectClinic();
         await new Promise(resolve => setTimeout(resolve, 1000));
         
@@ -173,10 +171,13 @@ async function startServer() {
             return;
         }
 
-        // Paso 3: Inicializar RabbitMQ
+        // Paso 3: RabbitMQ
         await initRabbitMQ();
 
-        // Paso 4: Iniciar servidor Express
+        // ✅ NUEVO Paso 4: Iniciar servicio de recordatorios
+        console.log('🔔 Iniciando servicio de recordatorios automáticos...');
+        ReminderService.iniciar();
+
         app.listen(PORT, () => {
             console.log('');
             console.log('═══════════════════════════════════════════════════');
@@ -192,12 +193,13 @@ async function startServer() {
             console.log(`   👤 Auth: http://localhost:${PORT}/auth`);
             console.log(`   🏥 Pacientes: http://localhost:${PORT}/api/patients`);
             console.log(`   📅 Citas: http://localhost:${PORT}/api/appointments`);
-            console.log(`   👨‍⚕️ Perfil Paciente: http://localhost:${PORT}/api/patient-profile`); // NUEVO
+            console.log(`   👨‍⚕️ Perfil Paciente: http://localhost:${PORT}/api/patient-profile`);
             console.log('');
             console.log('📊 ESTADO:');
             console.log(`   🗄️  MongoDB Auth: ✅ Conectado (${authConn.name})`);
             console.log(`   🗄️  MongoDB Clinic: ✅ Conectado (${clinicConn.name})`);
-            console.log(`   🐰 RabbitMQ: ${rabbitmq.channel ? '✅ Conectado' : ' Desconectado'}`);
+            console.log(`   🐰 RabbitMQ: ${rabbitmq.channel ? '✅ Conectado' : '❌ Desconectado'}`);
+            console.log(`   🔔 Recordatorios: ${ReminderService.getStatus().isRunning ? '✅ Activo' : '❌ Inactivo'}`);
             console.log('');
             console.log(`   📊 Health check: http://localhost:${PORT}/health`);
             console.log('═══════════════════════════════════════════════════');
@@ -205,7 +207,7 @@ async function startServer() {
         });
 
     } catch (error) {
-        console.error(' Error al iniciar el servidor:', error);
+        console.error('❌ Error al iniciar el servidor:', error);
         process.exit(1);
     }
 }
@@ -214,12 +216,16 @@ startServer();
 
 // ========== GRACEFUL SHUTDOWN ==========
 process.on('SIGINT', async () => {
+    console.log('\n⏹️ Cerrando Clinic Service...');
     try {
+        ReminderService.detener();
+        
         await rabbitmq.close();
         await connections.closeAll();
+        console.log('✅ Conexiones cerradas correctamente');
         process.exit(0);
     } catch (error) {
-        console.error('Error al cerrar:', error);
+        console.error('❌ Error al cerrar:', error);
         process.exit(1);
     }
 });
