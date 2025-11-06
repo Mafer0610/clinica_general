@@ -24,7 +24,6 @@
     <div class="container">
         <!-- Panel lateral -->
         <aside class="sidebar">
-            <button class="nav-btn"><i class="fas fa-tachometer-alt"></i> Dashboard.</button>
             <button class="nav-btn"><i class="fas fa-calendar-alt"></i> Calendario.</button>
             <button class="nav-btn " onclick="window.location.href='pacienteMedico.html'">
                 <i class="fas fa-user-injured"></i> Pacientes.
@@ -99,6 +98,48 @@
         </div>
     </div>
 
+    <!-- MODAL PERFIL -->
+  <div id="modalPerfil" class="modal" data-modal-id="perfil">
+    <div class="modal-content modal-content-perfil">
+      <button class="modal-close" data-close="perfil"><i class="fas fa-times"></i></button>
+      <h2 class="modal-title">Perfil</h2>
+      <form class="modal-form-perfil" data-form="perfil">
+        <div class="form-row">
+          <div class="form-col">
+            <label for="nombre">Nombre(s)</label>
+            <input type="text" id="nombre" class="form-input-perfil" placeholder="Ingresa tu(s) nombre(s)">
+          </div>
+          <div class="form-col">
+            <label for="apellidos">Apellidos</label>
+            <input type="text" id="apellidos" class="form-input-perfil" placeholder="Ingresa tus apellidos">
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-col">
+            <label for="cedula">Cédula Profesional</label>
+            <input type="text" id="cedula" class="form-input-perfil" placeholder="Ingresa tu cédula">
+          </div>
+          <div class="form-col">
+            <label for="telefono">Teléfono</label>
+            <input type="tel" id="telefono" class="form-input-perfil" placeholder="Ingresa tu teléfono">
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-col-full">
+            <label for="correo">Correo Electrónico</label>
+            <input type="email" id="correo" class="form-input-perfil" placeholder="Ingresa tu correo" readonly style="background-color: #f0f0f0; cursor: not-allowed;">
+            <small style="color: #6B8199; font-size: 11px; margin-top: 5px; display: block;">
+              * El correo no puede ser modificado
+            </small>
+          </div>
+        </div>
+        <div class="modal-buttons-perfil">
+          <button type="submit" class="btn-guardar-perfil">Guardar Cambios</button>
+        </div>
+      </form>
+    </div>
+  </div>
+    <script src="../js/inicioMedico.js" defer></script>
     <script src="../js/medicohistorialpaciente.js"></script>
 </body>
 
