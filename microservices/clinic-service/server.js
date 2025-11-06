@@ -11,6 +11,7 @@ const PatientController = require('../../src/adapters/inbound/controllers/Patien
 const AppointmentController = require('../../src/adapters/inbound/controllers/AppointmentController');
 const PatientProfileController = require('../../src/adapters/inbound/controllers/PatientProfileController');
 const ExpedienteController = require('../../src/adapters/inbound/controllers/ExpedienteController');
+const RecetaController = require('../../src/adapters/inbound/controllers/RecetaController');
 
 const app = express();
 const PORT = process.env.PORT || 3002;
@@ -60,6 +61,7 @@ app.use('/api/patients', validateMongoConnection, PatientController);
 app.use('/api/appointments', validateMongoConnection, AppointmentController);
 app.use('/api/patient-profile', validateMongoConnection, PatientProfileController);
 app.use('/api/expedientes', validateMongoConnection, ExpedienteController);
+app.use('/api/recetas', validateMongoConnection, RecetaController);
 
 // Ruta raíz - Login
 app.get('/', (req, res) => {

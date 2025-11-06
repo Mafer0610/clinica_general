@@ -332,3 +332,102 @@ module.exports = {
     Appointment: mongoose.model('Appointment', AppointmentSchema),
     Expediente: mongoose.model('Expediente', ExpedienteSchema)
 };
+
+// ========== SCHEMA DE RECETAS MÉDICAS ==========
+const RecetaSchema = new mongoose.Schema({
+    pacienteId: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Patient',
+        required: true
+    },
+    pacienteNombre: {
+        type: String,
+        required: true
+    },
+    pacienteEdad: {
+        type: Number,
+        default: null
+    },
+    medicoId: {
+        type: String,
+        required: true
+    },
+    medicoNombre: {
+        type: String,
+        default: 'Dr. Asignado'
+    },
+    medicoCedula: {
+        type: String,
+        default: ''
+    },
+    
+    // Datos del paciente en la receta
+    peso: {
+        type: String,
+        default: ''
+    },
+    estatura: {
+        type: String,
+        default: ''
+    },
+    frecuenciaCardiaca: {
+        type: String,
+        default: ''
+    },
+    frecuenciaRespiratoria: {
+        type: String,
+        default: ''
+    },
+    tensionArterial: {
+        type: String,
+        default: ''
+    },
+    temperatura: {
+        type: String,
+        default: ''
+    },
+    diagnostico: {
+        type: String,
+        default: ''
+    },
+    
+    // Contenido de la receta
+    prescripcion: {
+        type: String,
+        required: true
+    },
+    recomendaciones: {
+        type: String,
+        default: ''
+    },
+    
+    // Metadata
+    fecha: {
+        type: Date,
+        required: true
+    },
+    createdAt: {
+        type: Date,
+        default: Date.now
+    },
+    updatedAt: {
+        type: Date,
+        default: Date.now
+    }
+}, {
+    timestamps: true,
+    collection: 'recetas'
+});
+
+// Índices para Recetas
+RecetaSchema.index({ pacienteId: 1 });
+RecetaSchema.index({ medicoId: 1 });
+RecetaSchema.index({ fecha: -1 });
+
+// Exportar modelo (añadir al module.exports existente)
+module.exports = {
+    Patient: mongoose.model('Patient', PatientSchema),
+    Appointment: mongoose.model('Appointment', AppointmentSchema),
+    Expediente: mongoose.model('Expediente', ExpedienteSchema),
+    Receta: mongoose.model('Receta', RecetaSchema) // ⬅️ NUEVO
+};
