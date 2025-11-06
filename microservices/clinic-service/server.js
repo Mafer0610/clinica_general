@@ -178,6 +178,72 @@ async function startServer() {
         console.log('🔔 Iniciando servicio de recordatorios automáticos...');
         ReminderService.iniciar();
 
+// ✅ Agregar ANTES de app.listen() en tu server.js
+
+// 🧪 ENDPOINT PARA PROBAR RECORDATORIOS (verificación manual)
+app.get('/api/test-reminder', async (req, res) => {
+    try {
+        console.log('🧪 Endpoint de prueba de recordatorios llamado');
+        
+        // Verificar estado del servicio
+        const status = ReminderService.getStatus();
+        
+        res.json({
+            success: true,
+            message: 'Prueba de recordatorios iniciada',
+            servicioActivo: status.isRunning,
+            descripcion: status.description,
+            nota: 'Revisa la consola del servidor para ver los logs'
+        });
+
+        // Ejecutar verificación en background
+        setTimeout(() => {
+            ReminderService.verificarAhora();
+        }, 1000);
+        
+    } catch (error) {
+        console.error('❌ Error en test-reminder:', error);
+        res.status(500).json({
+            success: false,
+            error: error.message
+        });
+    }
+});
+
+// 🧪 ENDPOINT PARA ENVIAR RECORDATORIOS DE TODAS LAS CITAS (MODO PRUEBA)
+app.get('/api/test-reminder-all', async (req, res) => {
+    try {
+        console.log('🧪 Modo prueba: enviando recordatorios de TODAS las citas');
+        
+        const resultado = await ReminderService.probarRecordatorios();
+        
+        res.json({
+            success: true,
+            message: 'Prueba completa',
+            recordatoriosEnviados: resultado.enviados,
+            recordatoriosFallidos: resultado.fallidos,
+            nota: 'Revisa tu email y la consola del servidor'
+        });
+        
+    } catch (error) {
+        console.error('❌ Error en test-reminder-all:', error);
+        res.status(500).json({
+            success: false,
+            error: error.message
+        });
+    }
+});
+
+// 🔍 ENDPOINT PARA VER ESTADO DEL SERVICIO
+app.get('/api/reminder-status', (req, res) => {
+    const status = ReminderService.getStatus();
+    res.json({
+        success: true,
+        ...status,
+        timestamp: new Date().toISOString()
+    });
+});
+
         app.listen(PORT, () => {
             console.log('');
             console.log('═══════════════════════════════════════════════════');
