@@ -20,7 +20,7 @@ async function cargarPerfilMedicoEnPacientes() {
     const userId = localStorage.getItem('userId');
     
     if (!userId) {
-      console.error('❌ No se encontró ID de usuario');
+      console.error(' No se encontró ID de usuario');
       limpiarCamposPerfilMedico();
       return;
     }
@@ -41,7 +41,7 @@ async function cargarPerfilMedicoEnPacientes() {
       limpiarCamposPerfilMedico();
     }
   } catch (error) {
-    console.error('❌ Error cargando perfil:', error);
+    console.error(' Error cargando perfil:', error);
     limpiarCamposPerfilMedico();
   }
 }
@@ -61,7 +61,7 @@ document.getElementById('formPerfilPacientes').addEventListener('submit', async 
     const userId = localStorage.getItem('userId');
     
     if (!userId) {
-      alert('❌ Error: No se encontró ID de usuario');
+      alert(' Error: No se encontró ID de usuario');
       return;
     }
 
@@ -97,11 +97,11 @@ document.getElementById('formPerfilPacientes').addEventListener('submit', async 
       closeModalPerfilPacientes();
       await cargarPerfilMedicoEnPacientes();
     } else {
-      alert('❌ Error: ' + (data.error || 'No se pudo actualizar el perfil'));
+      alert(' Error: ' + (data.error || 'No se pudo actualizar el perfil'));
     }
   } catch (error) {
-    console.error('❌ Error:', error);
-    alert('❌ Error de conexión: ' + error.message);
+    console.error(' Error:', error);
+    alert(' Error de conexión: ' + error.message);
   }
 });
 
@@ -343,49 +343,49 @@ document.getElementById('formAddPaciente').addEventListener('submit', async func
   const emergenciaElem = document.getElementById('emergenciaPaciente');
   
   if (!nombreElem) {
-    console.error('❌ Campo nombrePaciente no encontrado');
+    console.error(' Campo nombrePaciente no encontrado');
     alert('Error: Campo de nombre no encontrado. Por favor recarga la página.');
     return;
   }
 
   if (!apellidosElem) {
-    console.error('❌ Campo apellidosPaciente no encontrado');
+    console.error(' Campo apellidosPaciente no encontrado');
     alert('Error: Campo de apellidos no encontrado. Por favor recarga la página.');
     return;
   }
   
   if (!edadElem) {
-    console.error('❌ Campo edadPaciente no encontrado');
+    console.error(' Campo edadPaciente no encontrado');
     alert('Error: Campo de edad no encontrado. Por favor recarga la página.');
     return;
   }
   
   if (!sexoElem) {
-    console.error('❌ Campo sexoPaciente no encontrado');
+    console.error(' Campo sexoPaciente no encontrado');
     alert('Error: Campo de sexo no encontrado. Por favor recarga la página.');
     return;
   }
   
   if (!telElem) {
-    console.error('❌ Campo telPaciente no encontrado');
+    console.error(' Campo telPaciente no encontrado');
     alert('Error: Campo de teléfono no encontrado. Por favor recarga la página.');
     return;
   }
   
   if (!emailElem) {
-    console.error('❌ Campo emailPaciente no encontrado');
+    console.error(' Campo emailPaciente no encontrado');
     alert('Error: Campo de email no encontrado. Por favor recarga la página.');
     return;
   }
   
   if (!domicilioElem) {
-    console.error('❌ Campo domicilioPaciente no encontrado');
+    console.error(' Campo domicilioPaciente no encontrado');
     alert('Error: Campo de domicilio no encontrado. Por favor recarga la página.');
     return;
   }
   
   if (!emergenciaElem) {
-    console.error('❌ Campo emergenciaPaciente no encontrado');
+    console.error(' Campo emergenciaPaciente no encontrado');
     alert('Error: Campo de teléfono de emergencia no encontrado. Por favor recarga la página.');
     return;
   }
@@ -468,12 +468,12 @@ document.getElementById('formAddPaciente').addEventListener('submit', async func
       closeModalAddPaciente();
       await cargarPacientes();
     } else {
-      console.error('❌ Error del servidor:', data.error);
-      alert('❌ Error al añadir paciente: ' + (data.error || 'Error desconocido'));
+      console.error(' Error del servidor:', data.error);
+      alert(' Error al añadir paciente: ' + (data.error || 'Error desconocido'));
     }
   } catch (error) {
-    console.error('❌ Error de conexión:', error);
-    alert('❌ Error de conexión al añadir paciente: ' + error.message);
+    console.error(' Error de conexión:', error);
+    alert(' Error de conexión al añadir paciente: ' + error.message);
   }
 });
 

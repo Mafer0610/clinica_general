@@ -58,7 +58,7 @@ const AuthService = {
                     });
                     console.log("📤 Evento 'user.created' publicado");
                 } catch (error) {
-                    console.error("❌ Error publicando evento:", error.message);
+                    console.error(" Error publicando evento:", error.message);
                 }
             }
 
@@ -68,7 +68,7 @@ const AuthService = {
                 userId: savedUser._id
             };
         } catch (error) {
-            console.error("❌ Error en registro:", error);
+            console.error(" Error en registro:", error);
             return { error: "Error al registrar usuario" };
         }
     },
@@ -120,7 +120,7 @@ const AuthService = {
                     });
                     console.log("📤 Evento 'user.login' publicado");
                 } catch (error) {
-                    console.error("❌ Error publicando evento de login:", error.message);
+                    console.error(" Error publicando evento de login:", error.message);
                 }
             }
 
@@ -136,7 +136,7 @@ const AuthService = {
                 }
             };
         } catch (error) {
-            console.error("❌ Error en login:", error);
+            console.error(" Error en login:", error);
             return { error: "Error al iniciar sesión" };
         }
     },
@@ -165,7 +165,7 @@ const AuthService = {
                     });
                     console.log("📤 Evento 'user.updated' publicado");
                 } catch (error) {
-                    console.error("❌ Error publicando evento:", error.message);
+                    console.error(" Error publicando evento:", error.message);
                 }
             }
 
@@ -175,7 +175,7 @@ const AuthService = {
                 user: updatedUser
             };
         } catch (error) {
-            console.error("❌ Error actualizando usuario:", error);
+            console.error(" Error actualizando usuario:", error);
             return { error: "Error al actualizar usuario" };
         }
     },
@@ -204,7 +204,7 @@ const AuthService = {
                     });
                     console.log("📤 Evento 'user.deleted' publicado");
                 } catch (error) {
-                    console.error("❌ Error publicando evento:", error.message);
+                    console.error(" Error publicando evento:", error.message);
                 }
             }
 
@@ -213,7 +213,7 @@ const AuthService = {
                 message: "Usuario eliminado correctamente"
             };
         } catch (error) {
-            console.error("❌ Error eliminando usuario:", error);
+            console.error(" Error eliminando usuario:", error);
             return { error: "Error al eliminar usuario" };
         }
     },
@@ -254,7 +254,7 @@ const AuthService = {
                 user: userWithoutPassword 
             };
         } catch (error) {
-            console.error("❌ Error obteniendo usuario:", error);
+            console.error(" Error obteniendo usuario:", error);
             return { error: "Error al obtener usuario" };
         }
     },
@@ -289,7 +289,7 @@ const AuthService = {
                 message: "Contraseña cambiada correctamente" 
             };
         } catch (error) {
-            console.error("❌ Error cambiando contraseña:", error);
+            console.error(" Error cambiando contraseña:", error);
             return { error: "Error al cambiar contraseña" };
         }
     },
@@ -313,7 +313,7 @@ const AuthService = {
                 count: usersWithoutPasswords.length
             };
         } catch (error) {
-            console.error("❌ Error obteniendo usuarios:", error);
+            console.error(" Error obteniendo usuarios:", error);
             return { error: "Error al obtener usuarios" };
         }
     }

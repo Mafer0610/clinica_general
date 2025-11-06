@@ -13,7 +13,7 @@ document.addEventListener('DOMContentLoaded', async function() {
     const userEmail = localStorage.getItem('userEmail');
     
     if (!userEmail) {
-        console.error('❌ No se encontró email del usuario');
+        console.error(' No se encontró email del usuario');
         alert('Error: No se encontró información del usuario. Por favor inicia sesión nuevamente.');
         window.location.href = '../html/index.html';
         return;
@@ -43,31 +43,31 @@ async function generarCita() {
         const domicilio = document.getElementById('domicilio').value.trim();
         
         if (!nombre || !apellidos) {
-            console.error('❌ Validación fallida: nombre o apellidos vacíos');
+            console.error(' Validación fallida: nombre o apellidos vacíos');
             alert('⚠️ Por favor completa tu nombre y apellidos');
             return;
         }
         
         if (!fecha || !hora) {
-            console.error('❌ Validación fallida: fecha u hora vacías');
+            console.error(' Validación fallida: fecha u hora vacías');
             alert('⚠️ Por favor selecciona fecha y hora para la cita');
             return;
         }
         
         if (!sintomas) {
-            console.error('❌ Validación fallida: síntomas vacíos');
+            console.error(' Validación fallida: síntomas vacíos');
             alert('⚠️ Por favor describe tus síntomas');
             return;
         }
         
         if (!telefono || !emergencia) {
-            console.error('❌ Validación fallida: teléfonos vacíos');
+            console.error(' Validación fallida: teléfonos vacíos');
             alert('⚠️ Por favor completa los teléfonos de contacto');
             return;
         }
         
         if (!domicilio) {
-            console.error('❌ Validación fallida: domicilio vacío');
+            console.error(' Validación fallida: domicilio vacío');
             alert('⚠️ Por favor completa tu domicilio');
             return;
         }
@@ -102,7 +102,7 @@ async function generarCita() {
         const profileData = await profileResponse.json();
 
         if (!profileData.success) {
-            console.error('❌ Error en respuesta del perfil:', profileData.error);
+            console.error(' Error en respuesta del perfil:', profileData.error);
             
             if (currentPatientData && currentPatientData._id) {
                 console.log('⚠️ Usando paciente existente:', currentPatientData._id);
@@ -118,7 +118,7 @@ async function generarCita() {
         console.log('🆔 Patient ID obtenido:', patientId);
 
         if (!patientId) {
-            console.error('❌ No se obtuvo patientId');
+            console.error(' No se obtuvo patientId');
             console.error('📋 profileData completo:', profileData);
             throw new Error('No se pudo obtener el ID del paciente');
         }
@@ -147,7 +147,7 @@ async function generarCita() {
         const appointmentData = await appointmentResponse.json();
 
         if (!appointmentData.success) {
-            console.error('❌ Error en respuesta de cita:', appointmentData.error);
+            console.error(' Error en respuesta de cita:', appointmentData.error);
             throw new Error(appointmentData.error || 'Error al crear cita');
         }
         
@@ -156,8 +156,8 @@ async function generarCita() {
         window.location.href = 'proximaCitaPaciente.html';
         
     } catch (error) {
-        console.error('❌ ERROR CRÍTICO:', error);
-        alert('❌ Error al generar la cita: ' + error.message);
+        console.error(' ERROR CRÍTICO:', error);
+        alert(' Error al generar la cita: ' + error.message);
     }
 }
 
@@ -195,7 +195,7 @@ async function crearCita(patientId, nombre, apellidos, fechaISO, hora, sintomas)
         window.location.href = 'proximaCitaPaciente.html';
         
     } catch (error) {
-        console.error('❌ Error creando cita:', error);
+        console.error(' Error creando cita:', error);
         throw error;
     }
 }
@@ -219,7 +219,7 @@ async function obtenerMedicoPorDefecto() {
             console.warn('⚠️ Error verificando médico:', verifyError.message);
         }
     } catch (error) {
-        console.error('❌ Error obteniendo médico:', error);
+        console.error(' Error obteniendo médico:', error);
         defaultMedicoId = '68f6eea656098b06a1707209';
     }
 }
@@ -245,11 +245,11 @@ async function cargarPerfilPaciente() {
                 mostrarFormularioVacio();
             }
         } else {
-            console.error('❌ Error cargando perfil:', data.error);
+            console.error(' Error cargando perfil:', data.error);
             mostrarFormularioVacio();
         }
     } catch (error) {
-        console.error('❌ Error conectando con el servidor:', error);
+        console.error(' Error conectando con el servidor:', error);
         mostrarFormularioVacio();
     }
 }
@@ -347,10 +347,10 @@ async function cargarDatosModalPerfil() {
             
             console.log('✅ Modal de perfil cargado');
         } else {
-            console.error('❌ No se encontraron datos del usuario');
+            console.error(' No se encontraron datos del usuario');
         }
     } catch (error) {
-        console.error('❌ Error cargando datos del modal:', error);
+        console.error(' Error cargando datos del modal:', error);
     }
 }
 
@@ -415,8 +415,8 @@ async function guardarCambiosPerfil() {
         await cargarPerfilPaciente();
         
     } catch (error) {
-        console.error('❌ Error guardando perfil:', error);
-        alert('❌ Error al guardar cambios: ' + error.message);
+        console.error(' Error guardando perfil:', error);
+        alert(' Error al guardar cambios: ' + error.message);
     }
 }
 window.generarCitaManual = generarCita;

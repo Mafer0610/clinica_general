@@ -47,7 +47,7 @@ const validateMongoConnection = async (req, res, next) => {
         }
         next();
     } catch (error) {
-        console.error('❌ Error validando conexión:', error);
+        console.error(' Error validando conexión:', error);
         return res.status(503).json({
             error: 'Servicio no disponible',
             message: 'Error de conexión a la base de datos.'
@@ -111,7 +111,7 @@ app.get('/health', async (req, res) => {
 
 // ========== MANEJO DE ERRORES ==========
 app.use((err, req, res, next) => {
-    console.error('❌ Error:', err);
+    console.error(' Error:', err);
     res.status(500).json({
         error: 'Error interno del servidor',
         message: err.message,
@@ -144,7 +144,7 @@ async function initRabbitMQ() {
         await rabbitmq.bindQueue('user.updated', 'user.events', 'user.updated');
         await rabbitmq.bindQueue('user.deleted', 'user.events', 'user.deleted');
     } catch (error) {
-        console.error('❌ Error inicializando RabbitMQ:', error.message);
+        console.error(' Error inicializando RabbitMQ:', error.message);
     }
 }
 
@@ -197,7 +197,7 @@ async function startServer() {
             console.log('📊 ESTADO:');
             console.log(`   🗄️  MongoDB Auth: ✅ Conectado (${authConn.name})`);
             console.log(`   🗄️  MongoDB Clinic: ✅ Conectado (${clinicConn.name})`);
-            console.log(`   🐰 RabbitMQ: ${rabbitmq.channel ? '✅ Conectado' : '❌ Desconectado'}`);
+            console.log(`   🐰 RabbitMQ: ${rabbitmq.channel ? '✅ Conectado' : ' Desconectado'}`);
             console.log('');
             console.log(`   📊 Health check: http://localhost:${PORT}/health`);
             console.log('═══════════════════════════════════════════════════');
@@ -205,7 +205,7 @@ async function startServer() {
         });
 
     } catch (error) {
-        console.error('❌ Error al iniciar el servidor:', error);
+        console.error(' Error al iniciar el servidor:', error);
         process.exit(1);
     }
 }
@@ -225,7 +225,7 @@ process.on('SIGINT', async () => {
 });
 
 process.on('unhandledRejection', (reason, promise) => {
-    console.error('❌ Unhandled Rejection at:', promise, 'reason:', reason);
+    console.error(' Unhandled Rejection at:', promise, 'reason:', reason);
 });
 
 module.exports = app;

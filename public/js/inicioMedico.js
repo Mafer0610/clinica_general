@@ -1,4 +1,3 @@
-//inicioMedico.js - VERSIÓN CORREGIDA COMPLETA
 const API_BASE_URL = 'http://localhost:3002/api';
 
 const TIPOS_CITA = {
@@ -30,7 +29,7 @@ document.addEventListener('DOMContentLoaded', async function() {
   if (medicoId) {
     await cargarCitasMedico(medicoId);
   } else {
-    console.error('❌ No se encontró ID de médico en localStorage');
+    console.error(' No se encontró ID de médico en localStorage');
   }
 
   configurarEventListeners();
@@ -59,7 +58,7 @@ function configurarEventListeners() {
     
     if (modalClose) {
       e.preventDefault();
-      console.log('❌ Cerrando modal:', modalClose.dataset.close);
+      console.log(' Cerrando modal:', modalClose.dataset.close);
       Modal.cerrar(modalClose.dataset.close);
       limpiarFormularioCita();
     }
@@ -113,7 +112,7 @@ function configurarBusquedaPacientes() {
         console.log(`✅ ${pacientes.length} pacientes cargados para búsqueda`);
       }
     } catch (error) {
-      console.error('❌ Error cargando pacientes:', error);
+      console.error(' Error cargando pacientes:', error);
     }
   }
   
@@ -180,7 +179,7 @@ async function cargarPerfilMedico() {
     const userId = localStorage.getItem('userId');
     
     if (!userId) {
-      console.error('❌ No se encontró ID de usuario');
+      console.error(' No se encontró ID de usuario');
       limpiarCamposPerfil();
       return;
     }
@@ -203,7 +202,7 @@ async function cargarPerfilMedico() {
       limpiarCamposPerfil();
     }
   } catch (error) {
-    console.error('❌ Error cargando perfil:', error);
+    console.error(' Error cargando perfil:', error);
     limpiarCamposPerfil();
   }
 }
@@ -254,7 +253,7 @@ async function cargarCitasMedico(medicoId) {
                 : nombreExistente || 'Paciente desconocido'
             };
           } catch (error) {
-            console.error('❌ Error procesando cita:', error);
+            console.error(' Error procesando cita:', error);
             return {
               ...appointment,
               pacienteNombre: appointment.pacienteNombre || 'Paciente desconocido'
@@ -266,10 +265,10 @@ async function cargarCitasMedico(medicoId) {
       console.log('✅ Citas enriquecidas:', enrichedAppointments.length);
       renderizarCitasEnCalendario(enrichedAppointments);
     } else {
-      console.error('❌ Error al cargar citas:', data.error);
+      console.error(' Error al cargar citas:', data.error);
     }
   } catch (error) {
-    console.error('❌ Error conectando con el servidor:', error);
+    console.error(' Error conectando con el servidor:', error);
   }
 }
 
@@ -384,10 +383,10 @@ function renderizarCitasEnCalendario(appointments) {
             
             console.log('   ✅ RENDERIZADA:', nombreMostrar, '-', tipoCita);
           } else {
-            console.log('   ❌ Celda no encontrada en columna', columnaIndex);
+            console.log('    Celda no encontrada en columna', columnaIndex);
           }
         } else {
-          console.log('   ❌ Fila no encontrada:', filaIndex);
+          console.log('    Fila no encontrada:', filaIndex);
         }
       } else {
         console.log('   ⚠️ Hora fuera de rango (9-21h):', horaInt);
@@ -480,11 +479,11 @@ function configurarFormularios() {
           limpiarFormularioCita();
           await cargarCitasMedico(medicoId);
         } else {
-          alert('❌ Error al agendar cita: ' + (data.error || 'Error desconocido'));
+          alert(' Error al agendar cita: ' + (data.error || 'Error desconocido'));
         }
       } catch (error) {
-        console.error('❌ Error al agendar cita:', error);
-        alert('❌ Error de conexión al agendar cita');
+        console.error(' Error al agendar cita:', error);
+        alert(' Error de conexión al agendar cita');
       }
     },
     
@@ -493,7 +492,7 @@ function configurarFormularios() {
         const userId = localStorage.getItem('userId');
         
         if (!userId) {
-          alert('❌ Error: No se encontró ID de usuario');
+          alert(' Error: No se encontró ID de usuario');
           return;
         }
 
@@ -529,11 +528,11 @@ function configurarFormularios() {
           Modal.cerrar('perfil');
           await cargarPerfilMedico();
         } else {
-          alert('❌ Error: ' + (data.error || 'No se pudo actualizar el perfil'));
+          alert(' Error: ' + (data.error || 'No se pudo actualizar el perfil'));
         }
       } catch (error) {
-        console.error('❌ Error:', error);
-        alert('❌ Error de conexión: ' + error.message);
+        console.error(' Error:', error);
+        alert(' Error de conexión: ' + error.message);
       }
     }
   };

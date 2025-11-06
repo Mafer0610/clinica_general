@@ -53,7 +53,7 @@ router.get('/paciente/:pacienteId', async (req, res) => {
             data: expedienteCompleto
         });
     } catch (error) {
-        console.error('❌ Error obteniendo expediente:', error);
+        console.error(' Error obteniendo expediente:', error);
         res.status(500).json({
             success: false,
             error: 'Error al obtener expediente',
@@ -71,7 +71,7 @@ router.put('/:expedienteId/historia-clinica', async (req, res) => {
         const { historiaClinica } = req.body;
         
         if (!historiaClinica || typeof historiaClinica !== 'object') {
-            console.error('❌ Historia clínica inválida o no proporcionada');
+            console.error(' Historia clínica inválida o no proporcionada');
             return res.status(400).json({
                 success: false,
                 error: 'Datos de historia clínica requeridos',
@@ -87,7 +87,7 @@ router.put('/:expedienteId/historia-clinica', async (req, res) => {
         );
         
         if (!updatedExpediente) {
-            console.error('❌ Expediente no encontrado');
+            console.error(' Expediente no encontrado');
             return res.status(404).json({
                 success: false,
                 error: 'Expediente no encontrado'
@@ -102,7 +102,7 @@ router.put('/:expedienteId/historia-clinica', async (req, res) => {
             expediente: updatedExpediente
         });
     } catch (error) {
-        console.error('❌ Error actualizando historia clínica:', error);
+        console.error(' Error actualizando historia clínica:', error);
         console.error('Stack:', error.stack);
         res.status(500).json({
             success: false,
@@ -137,7 +137,7 @@ router.put('/:expedienteId/resultados-estudios', async (req, res) => {
             expediente: updatedExpediente
         });
     } catch (error) {
-        console.error('❌ Error actualizando resultados:', error);
+        console.error(' Error actualizando resultados:', error);
         res.status(500).json({
             success: false,
             error: 'Error al actualizar resultados de estudios',
@@ -189,7 +189,7 @@ router.post('/:expedienteId/consulta', async (req, res) => {
             expediente: updatedExpediente
         });
     } catch (error) {
-        console.error('❌ Error guardando consulta:', error);
+        console.error(' Error guardando consulta:', error);
         res.status(500).json({
             success: false,
             error: 'Error al guardar consulta',
@@ -211,7 +211,7 @@ router.get('/:expedienteId/consultas', async (req, res) => {
             count: consultas.length
         });
     } catch (error) {
-        console.error('❌ Error obteniendo consultas:', error);
+        console.error(' Error obteniendo consultas:', error);
         res.status(500).json({
             success: false,
             error: 'Error al obtener consultas',

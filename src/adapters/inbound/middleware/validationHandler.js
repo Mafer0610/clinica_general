@@ -95,7 +95,7 @@ const handleValidationErrors = (req, res, next) => {
     const errors = validationResult(req);
     
     if (!errors.isEmpty()) {
-        console.error('❌ Errores de validación:', errors.array());
+        console.error(' Errores de validación:', errors.array());
         
         const formattedErrors = errors.array().map(err => ({
             field: err.path || err.param,

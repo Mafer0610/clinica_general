@@ -31,7 +31,7 @@ router.get('/', async (req, res) => {
             count: patients.length
         });
     } catch (error) {
-        console.error('❌ Error obteniendo pacientes:', error);
+        console.error(' Error obteniendo pacientes:', error);
         res.status(500).json({
             success: false,
             error: 'Error al obtener pacientes',
@@ -61,7 +61,7 @@ router.get('/:id', ...patientIdValidation, handleValidationErrors, async (req, r
             patient: patient
         });
     } catch (error) {
-        console.error('❌ Error obteniendo paciente:', error);
+        console.error(' Error obteniendo paciente:', error);
         res.status(500).json({
             success: false,
             error: 'Error al obtener paciente',
@@ -81,7 +81,7 @@ router.get('/search/:term', ...searchPatientValidation, handleValidationErrors, 
             count: patients.length
         });
     } catch (error) {
-        console.error('❌ Error buscando pacientes:', error);
+        console.error(' Error buscando pacientes:', error);
         res.status(500).json({
             success: false,
             error: 'Error al buscar pacientes',

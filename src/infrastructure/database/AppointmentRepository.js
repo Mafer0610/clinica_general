@@ -74,7 +74,7 @@ const AppointmentRepository = {
             
             return appointments;
         } catch (error) {
-            console.error("❌ Error al buscar citas por médico:", error.message);
+            console.error(" Error al buscar citas por médico:", error.message);
             throw error;
         }
     },

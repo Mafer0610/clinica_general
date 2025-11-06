@@ -66,7 +66,7 @@ router.post('/', async (req, res) => {
             recetaId: result.insertedId
         });
     } catch (error) {
-        console.error('❌ Error guardando receta:', error);
+        console.error(' Error guardando receta:', error);
         res.status(500).json({
             success: false,
             error: 'Error al guardar receta',
@@ -89,7 +89,7 @@ router.get('/paciente/:patientId', async (req, res) => {
             count: recetas.length
         });
     } catch (error) {
-        console.error('❌ Error obteniendo recetas:', error);
+        console.error(' Error obteniendo recetas:', error);
         res.status(500).json({
             success: false,
             error: 'Error al obtener recetas',
@@ -118,7 +118,7 @@ router.get('/:recetaId', async (req, res) => {
             receta: receta
         });
     } catch (error) {
-        console.error('❌ Error obteniendo receta:', error);
+        console.error(' Error obteniendo receta:', error);
         res.status(500).json({
             success: false,
             error: 'Error al obtener receta',

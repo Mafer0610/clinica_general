@@ -26,7 +26,7 @@ async function cargarDatosIniciales() {
         await cargarDatosMedico();
         
     } catch (error) {
-        console.error('❌ Error cargando datos iniciales:', error);
+        console.error(' Error cargando datos iniciales:', error);
     }
 }
 
@@ -54,7 +54,7 @@ async function cargarDatosPaciente(pacienteId) {
             console.warn('⚠️ No se encontraron datos del paciente');
         }
     } catch (error) {
-        console.error('❌ Error cargando datos del paciente:', error);
+        console.error(' Error cargando datos del paciente:', error);
     }
 }
 
@@ -99,7 +99,7 @@ async function cargarDatosMedico() {
             console.warn('⚠️ No se encontraron datos del médico');
         }
     } catch (error) {
-        console.error('❌ Error cargando datos del médico:', error);
+        console.error(' Error cargando datos del médico:', error);
     }
 }
 
@@ -107,7 +107,7 @@ async function cargarDatosMedico() {
 async function guardarReceta() {
     try {
         if (!currentPatient || !currentPatient._id) {
-            console.error('❌ No hay datos del paciente');
+            console.error(' No hay datos del paciente');
             return false;
         }
         
@@ -146,11 +146,11 @@ async function guardarReceta() {
             console.log('✅ Receta guardada correctamente:', data.recetaId);
             return true;
         } else {
-            console.error('❌ Error guardando receta:', data.error);
+            console.error(' Error guardando receta:', data.error);
             return false;
         }
     } catch (error) {
-        console.error('❌ Error guardando receta:', error);
+        console.error(' Error guardando receta:', error);
         return false;
     }
 }

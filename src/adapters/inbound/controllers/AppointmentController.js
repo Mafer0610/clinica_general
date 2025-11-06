@@ -117,7 +117,7 @@ router.get('/range', ...dateRangeValidation, handleValidationErrors, async (req,
         });
         
     } catch (error) {
-        console.error('❌ Error obteniendo citas por rango:', error);
+        console.error(' Error obteniendo citas por rango:', error);
         console.error('Stack:', error.stack);
         
         res.status(500).json({
@@ -168,7 +168,7 @@ router.get('/medico/:medicoId', ...medicoIdValidation, handleValidationErrors, a
             count: enrichedAppointments.length
         });
     } catch (error) {
-        console.error('❌ Error obteniendo citas del médico:', error);
+        console.error(' Error obteniendo citas del médico:', error);
         res.status(500).json({
             success: false,
             error: 'Error al obtener citas'
@@ -248,7 +248,7 @@ router.post('/', ...createAppointmentValidation, handleValidationErrors, async (
             appointmentId: result.insertedId
         });
     } catch (error) {
-        console.error('❌ Error creando cita:', error);
+        console.error(' Error creando cita:', error);
         console.error('Stack:', error.stack);
         res.status(500).json({
             success: false,

@@ -29,7 +29,7 @@ router.post('/register', async (req, res) => {
 
         res.status(201).json(result);
     } catch (error) {
-        console.error("❌ Error en el registro:", error);
+        console.error(" Error en el registro:", error);
         res.status(500).json({ error: "Error interno del servidor" });
     }
 });
@@ -54,7 +54,7 @@ router.post('/login', async (req, res) => {
 
         res.json(result);
     } catch (error) {
-        console.error("❌ Error en el login:", error);
+        console.error(" Error en el login:", error);
         res.status(500).json({ error: "Error interno del servidor" });
     }
 });
@@ -78,7 +78,7 @@ router.post('/validate-token', async (req, res) => {
 
         res.json(result);
     } catch (error) {
-        console.error("❌ Error validando token:", error);
+        console.error(" Error validando token:", error);
         res.status(500).json({ error: "Error interno del servidor" });
     }
 });
@@ -90,14 +90,14 @@ router.get('/user/:id', async (req, res) => {
         const result = await AuthService.getUserById(req.params.id);
         
         if (result.error) {
-            console.log('❌ Usuario no encontrado');
+            console.log(' Usuario no encontrado');
             return res.status(404).json(result);
         }
 
         console.log('✅ Usuario encontrado:', result.user.username);
         res.json(result);
     } catch (error) {
-        console.error("❌ Error obteniendo usuario:", error);
+        console.error(" Error obteniendo usuario:", error);
         res.status(500).json({ error: "Error interno del servidor" });
     }
 });
@@ -137,7 +137,7 @@ router.put('/user/:id', async (req, res) => {
         const result = await AuthService.updateUser(req.params.id, updateData);
         
         if (result.error) {
-            console.log('❌ Error en actualización:', result.error);
+            console.log(' Error en actualización:', result.error);
             return res.status(404).json(result);
         }
 
@@ -145,7 +145,7 @@ router.put('/user/:id', async (req, res) => {
         console.log('📤 Respuesta:', JSON.stringify(result, null, 2));
         res.json(result);
     } catch (error) {
-        console.error("❌ Error actualizando usuario:", error);
+        console.error(" Error actualizando usuario:", error);
         console.error('Stack:', error.stack);
         res.status(500).json({ 
             success: false,
@@ -166,7 +166,7 @@ router.delete('/user/:id', async (req, res) => {
 
         res.json(result);
     } catch (error) {
-        console.error("❌ Error eliminando usuario:", error);
+        console.error(" Error eliminando usuario:", error);
         res.status(500).json({ error: "Error interno del servidor" });
     }
 });

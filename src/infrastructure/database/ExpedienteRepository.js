@@ -116,7 +116,7 @@ const ExpedienteRepository = {
             
             // ✅ Validar que el ID sea válido antes de convertir
             if (!ObjectId.isValid(expedienteId)) {
-                console.error('❌ ID de expediente inválido:', expedienteId);
+                console.error(' ID de expediente inválido:', expedienteId);
                 throw new Error('ID de expediente inválido');
             }
             
@@ -125,10 +125,10 @@ const ExpedienteRepository = {
             
             // Primero verificar si existe el documento
             const existe = await clinicConn.collection('expedientes').findOne({ _id: objectId });
-            console.log('🔍 Expediente existe antes de actualizar:', existe ? '✅ SÍ' : '❌ NO');
+            console.log('🔍 Expediente existe antes de actualizar:', existe ? '✅ SÍ' : ' NO');
             
             if (!existe) {
-                console.error('❌ El expediente no existe en la BD');
+                console.error(' El expediente no existe en la BD');
                 console.log('💡 Buscando todos los expedientes...');
                 const todos = await clinicConn.collection('expedientes').find({}).toArray();
                 console.log(`📊 Total de expedientes en BD: ${todos.length}`);
@@ -154,7 +154,7 @@ const ExpedienteRepository = {
             console.log('📊 Documentos modificados:', updateResult.modifiedCount);
 
             if (updateResult.modifiedCount === 0) {
-                console.error('❌ No se pudo actualizar el expediente');
+                console.error(' No se pudo actualizar el expediente');
                 return null;
             }
 
@@ -164,7 +164,7 @@ const ExpedienteRepository = {
 
             return expedienteActualizado;
         } catch (error) {
-            console.error('❌ Error actualizando historia clínica:', error);
+            console.error(' Error actualizando historia clínica:', error);
             console.error('Stack:', error.stack);
             throw error;
         }
@@ -195,7 +195,7 @@ const ExpedienteRepository = {
             );
 
             if (updateResult.modifiedCount === 0) {
-                console.error('❌ No se pudo actualizar resultados de estudios');
+                console.error(' No se pudo actualizar resultados de estudios');
                 return null;
             }
 
@@ -235,7 +235,7 @@ const ExpedienteRepository = {
             );
 
             if (updateResult.modifiedCount === 0) {
-                console.error('❌ No se pudo agregar consulta');
+                console.error(' No se pudo agregar consulta');
                 return null;
             }
 

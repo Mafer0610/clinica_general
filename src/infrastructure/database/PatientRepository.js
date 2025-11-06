@@ -140,7 +140,7 @@ const PatientRepository = {
             const updatedPatient = result.value || result;
             
             if (!updatedPatient || !updatedPatient._id) {
-                console.error('❌ No se encontró el paciente con ID:', patientId);
+                console.error(' No se encontró el paciente con ID:', patientId);
                 return null;
             }
 
@@ -148,7 +148,7 @@ const PatientRepository = {
             
             return updatedPatient;
         } catch (error) {
-            console.error("❌ Error al actualizar paciente:", error.message);
+            console.error(" Error al actualizar paciente:", error.message);
             console.error("Stack:", error.stack);
             throw error;
         }

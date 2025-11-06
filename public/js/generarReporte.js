@@ -26,7 +26,7 @@ document.addEventListener('DOMContentLoaded', function() {
     
     console.log('✅ Restricciones de fecha configuradas');
   } else {
-    console.error('❌ No se encontraron elementos de fecha en el DOM');
+    console.error(' No se encontraron elementos de fecha en el DOM');
   }
 });
 
@@ -46,7 +46,7 @@ async function generarReportePDF(e) {
   const fechaFinalElem = document.getElementById('fechaFinal');
   
   if (!fechaInicioElem || !fechaFinalElem) {
-    console.error('❌ Elementos de fecha no encontrados');
+    console.error(' Elementos de fecha no encontrados');
     alert('⚠️ Error: No se encontraron los campos de fecha. Recarga la página.');
     return;
   }
@@ -77,7 +77,7 @@ async function generarReportePDF(e) {
   }
 
   if (typeof window.jspdf === 'undefined') {
-    alert('❌ Error: La librería jsPDF no está cargada. Por favor recarga la página.');
+    alert(' Error: La librería jsPDF no está cargada. Por favor recarga la página.');
     return;
   }
 
@@ -294,7 +294,7 @@ async function generarReportePDF(e) {
     fechaFinalElem.value = '';
 
   } catch (error) {
-    console.error('❌ ERROR:', error);
+    console.error(' ERROR:', error);
     
     let mensaje = 'Error al generar el reporte:\n\n';
     
@@ -306,7 +306,7 @@ async function generarReportePDF(e) {
       mensaje += error.message;
     }
     
-    alert('❌ ' + mensaje);
+    alert(' ' + mensaje);
     
     btnOriginal.innerHTML = textoOriginal;
     btnOriginal.disabled = false;

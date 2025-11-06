@@ -51,12 +51,12 @@ const UserRepository = {
             if (user) {
                 console.log('✅ Usuario encontrado en Repository:', user.username);
             } else {
-                console.log('❌ Usuario NO encontrado en Repository');
+                console.log(' Usuario NO encontrado en Repository');
             }
             
             return user;
         } catch (error) {
-            console.error("❌ Error al buscar usuario por ID:", error.message);
+            console.error(" Error al buscar usuario por ID:", error.message);
             throw error;
         }
     },
@@ -76,11 +76,11 @@ const UserRepository = {
             console.log('✅ Usuario guardado con ID:', savedUser._id);
             return savedUser;
         } catch (error) {
-            console.error("❌ Error al guardar usuario:", error.message);
+            console.error(" Error al guardar usuario:", error.message);
             
             if (error.code === 11000) {
                 const field = Object.keys(error.keyPattern)[0];
-                console.error(`❌ Duplicado detectado en campo: ${field}`);
+                console.error(` Duplicado detectado en campo: ${field}`);
             }
             
             throw error;
@@ -104,7 +104,7 @@ const UserRepository = {
             // Verificar que el usuario existe
             const userBefore = await UserModel.findById(userId);
             if (!userBefore) {
-                console.log('❌ Usuario no encontrado');
+                console.log(' Usuario no encontrado');
                 return null;
             }
             
@@ -127,7 +127,7 @@ const UserRepository = {
             );
 
             if (!updatedUser) {
-                console.log('❌ Actualización falló');
+                console.log(' Actualización falló');
                 return null;
             }
 
@@ -142,7 +142,7 @@ const UserRepository = {
 
             return updatedUser;
         } catch (error) {
-            console.error("❌ Error en update:", error.message);
+            console.error(" Error en update:", error.message);
             console.error('Stack:', error.stack);
             throw error;
         }

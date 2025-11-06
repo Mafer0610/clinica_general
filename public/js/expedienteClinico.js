@@ -128,7 +128,7 @@ async function cargarDatosPaciente() {
 
     console.log('✅ Datos del expediente cargados correctamente');
   } catch (error) {
-    console.error('❌ Error cargando datos del paciente:', error);
+    console.error(' Error cargando datos del paciente:', error);
     alert('Error al cargar datos del expediente: ' + error.message);
   }
 }
@@ -271,7 +271,7 @@ async function guardarExpediente() {
     console.log('✅ Expediente guardado correctamente');
     return true;
   } catch (error) {
-    console.error('❌ Error guardando expediente:', error);
+    console.error(' Error guardando expediente:', error);
     alert('Error al guardar expediente: ' + error.message);
     return false;
   }

@@ -21,7 +21,7 @@ const RecetaRepository = {
             
             return result;
         } catch (error) {
-            console.error('❌ Error al guardar receta:', error.message);
+            console.error(' Error al guardar receta:', error.message);
             throw error;
         }
     },
@@ -46,7 +46,7 @@ const RecetaRepository = {
             console.log(`✅ Se encontraron ${recetas.length} recetas para el paciente`);
             return recetas;
         } catch (error) {
-            console.error('❌ Error al buscar recetas:', error.message);
+            console.error(' Error al buscar recetas:', error.message);
             throw error;
         }
     },
@@ -68,7 +68,7 @@ const RecetaRepository = {
             
             return receta;
         } catch (error) {
-            console.error('❌ Error al buscar receta por ID:', error.message);
+            console.error(' Error al buscar receta por ID:', error.message);
             throw error;
         }
     },
@@ -98,7 +98,7 @@ const RecetaRepository = {
             
             return recetas;
         } catch (error) {
-            console.error('❌ Error al buscar recetas por rango:', error.message);
+            console.error(' Error al buscar recetas por rango:', error.message);
             throw error;
         }
     }

@@ -8,17 +8,17 @@ document.getElementById('register-form').addEventListener('submit', async (e) =>
 
     // Validaciones cliente
     if (password !== confirmPassword) {
-        alert("❌ Las contraseñas no coinciden");
+        alert(" Las contraseñas no coinciden");
         return;
     }
 
     if (password.length < 6) {
-        alert("❌ La contraseña debe tener al menos 6 caracteres");
+        alert(" La contraseña debe tener al menos 6 caracteres");
         return;
     }
 
     if (username.length < 3) {
-        alert("❌ El usuario debe tener al menos 3 caracteres");
+        alert(" El usuario debe tener al menos 3 caracteres");
         return;
     }
 
@@ -57,10 +57,10 @@ document.getElementById('register-form').addEventListener('submit', async (e) =>
                 window.location.href = "./index.html";
             }, 1000);
         } else {
-            alert("❌ " + (data.error || "Error en el registro, intenta de nuevo."));
+            alert(" " + (data.error || "Error en el registro, intenta de nuevo."));
         }
     } catch (error) {
-        console.error("❌ Error en registro:", error);
-        alert("❌ Error: " + error.message + "\n\nVerifica que:\n1. El Auth Service está corriendo en puerto 3001\n2. MongoDB está conectado\n3. Hay conexión a internet");
+        console.error(" Error en registro:", error);
+        alert(" Error: " + error.message + "\n\nVerifica que:\n1. El Auth Service está corriendo en puerto 3001\n2. MongoDB está conectado\n3. Hay conexión a internet");
     }
 });

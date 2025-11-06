@@ -23,7 +23,7 @@ document.addEventListener('DOMContentLoaded', async function() {
     const userEmail = localStorage.getItem('userEmail');
     
     if (!userEmail) {
-        console.error('❌ No se encontró email del usuario');
+        console.error(' No se encontró email del usuario');
         alert('Error: No se encontró información del usuario. Por favor inicia sesión nuevamente.');
         window.location.href = '../html/index.html';
         return;
@@ -57,7 +57,7 @@ async function cargarDatosMedico() {
             };
         }
     } catch (error) {
-        console.error('❌ Error cargando médico:', error);
+        console.error(' Error cargando médico:', error);
         medicoData = {
             nombre: 'Dr.',
             apellidos: 'Asignado'
@@ -83,11 +83,11 @@ async function cargarProximaCita(email) {
                 mostrarMensajeSinCitas();
             }
         } else {
-            console.error('❌ Error cargando próximas citas:', data.error);
+            console.error(' Error cargando próximas citas:', data.error);
             mostrarMensajeError();
         }
     } catch (error) {
-        console.error('❌ Error conectando con el servidor:', error);
+        console.error(' Error conectando con el servidor:', error);
         mostrarMensajeError();
     }
 }
@@ -102,7 +102,7 @@ async function cargarDatosPaciente(email) {
             patientData = data.patient;
         }
     } catch (error) {
-        console.error('❌ Error cargando datos del paciente:', error);
+        console.error(' Error cargando datos del paciente:', error);
     }
 }
 
@@ -263,11 +263,11 @@ async function confirmarAsistencia() {
             proximaCita.estado = 'confirmada';
             actualizarEstadoConfirmacion();
         } else {
-            alert('❌ Error al confirmar asistencia: ' + data.error);
+            alert(' Error al confirmar asistencia: ' + data.error);
         }
     } catch (error) {
-        console.error('❌ Error:', error);
-        alert('❌ Error al confirmar asistencia');
+        console.error(' Error:', error);
+        alert(' Error al confirmar asistencia');
     }
 }
 
@@ -293,11 +293,11 @@ async function cancelarCita() {
             proximaCita.estado = 'cancelada';
             actualizarEstadoConfirmacion();
         } else {
-            alert('❌ Error al cancelar cita: ' + data.error);
+            alert(' Error al cancelar cita: ' + data.error);
         }
     } catch (error) {
-        console.error('❌ Error:', error);
-        alert('❌ Error al cancelar cita');
+        console.error(' Error:', error);
+        alert(' Error al cancelar cita');
     }
 }
 
@@ -361,10 +361,10 @@ async function cargarDatosModalPerfil() {
             
             console.log('✅ Modal de perfil cargado');
         } else {
-            console.error('❌ No se encontraron datos del usuario');
+            console.error(' No se encontraron datos del usuario');
         }
     } catch (error) {
-        console.error('❌ Error cargando datos del modal:', error);
+        console.error(' Error cargando datos del modal:', error);
     }
 }
 
@@ -430,7 +430,7 @@ async function guardarCambiosPerfil() {
         mostrarProximaCita();
         
     } catch (error) {
-        console.error('❌ Error guardando perfil:', error);
-        alert('❌ Error al guardar cambios: ' + error.message);
+        console.error(' Error guardando perfil:', error);
+        alert(' Error al guardar cambios: ' + error.message);
     }
 }
