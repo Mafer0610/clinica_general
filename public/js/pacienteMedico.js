@@ -159,7 +159,6 @@ function crearTarjetaPaciente(patient) {
       <h4 class="patient-name">${patient.nombre} ${patient.apellidos}.</h4>
       <p class="patient-detail"><strong>Sexo:</strong> ${patient.sexo || 'N/A'}</p>
       <p class="patient-detail"><strong>Edad:</strong> ${patient.edad || 'N/A'}</p>
-      <p class="patient-detail"><strong>Ultima Cita:</strong> ${ultimaCita}</p>
     </div>
   `;
 
