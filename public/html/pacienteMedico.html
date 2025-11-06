@@ -244,30 +244,48 @@
   <!-- MODAL AÑADIR PACIENTE -->
   <div id="modalAddPaciente" class="modal">
     <div class="modal-content modal-content-perfil">
-      <!-- Botón cerrar -->
       <button class="modal-close" onclick="closeModalAddPaciente()">
         <i class="fas fa-times"></i>
       </button>
 
-      <!-- Título del modal -->
       <h2 class="modal-title">Añadir Nuevo Paciente</h2>
 
-      <!-- Formulario añadir paciente -->
       <form class="modal-form-perfil" id="formAddPaciente">
-        <!-- Nombre completo -->
         <div class="form-row">
-          <div class="form-col-full">
-            <label for="nombreCompleto">Nombre Completo</label>
-            <input type="text" id="nombreCompleto" class="form-input-perfil" placeholder="Nombre completo del paciente"
-              required>
+          <div class="form-col">
+            <label for="nombrePaciente">Nombre(s)</label>
+            <input 
+              type="text" 
+              id="nombrePaciente" 
+              class="form-input-perfil" 
+              placeholder="Nombre(s)"
+              required
+            >
+          </div>
+          <div class="form-col">
+            <label for="apellidosPaciente">Apellidos</label>
+            <input 
+              type="text" 
+              id="apellidosPaciente" 
+              class="form-input-perfil" 
+              placeholder="Apellidos"
+              required
+            >
           </div>
         </div>
 
-        <!-- Edad y Sexo -->
         <div class="form-row">
           <div class="form-col">
             <label for="edadPaciente">Edad</label>
-            <input type="number" id="edadPaciente" class="form-input-perfil" placeholder="Edad" required>
+            <input 
+              type="number" 
+              id="edadPaciente" 
+              class="form-input-perfil" 
+              placeholder="Edad" 
+              min="0" 
+              max="120"
+              required
+            >
           </div>
           <div class="form-col">
             <label for="sexoPaciente">Sexo</label>
@@ -279,40 +297,64 @@
           </div>
         </div>
 
-        <!-- Teléfono y Correo -->
         <div class="form-row">
           <div class="form-col">
             <label for="telPaciente">Teléfono</label>
-            <input type="tel" id="telPaciente" class="form-input-perfil" placeholder="961-XXX-XXXX" required>
+            <input 
+              type="tel" 
+              id="telPaciente" 
+              class="form-input-perfil" 
+              placeholder="961-XXX-XXXX" 
+              required
+            >
           </div>
           <div class="form-col">
             <label for="emailPaciente">Correo</label>
-            <input type="email" id="emailPaciente" class="form-input-perfil" placeholder="correo@ejemplo.com" required>
+            <input 
+              type="email" 
+              id="emailPaciente" 
+              class="form-input-perfil" 
+              placeholder="correo@ejemplo.com" 
+              required
+            >
           </div>
         </div>
 
-        <!-- Domicilio -->
         <div class="form-row">
           <div class="form-col-full">
             <label for="domicilioPaciente">Domicilio</label>
-            <input type="text" id="domicilioPaciente" class="form-input-perfil" placeholder="Dirección completa"
-              required>
+            <input 
+              type="text" 
+              id="domicilioPaciente" 
+              class="form-input-perfil" 
+              placeholder="Dirección completa"
+              required
+            >
           </div>
         </div>
 
-        <!-- Alergias y Contacto de Emergencia -->
         <div class="form-row">
           <div class="form-col">
             <label for="alergiasPaciente">Alergias</label>
-            <input type="text" id="alergiasPaciente" class="form-input-perfil" placeholder="Ninguna o especificar">
+            <input 
+              type="text" 
+              id="alergiasPaciente" 
+              class="form-input-perfil" 
+              placeholder="Ninguna o especificar"
+            >
           </div>
           <div class="form-col">
             <label for="emergenciaPaciente">Tel. Emergencia</label>
-            <input type="tel" id="emergenciaPaciente" class="form-input-perfil" placeholder="961-XXX-XXXX" required>
+            <input 
+              type="tel" 
+              id="emergenciaPaciente" 
+              class="form-input-perfil" 
+              placeholder="961-XXX-XXXX" 
+              required
+            >
           </div>
         </div>
 
-        <!-- Botones -->
         <div class="modal-buttons-perfil">
           <button type="button" class="btn-modal btn-cancelar" onclick="closeModalAddPaciente()">Cancelar</button>
           <button type="submit" class="btn-guardar-perfil">Guardar Paciente</button>

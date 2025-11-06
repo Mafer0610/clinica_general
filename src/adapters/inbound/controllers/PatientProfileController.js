@@ -1,11 +1,19 @@
+//src/adapters/inbound/controllers/PatientProfileController.js
+
 const express = require('express');
 const PatientRepository = require('../../../infrastructure/database/PatientRepository');
 const AppointmentRepository = require('../../../infrastructure/database/AppointmentRepository');
+const { handleValidationErrors } = require('../middleware/validationHandler');
+const {
+    patientProfileEmailValidation,
+    upsertPatientProfileValidation,
+    appointmentActionValidation
+} = require('../validators/expedienteValidators');
 
 const router = express.Router();
 
 // ========== OBTENER PERFIL COMPLETO DEL PACIENTE POR EMAIL ==========
-router.get('/profile/:email', async (req, res) => {
+router.get('/profile/:email', patientProfileEmailValidation, handleValidationErrors, async (req, res) => {
     try {
         const emailBuscado = decodeURIComponent(req.params.email);
         console.log('📥 Obteniendo perfil del paciente con email:', emailBuscado);
@@ -44,7 +52,7 @@ router.get('/profile/:email', async (req, res) => {
 });
 
 // ========== CREAR O ACTUALIZAR PERFIL DEL PACIENTE ==========
-router.post('/profile/upsert', async (req, res) => {
+router.post('/profile/upsert', upsertPatientProfileValidation, handleValidationErrors, async (req, res) => {
     try {
         console.log('📥 POST /api/patient-profile/profile/upsert');
         console.log('📦 Body recibido:', JSON.stringify(req.body, null, 2));
@@ -344,7 +352,7 @@ router.get('/appointments/history/:email', async (req, res) => {
 });
 
 // ========== CONFIRMAR CITA ==========
-router.put('/appointments/:appointmentId/confirm', async (req, res) => {
+router.put('/appointments/:appointmentId/confirm', appointmentActionValidation, handleValidationErrors, async (req, res) => {
     try {
         console.log('✅ Confirmando cita:', req.params.appointmentId);
         
@@ -378,7 +386,7 @@ router.put('/appointments/:appointmentId/confirm', async (req, res) => {
 });
 
 // ========== CANCELAR CITA ==========
-router.put('/appointments/:appointmentId/cancel', async (req, res) => {
+router.put('/appointments/:appointmentId/cancel', appointmentActionValidation, handleValidationErrors, async (req, res) => {
     try {
         console.log('❌ Cancelando cita:', req.params.appointmentId);
         

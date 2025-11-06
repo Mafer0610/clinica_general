@@ -1,7 +1,19 @@
-//AppointmentController.js - VERSIÓN CORREGIDA COMPLETA
+//src/adapters/inbound/controllers/AppointmentController.js
+
 const express = require('express');
 const AppointmentRepository = require('../../../infrastructure/database/AppointmentRepository');
 const PatientRepository = require('../../../infrastructure/database/PatientRepository');
+
+// ========== IMPORTAR VALIDACIONES ==========
+const { handleValidationErrors } = require('../middleware/validationHandler');
+const {
+    createAppointmentValidation,
+    updateAppointmentValidation,
+    appointmentIdValidation,
+    dateRangeValidation,
+    medicoIdValidation,
+    patientIdValidation
+} = require('../validators/appointmentValidators');
 
 const router = express.Router();
 
@@ -47,34 +59,15 @@ router.get('/', async (req, res) => {
 });
 
 // ========== OBTENER CITAS POR RANGO DE FECHAS ==========
-router.get('/range', async (req, res) => {
+router.get('/range', ...dateRangeValidation, handleValidationErrors, async (req, res) => {
     try {
         console.log('📥 GET /api/appointments/range');
         console.log('📋 Query params:', req.query);
         
         const { startDate, endDate } = req.query;
         
-        // Validación de parámetros
-        if (!startDate || !endDate) {
-            console.error('❌ Faltan parámetros de fecha');
-            return res.status(400).json({
-                success: false,
-                error: 'Fechas de inicio y fin requeridas',
-                received: { startDate, endDate }
-            });
-        }
-        
-        // Validar formato de fechas
         const fechaInicio = new Date(startDate);
         const fechaFin = new Date(endDate);
-        
-        if (isNaN(fechaInicio.getTime()) || isNaN(fechaFin.getTime())) {
-            console.error('❌ Fechas inválidas:', { startDate, endDate });
-            return res.status(400).json({
-                success: false,
-                error: 'Formato de fechas inválido'
-            });
-        }
         
         console.log('📅 Rango de fechas:', {
             inicio: fechaInicio.toISOString(),
@@ -136,7 +129,7 @@ router.get('/range', async (req, res) => {
 });
 
 // ========== OBTENER CITAS DE UN MÉDICO ==========
-router.get('/medico/:medicoId', async (req, res) => {
+router.get('/medico/:medicoId', ...medicoIdValidation, handleValidationErrors, async (req, res) => {
     try {
         console.log('📥 GET /medico/:medicoId - ID:', req.params.medicoId);
         
@@ -184,7 +177,7 @@ router.get('/medico/:medicoId', async (req, res) => {
 });
 
 // ========== OBTENER CITAS DE UN PACIENTE ==========
-router.get('/patient/:patientId', async (req, res) => {
+router.get('/patient/:patientId', ...patientIdValidation, handleValidationErrors, async (req, res) => {
     try {
         const appointments = await AppointmentRepository.findByPatientId(req.params.patientId);
         
@@ -203,7 +196,7 @@ router.get('/patient/:patientId', async (req, res) => {
 });
 
 // ========== CREAR CITA ==========
-router.post('/', async (req, res) => {
+router.post('/', ...createAppointmentValidation, handleValidationErrors, async (req, res) => {
     try {
         console.log('📥 POST /api/appointments');
         console.log('📦 Body recibido:', JSON.stringify(req.body, null, 2));
@@ -219,15 +212,6 @@ router.post('/', async (req, res) => {
             sintomas
         } = req.body;
         
-        // Validaciones
-        if (!pacienteId || !medicoId || !fecha || !hora) {
-            console.error('❌ Faltan campos requeridos');
-            return res.status(400).json({
-                success: false,
-                error: 'Faltan campos requeridos: pacienteId, medicoId, fecha, hora'
-            });
-        }
-        
         const ObjectId = require('mongodb').ObjectId;
         
         const tipoFinal = tipoCita;
@@ -242,7 +226,6 @@ router.post('/', async (req, res) => {
             fechaDate = new Date(parseInt(year), parseInt(month) - 1, parseInt(day), 0, 0, 0, 0);
             console.log('📅 Fecha simple recibida:', fecha);
         }
-        
         
         const appointmentData = {
             pacienteId: new ObjectId(pacienteId),
@@ -276,7 +259,7 @@ router.post('/', async (req, res) => {
 });
 
 // ========== ACTUALIZAR CITA ==========
-router.put('/:id', async (req, res) => {
+router.put('/:id', updateAppointmentValidation, handleValidationErrors, async (req, res) => {
     try {
         const updateData = { ...req.body };
         delete updateData._id;
