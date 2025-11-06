@@ -1,9 +1,6 @@
 const connections = require('./connections');
 
 const ExpedienteRepository = {
-    /**
-     * Generar número de expediente único
-     */
     async generarNumeroExpediente() {
         try {
             const ahora = new Date();
@@ -33,9 +30,6 @@ const ExpedienteRepository = {
         }
     },
 
-    /**
-     * Buscar o crear expediente por pacienteId
-     */
     async findOrCreateByPacienteId(pacienteId) {
         try {
             const clinicConn = await connections.connectClinic();
@@ -97,9 +91,25 @@ const ExpedienteRepository = {
         }
     },
 
-    /**
-     * Actualizar historia clínica del expediente
-     */
+    async findByPacienteId(pacienteId) {
+        try {
+            const clinicConn = await connections.connectClinic();
+            
+            if (clinicConn.readyState !== 1) {
+                throw new Error('MongoDB Clinic no está conectado');
+            }
+
+            const ObjectId = require('mongodb').ObjectId;
+            const expediente = await clinicConn.collection('expedientes')
+                .findOne({ pacienteId: new ObjectId(pacienteId) });
+            
+            return expediente;
+        } catch (error) {
+            console.error('Error buscando expediente por pacienteId:', error);
+            throw error;
+        }
+    },
+
     async updateHistoriaClinica(expedienteId, historiaClinica) {
         try {
             console.log('🔄 ExpedienteRepository.updateHistoriaClinica');
@@ -170,9 +180,6 @@ const ExpedienteRepository = {
         }
     },
 
-    /**
-     * Actualizar resultados de estudios
-     */
     async updateResultadosEstudios(expedienteId, resultadosEstudios) {
         try {
             const clinicConn = await connections.connectClinic();
@@ -207,9 +214,6 @@ const ExpedienteRepository = {
         }
     },
 
-    /**
-     * Agregar consulta al expediente
-     */
     async addConsulta(expedienteId, consultaData) {
         try {
             const clinicConn = await connections.connectClinic();
@@ -247,9 +251,6 @@ const ExpedienteRepository = {
         }
     },
 
-    /**
-     * Obtener todas las consultas de un expediente
-     */
     async getConsultas(expedienteId) {
         try {
             const clinicConn = await connections.connectClinic();
@@ -272,9 +273,6 @@ const ExpedienteRepository = {
         }
     },
 
-    /**
-     * Obtener expediente completo
-     */
     async findById(expedienteId) {
         try {
             const clinicConn = await connections.connectClinic();

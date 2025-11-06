@@ -61,7 +61,7 @@ function crearTarjetaPaciente(paciente) {
             <div class="patient-name">${paciente.nombre} ${paciente.apellidos}</div>
             <div class="patient-detail"><strong>Edad:</strong> ${paciente.edad || 'N/A'} años</div>
             <div class="patient-detail"><strong>Teléfono:</strong> ${paciente.telefono || 'N/A'}</div>
-            <div class="patient-detail" data-registros="${paciente._id}"><strong>Registros:</strong> Ver registros</div>
+            <div class="patient-detail" data-registros="${paciente._id}"><strong>Registros:</strong> Cargando...</div>
         </div>
     `;
     
@@ -94,11 +94,13 @@ async function mostrarDetallePaciente(paciente, card) {
     detailContent.style.display = 'block';
     
     try {
+        // ✅ Cargar expedientes (consultas) y recetas
         const [expedientes, recetas] = await Promise.all([
             cargarExpedientesPaciente(paciente._id),
             cargarRecetasPaciente(paciente._id)
         ]);
         
+        // Actualizar contador de registros
         if (card) {
             const totalRegistros = expedientes.length + recetas.length;
             const registrosElement = card.querySelector('[data-registros]');
@@ -107,6 +109,7 @@ async function mostrarDetallePaciente(paciente, card) {
             }
         }
         
+        // Agrupar y mostrar registros
         const registrosAgrupados = agruparRegistrosPorFecha(expedientes, recetas);
         mostrarRegistrosAgrupados(registrosAgrupados);
         
@@ -124,13 +127,16 @@ async function mostrarDetallePaciente(paciente, card) {
     }
 }
 
-// ===== CARGAR EXPEDIENTES DEL PACIENTE =====
+// ===== CARGAR EXPEDIENTES (CONSULTAS) DEL PACIENTE =====
 async function cargarExpedientesPaciente(pacienteId) {
     try {
         if (expedientesCache[pacienteId]) {
+            console.log('📦 Usando expedientes desde caché');
             return expedientesCache[pacienteId];
-        }        
-        const response = await fetch(`${API_BASE_URL}/expedientes/paciente/${pacienteId}`);
+        }
+        
+        console.log('📥 Cargando expedientes del paciente:', pacienteId);
+        const response = await fetch(`${API_BASE_URL}/expedientes/paciente/${pacienteId}/consultas`);
         
         if (!response.ok) {
             throw new Error(`HTTP error! status: ${response.status}`);
@@ -138,10 +144,10 @@ async function cargarExpedientesPaciente(pacienteId) {
         
         const data = await response.json();
         
-        if (data.success && data.data?.expediente?.consultas) {
-            const consultas = data.data.expediente.consultas;
-            expedientesCache[pacienteId] = consultas;
-            return consultas;
+        if (data.success && data.consultas) {
+            console.log(`✅ ${data.consultas.length} consultas encontradas`);
+            expedientesCache[pacienteId] = data.consultas;
+            return data.consultas;
         }
         
         return [];
@@ -151,15 +157,20 @@ async function cargarExpedientesPaciente(pacienteId) {
     }
 }
 
+// ===== CARGAR RECETAS DEL PACIENTE =====
 async function cargarRecetasPaciente(pacienteId) {
     try {
         if (recetasCache[pacienteId]) {
+            console.log('📦 Usando recetas desde caché');
             return recetasCache[pacienteId];
-        }        
+        }
+        
+        console.log('📥 Cargando recetas del paciente:', pacienteId);
         const response = await fetch(`${API_BASE_URL}/recetas/paciente/${pacienteId}`);
         const data = await response.json();
         
         if (data.success && data.recetas) {
+            console.log(`✅ ${data.recetas.length} recetas encontradas`);
             recetasCache[pacienteId] = data.recetas;
             return data.recetas;
         }
@@ -171,11 +182,13 @@ async function cargarRecetasPaciente(pacienteId) {
     }
 }
 
+// ===== AGRUPAR REGISTROS POR FECHA =====
 function agruparRegistrosPorFecha(expedientes, recetas) {
     const grupos = {};
     
-    expedientes.forEach(exp => {
-        const fecha = new Date(exp.fechaConsulta);
+    // Procesar expedientes (consultas)
+    expedientes.forEach(consulta => {
+        const fecha = new Date(consulta.fechaConsulta);
         const fechaKey = fecha.toISOString().split('T')[0];
         
         if (!grupos[fechaKey]) {
@@ -187,10 +200,11 @@ function agruparRegistrosPorFecha(expedientes, recetas) {
         
         grupos[fechaKey].registros.push({
             tipo: 'expediente',
-            data: exp
+            data: consulta
         });
     });
     
+    // Procesar recetas
     recetas.forEach(receta => {
         const fecha = new Date(receta.fecha);
         const fechaKey = fecha.toISOString().split('T')[0];
@@ -208,9 +222,11 @@ function agruparRegistrosPorFecha(expedientes, recetas) {
         });
     });
     
+    // Ordenar por fecha descendente
     return Object.values(grupos).sort((a, b) => b.fecha - a.fecha);
 }
 
+// ===== MOSTRAR REGISTROS AGRUPADOS =====
 function mostrarRegistrosAgrupados(grupos) {
     const recordsContainer = document.querySelector('.records-container');
     
@@ -232,6 +248,7 @@ function mostrarRegistrosAgrupados(grupos) {
     });
 }
 
+// ===== CREAR CARPETA POR FECHA =====
 function crearCarpetaFecha(grupo) {
     const folder = document.createElement('div');
     folder.className = 'folder';
@@ -249,6 +266,7 @@ function crearCarpetaFecha(grupo) {
     const content = document.createElement('div');
     content.className = 'folder-content';
     
+    // Ordenar: expedientes primero, luego recetas
     const registrosOrdenados = grupo.registros.sort((a, b) => {
         if (a.tipo === 'expediente' && b.tipo === 'receta') return -1;
         if (a.tipo === 'receta' && b.tipo === 'expediente') return 1;
@@ -270,14 +288,15 @@ function crearCarpetaFecha(grupo) {
     return folder;
 }
 
+// ===== CREAR ITEM DE REGISTRO =====
 function crearItemRegistro(registro) {
     const item = document.createElement('div');
     item.className = 'record-item';
     
     if (registro.tipo === 'expediente') {
-        const exp = registro.data;
-        const hora = exp.horaConsulta || '00:00';
-        const descripcion = exp.padecimientoActual || exp.diagnosticoPrincipal || 'Consulta médica';
+        const consulta = registro.data;
+        const hora = consulta.horaConsulta || '00:00';
+        const descripcion = consulta.padecimientoActual || consulta.diagnosticoPrincipal || 'Consulta médica';
         
         item.innerHTML = `
             <i class="fas fa-file-medical"></i>
@@ -294,7 +313,7 @@ function crearItemRegistro(registro) {
         const btnVer = item.querySelector('.btn-view-record');
         btnVer.addEventListener('click', (e) => {
             e.stopPropagation();
-            mostrarModalExpediente(exp);
+            mostrarModalExpediente(consulta);
         });
         
     } else if (registro.tipo === 'receta') {
@@ -327,7 +346,8 @@ function crearItemRegistro(registro) {
     return item;
 }
 
-function mostrarModalExpediente(expediente) {    
+// ===== MOSTRAR MODAL DE EXPEDIENTE =====
+function mostrarModalExpediente(expediente) {
     const modal = document.getElementById('recordModal');
     const title = document.getElementById('recordModalTitle');
     const content = document.getElementById('recordModalContent');
@@ -423,6 +443,7 @@ function mostrarModalExpediente(expediente) {
     modal.style.display = 'flex';
 }
 
+// ===== MOSTRAR MODAL DE RECETA =====
 function mostrarModalReceta(receta) {
     const modal = document.getElementById('recordModal');
     const title = document.getElementById('recordModalTitle');
@@ -530,6 +551,7 @@ function mostrarModalReceta(receta) {
     modal.style.display = 'flex';
 }
 
+// ===== CERRAR MODAL =====
 function cerrarModal() {
     document.getElementById('recordModal').style.display = 'none';
 }
@@ -544,6 +566,7 @@ window.addEventListener('click', (e) => {
     }
 });
 
+// ===== CONFIGURAR BÚSQUEDA =====
 function configurarBusqueda() {
     const searchInput = document.getElementById('searchInput');
     const clearSearch = document.getElementById('clearSearch');
@@ -572,6 +595,7 @@ function configurarBusqueda() {
     });
 }
 
+// ===== FORMATEAR FECHA =====
 function formatearFecha(fecha) {
     return fecha.toLocaleDateString('es-MX', {
         year: 'numeric',
@@ -580,6 +604,7 @@ function formatearFecha(fecha) {
     });
 }
 
+// ===== MOSTRAR MENSAJE DE ERROR =====
 function mostrarMensajeError(mensaje) {
     const searchResults = document.getElementById('searchResults');
     searchResults.innerHTML = `
@@ -593,6 +618,7 @@ function mostrarMensajeError(mensaje) {
     `;
 }
 
+// ===== CONFIGURAR MODAL DE PERFIL =====
 function configurarModalPerfil() {
     const profileIcon = document.querySelector('.profile-icon');
     const modal = document.getElementById('modalPerfil');
