@@ -629,7 +629,7 @@ function configurarModalPerfil() {
 
     profileIcon.addEventListener('click', async () => {
         await cargarPerfilMedico();
-        modal.style.display = 'block';
+        modal.style.display = 'flex';
     });
 
     if (closeBtn) {
