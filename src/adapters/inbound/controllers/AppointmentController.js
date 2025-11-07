@@ -1,5 +1,3 @@
-//src/adapters/inbound/controllers/AppointmentController.js
-
 const express = require('express');
 const AppointmentRepository = require('../../../infrastructure/database/AppointmentRepository');
 const PatientRepository = require('../../../infrastructure/database/PatientRepository');
@@ -292,6 +290,59 @@ router.put('/:id', updateAppointmentValidation, handleValidationErrors, async (r
         res.status(500).json({
             success: false,
             error: 'Error al actualizar cita'
+        });
+    }
+});
+
+// ELIMINAR CITA (agregar antes de module.exports)
+router.delete('/:id', appointmentIdValidation, handleValidationErrors, async (req, res) => {
+    try {
+        console.log('🗑️ DELETE /api/appointments/:id');
+        console.log('📋 Appointment ID:', req.params.id);
+        
+        const clinicConn = await require('../../../infrastructure/database/connections').connectClinic();
+        
+        if (clinicConn.readyState !== 1) {
+            throw new Error('MongoDB Clinic no está conectado');
+        }
+
+        const ObjectId = require('mongodb').ObjectId;
+        
+        // Verificar que la cita existe
+        const citaExistente = await clinicConn.collection('appointments')
+            .findOne({ _id: new ObjectId(req.params.id) });
+        
+        if (!citaExistente) {
+            return res.status(404).json({
+                success: false,
+                error: 'Cita no encontrada'
+            });
+        }
+        
+        // Eliminar la cita
+        const result = await clinicConn.collection('appointments')
+            .deleteOne({ _id: new ObjectId(req.params.id) });
+        
+        if (result.deletedCount === 0) {
+            return res.status(500).json({
+                success: false,
+                error: 'No se pudo eliminar la cita'
+            });
+        }
+        
+        console.log('✅ Cita eliminada correctamente');
+        
+        res.json({
+            success: true,
+            message: 'Cita eliminada correctamente',
+            deletedId: req.params.id
+        });
+    } catch (error) {
+        console.error('❌ Error eliminando cita:', error);
+        res.status(500).json({
+            success: false,
+            error: 'Error al eliminar cita',
+            details: error.message
         });
     }
 });
