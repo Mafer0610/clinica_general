@@ -23,21 +23,260 @@ const Modal = {
   }
 };
 
-document.addEventListener('DOMContentLoaded', async function() { 
-  const medicoId = localStorage.getItem('userId');
+// ===== INICIALIZACIÓN =====
+document.addEventListener('DOMContentLoaded', async function() {
+  console.log('🔄 Inicializando Inicio Médico...');
   
-  if (medicoId) {
-    await cargarCitasMedico(medicoId);
-  } else {
-    console.error(' No se encontró ID de médico en localStorage');
+  const medicoId = localStorage.getItem('userId');
+  console.log('👨‍⚕️ Médico ID:', medicoId);
+  
+  if (!medicoId) {
+    console.error('❌ No se encontró ID de médico en localStorage');
+    alert('Error: No se encontró información del médico. Por favor inicia sesión nuevamente.');
+    window.location.href = '../html/index.html';
+    return;
   }
 
+  // ✅ CRÍTICO: Cargar citas PRIMERO
+  console.log('📥 Cargando citas del médico...');
+  await cargarCitasMedico(medicoId);
+
+  // Luego configurar eventos
   configurarEventListeners();
   configurarBusquedaPacientes();
   configurarFormularios();
+  
+  console.log('✅ Inicialización completa');
 });
 
+// ===== CARGAR CITAS DEL MÉDICO =====
+async function cargarCitasMedico(medicoId) {
+  try {
+    console.log('📥 Solicitando citas del médico:', medicoId);
+    
+    const response = await fetch(`${API_BASE_URL}/appointments/medico/${medicoId}`);
+    
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+    
+    const data = await response.json();
+    console.log('📦 Respuesta recibida:', data);
+
+    if (data.success && data.appointments) {
+      console.log(`✅ Se cargaron ${data.appointments.length} citas del servidor`);
+      
+      // ✅ Enriquecer citas con datos de pacientes
+      const enrichedAppointments = await Promise.all(
+        data.appointments.map(async (appointment) => {
+          try {
+            const nombreExistente = appointment.pacienteNombre;
+            let patient = null;
+            
+            if (appointment.pacienteId) {
+              try {
+                const patientResponse = await fetch(`${API_BASE_URL}/patients/${appointment.pacienteId}`);
+                const patientData = await patientResponse.json();
+                
+                if (patientData.success && patientData.patient) {
+                  patient = patientData.patient;
+                }
+              } catch (fetchError) {
+                console.warn(`⚠️ No se pudo cargar paciente ${appointment.pacienteId}:`, fetchError.message);
+              }
+            }
+            
+            return {
+              ...appointment,
+              pacienteNombre: patient 
+                ? `${patient.nombre} ${patient.apellidos}` 
+                : nombreExistente || 'Paciente desconocido'
+            };
+          } catch (error) {
+            console.error('❌ Error procesando cita:', error);
+            return {
+              ...appointment,
+              pacienteNombre: appointment.pacienteNombre || 'Paciente desconocido'
+            };
+          }
+        })
+      );
+      
+      console.log('✅ Citas enriquecidas:', enrichedAppointments.length);
+      renderizarCitasEnCalendario(enrichedAppointments);
+    } else {
+      console.error('❌ Error al cargar citas:', data.error);
+      mostrarMensajeError('No se pudieron cargar las citas');
+    }
+  } catch (error) {
+    console.error('❌ Error conectando con el servidor:', error);
+    mostrarMensajeError('Error de conexión con el servidor');
+  }
+}
+
+// ===== RENDERIZAR CITAS EN CALENDARIO =====
+function renderizarCitasEnCalendario(appointments) {
+  console.log('\n🎨 ===== RENDERIZANDO CITAS EN CALENDARIO =====');
+  
+  // Limpiar citas existentes
+  document.querySelectorAll('.appointment-simple').forEach(el => el.remove());
+
+  if (!appointments || appointments.length === 0) {
+    console.log('⚠️ No hay citas para mostrar');
+    return;
+  }
+
+  // ✅ Calcular semana actual correctamente
+  const hoy = new Date();
+  hoy.setHours(0, 0, 0, 0);
+  
+  const diaSemana = hoy.getDay();
+  let diasHastaLunes;
+  
+  if (diaSemana === 0) {
+    diasHastaLunes = -6;
+  } else if (diaSemana === 6) {
+    diasHastaLunes = -5;
+  } else if (diaSemana === 1) {
+    diasHastaLunes = 0;
+  } else {
+    diasHastaLunes = -(diaSemana - 1);
+  }
+  
+  const lunes = new Date(hoy);
+  lunes.setDate(hoy.getDate() + diasHastaLunes);
+
+  const fechasSemana = [];
+  for (let i = 0; i < 5; i++) {
+    const fecha = new Date(lunes);
+    fecha.setDate(lunes.getDate() + i);
+    fechasSemana.push(fecha);
+  }
+
+  console.log('📅 Semana actual (Lun-Vie):');
+  fechasSemana.forEach((fecha, i) => {
+    const dias = ['LUN', 'MAR', 'MIE', 'JUE', 'VIE'];
+    console.log(`   ${dias[i]}: ${fecha.toLocaleDateString('es-MX')}`);
+  });
+
+  let citasRenderizadas = 0;
+  
+  appointments.forEach((cita, index) => {
+    console.log(`\n🔍 Procesando cita ${index + 1}/${appointments.length}:`);
+    console.log('   📋 Datos:', {
+      pacienteNombre: cita.pacienteNombre,
+      fecha: cita.fecha,
+      hora: cita.hora
+    });
+    
+    // Parsear fecha
+    const fechaISO = cita.fecha.split('T')[0];
+    const [year, month, day] = fechaISO.split('-');
+    
+    const fechaCita = new Date(parseInt(year), parseInt(month) - 1, parseInt(day));
+    fechaCita.setHours(0, 0, 0, 0);
+    
+    console.log('   📅 Fecha parseada:', fechaCita.toLocaleDateString('es-MX'));
+    
+    // Buscar día en la semana
+    const diaIndex = fechasSemana.findIndex(fecha => 
+      fecha.getDate() === fechaCita.getDate() &&
+      fecha.getMonth() === fechaCita.getMonth() &&
+      fecha.getFullYear() === fechaCita.getFullYear()
+    );
+
+    if (diaIndex !== -1) {
+      console.log('   ✅ Día encontrado:', ['LUN', 'MAR', 'MIE', 'JUE', 'VIE'][diaIndex]);
+      
+      // Parsear hora
+      const [hora, minutos] = cita.hora.split(':');
+      const horaInt = parseInt(hora);
+      
+      console.log('   🕐 Hora:', cita.hora, '→', horaInt);
+
+      if (horaInt >= 9 && horaInt <= 21) {
+        const filaIndex = horaInt - 9;
+        const columnaIndex = diaIndex + 1;
+        
+        console.log('   📍 Posición tabla: Fila', filaIndex, 'Columna', columnaIndex);
+
+        const filas = document.querySelectorAll('.schedule tbody tr');
+        
+        if (filas[filaIndex]) {
+          const celda = filas[filaIndex].cells[columnaIndex];
+          
+          if (celda) {
+            const tipoCita = TIPOS_CITA[cita.tipoCita] || 'Consulta';
+            const nombreMostrar = cita.pacienteNombre || 'Paciente';
+            
+            const citaElement = document.createElement('div');
+            citaElement.className = 'appointment-simple';
+            citaElement.innerHTML = `
+              <div class="appointment-title">${nombreMostrar}</div>
+              <div class="appointment-update">${tipoCita}</div>
+            `;
+            
+            citaElement.addEventListener('click', () => {
+              mostrarDetallesCita(cita);
+            });
+            
+            celda.appendChild(citaElement);
+            citasRenderizadas++;
+            
+            console.log('   ✅ RENDERIZADA:', nombreMostrar, '-', tipoCita);
+          } else {
+            console.log('   ❌ Celda no encontrada en columna', columnaIndex);
+          }
+        } else {
+          console.log('   ❌ Fila no encontrada:', filaIndex);
+        }
+      } else {
+        console.log('   ⚠️ Hora fuera de rango (9-21h):', horaInt);
+      }
+    } else {
+      console.log('   ⚠️ Cita fuera de semana actual');
+    }
+  });
+
+  console.log(`\n📊 RESUMEN: ${citasRenderizadas}/${appointments.length} citas renderizadas\n`);
+}
+
+// ===== MOSTRAR DETALLES DE CITA =====
+function mostrarDetallesCita(cita) {
+  const fechaISO = cita.fecha.split('T')[0];
+  const [year, month, day] = fechaISO.split('-');
+  
+  const fechaObj = new Date(parseInt(year), parseInt(month) - 1, parseInt(day));
+  
+  const fechaFormateada = fechaObj.toLocaleDateString('es-MX', {
+    weekday: 'long',
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric'
+  });
+
+  const tipoCita = TIPOS_CITA[cita.tipoCita] || 'Consulta';
+
+  alert(`
+📅 Tipo: ${tipoCita}
+👤 Paciente: ${cita.pacienteNombre || 'N/A'}
+📆 Fecha: ${fechaFormateada}
+🕐 Hora: ${cita.hora}
+📝 Descripción: ${cita.descripcion || 'Sin descripción'}
+  `.trim());
+}
+
+// ===== MOSTRAR MENSAJE DE ERROR =====
+function mostrarMensajeError(mensaje) {
+  console.error('❌ Mostrando mensaje de error:', mensaje);
+  
+  // Puedes implementar una notificación visual aquí
+  alert('❌ ' + mensaje);
+}
+
+// ===== CONFIGURAR EVENT LISTENERS =====
 function configurarEventListeners() {
+  console.log('🎯 Configurando event listeners...');
 
   document.addEventListener('click', async (e) => {
     const modalTrigger = e.target.closest('[data-modal]');
@@ -58,7 +297,7 @@ function configurarEventListeners() {
     
     if (modalClose) {
       e.preventDefault();
-      console.log(' Cerrando modal:', modalClose.dataset.close);
+      console.log('❌ Cerrando modal:', modalClose.dataset.close);
       Modal.cerrar(modalClose.dataset.close);
       limpiarFormularioCita();
     }
@@ -95,6 +334,49 @@ function configurarEventListeners() {
   }
 }
 
+// ===== CARGAR PERFIL DEL MÉDICO =====
+async function cargarPerfilMedico() {
+  try {
+    const userId = localStorage.getItem('userId');
+    
+    if (!userId) {
+      console.error('❌ No se encontró ID de usuario');
+      limpiarCamposPerfil();
+      return;
+    }
+
+    const response = await fetch(`http://localhost:3001/auth/user/${userId}`);
+    const data = await response.json();
+
+    if (data.success && data.user) {
+      const user = data.user;
+      
+      document.getElementById('nombre').value = user.nombre || '';
+      document.getElementById('apellidos').value = user.apellidos || '';
+      document.getElementById('cedula').value = user.cedula || '';
+      document.getElementById('telefono').value = user.telefono || '';
+      document.getElementById('correo').value = user.email || '';
+      
+      console.log('✅ Perfil cargado correctamente');
+    } else {
+      console.warn('⚠️ No se encontraron datos del usuario');
+      limpiarCamposPerfil();
+    }
+  } catch (error) {
+    console.error('❌ Error cargando perfil:', error);
+    limpiarCamposPerfil();
+  }
+}
+
+function limpiarCamposPerfil() {
+  document.getElementById('nombre').value = '';
+  document.getElementById('apellidos').value = '';
+  document.getElementById('cedula').value = '';
+  document.getElementById('telefono').value = '';
+  document.getElementById('correo').value = '';
+}
+
+// ===== CONFIGURAR BÚSQUEDA DE PACIENTES =====
 function configurarBusquedaPacientes() {
   const searchInput = document.getElementById('pacienteSearch');
   const suggestionsDiv = document.getElementById('pacienteSuggestions');
@@ -112,7 +394,7 @@ function configurarBusquedaPacientes() {
         console.log(`✅ ${pacientes.length} pacientes cargados para búsqueda`);
       }
     } catch (error) {
-      console.error(' Error cargando pacientes:', error);
+      console.error('❌ Error cargando pacientes:', error);
     }
   }
   
@@ -174,257 +456,7 @@ function configurarBusquedaPacientes() {
   });
 }
 
-async function cargarPerfilMedico() {
-  try {
-    const userId = localStorage.getItem('userId');
-    
-    if (!userId) {
-      console.error(' No se encontró ID de usuario');
-      limpiarCamposPerfil();
-      return;
-    }
-
-    const response = await fetch(`http://localhost:3001/auth/user/${userId}`);
-    const data = await response.json();
-
-    if (data.success && data.user) {
-      const user = data.user;
-      
-      document.getElementById('nombre').value = user.nombre || '';
-      document.getElementById('apellidos').value = user.apellidos || '';
-      document.getElementById('cedula').value = user.cedula || '';
-      document.getElementById('telefono').value = user.telefono || '';
-      document.getElementById('correo').value = user.email || '';
-      
-      console.log('✅ Perfil cargado correctamente');
-    } else {
-      console.warn('⚠️ No se encontraron datos del usuario');
-      limpiarCamposPerfil();
-    }
-  } catch (error) {
-    console.error(' Error cargando perfil:', error);
-    limpiarCamposPerfil();
-  }
-}
-
-function limpiarCamposPerfil() {
-  document.getElementById('nombre').value = '';
-  document.getElementById('apellidos').value = '';
-  document.getElementById('cedula').value = '';
-  document.getElementById('telefono').value = '';
-  document.getElementById('correo').value = '';
-}
-
-async function cargarCitasMedico(medicoId) {
-  try {
-    console.log('📥 Cargando citas del médico:', medicoId);
-    const response = await fetch(`${API_BASE_URL}/appointments/medico/${medicoId}`);
-    const data = await response.json();
-
-    if (data.success && data.appointments) {
-      console.log(`✅ Se cargaron ${data.appointments.length} citas del servidor`);
-      
-      // ✅ MEJORADO: Enriquecimiento más robusto
-      const enrichedAppointments = await Promise.all(
-        data.appointments.map(async (appointment) => {
-          try {
-            // Guardar nombre existente como fallback
-            const nombreExistente = appointment.pacienteNombre;
-            let patient = null;
-            
-            if (appointment.pacienteId) {
-              try {
-                const patientResponse = await fetch(`${API_BASE_URL}/patients/${appointment.pacienteId}`);
-                const patientData = await patientResponse.json();
-                
-                if (patientData.success && patientData.patient) {
-                  patient = patientData.patient;
-                }
-              } catch (fetchError) {
-                console.warn(`⚠️ No se pudo cargar paciente ${appointment.pacienteId}:`, fetchError.message);
-              }
-            }
-            
-            // ✅ Prioridad: 1) BD, 2) Nombre en cita, 3) Desconocido
-            return {
-              ...appointment,
-              pacienteNombre: patient 
-                ? `${patient.nombre} ${patient.apellidos}` 
-                : nombreExistente || 'Paciente desconocido'
-            };
-          } catch (error) {
-            console.error(' Error procesando cita:', error);
-            return {
-              ...appointment,
-              pacienteNombre: appointment.pacienteNombre || 'Paciente desconocido'
-            };
-          }
-        })
-      );
-      
-      console.log('✅ Citas enriquecidas:', enrichedAppointments.length);
-      renderizarCitasEnCalendario(enrichedAppointments);
-    } else {
-      console.error(' Error al cargar citas:', data.error);
-    }
-  } catch (error) {
-    console.error(' Error conectando con el servidor:', error);
-  }
-}
-
-function renderizarCitasEnCalendario(appointments) {
-  // Limpiar citas existentes
-  document.querySelectorAll('.appointment-simple').forEach(el => el.remove());
-
-  if (!appointments || appointments.length === 0) {
-    console.log('⚠️ No hay citas para mostrar');
-    return;
-  }
-
-  // ✅ Calcular semana actual correctamente
-  const hoy = new Date();
-  hoy.setHours(0, 0, 0, 0);
-  
-  const diaSemana = hoy.getDay();
-  let diasHastaLunes;
-  
-  if (diaSemana === 0) {
-    diasHastaLunes = -6;
-  } else if (diaSemana === 6) {
-    diasHastaLunes = -5;
-  } else if (diaSemana === 1) {
-    diasHastaLunes = 0;
-  } else {
-    diasHastaLunes = -(diaSemana - 1);
-  }
-  
-  const lunes = new Date(hoy);
-  lunes.setDate(hoy.getDate() + diasHastaLunes);
-
-  const fechasSemana = [];
-  for (let i = 0; i < 5; i++) {
-    const fecha = new Date(lunes);
-    fecha.setDate(lunes.getDate() + i);
-    fechasSemana.push(fecha);
-  }
-
-  console.log('📅 Semana actual (Lun-Vie):');
-  fechasSemana.forEach((fecha, i) => {
-    const dias = ['LUN', 'MAR', 'MIE', 'JUE', 'VIE'];
-    console.log(`   ${dias[i]}: ${fecha.toLocaleDateString('es-MX')}`);
-  });
-
-  let citasRenderizadas = 0;
-  
-  appointments.forEach((cita, index) => {
-    console.log(`\n🔍 Procesando cita ${index + 1}/${appointments.length}:`);
-    console.log('   📋 Datos completos:', {
-      pacienteNombre: cita.pacienteNombre,
-      pacienteId: cita.pacienteId,
-      fecha: cita.fecha,
-      hora: cita.hora,
-      tipoCita: cita.tipoCita,
-      estado: cita.estado
-    });
-    
-    // Parsear fecha
-    const fechaISO = cita.fecha.split('T')[0];
-    const [year, month, day] = fechaISO.split('-');
-    
-    const fechaCita = new Date(parseInt(year), parseInt(month) - 1, parseInt(day));
-    fechaCita.setHours(0, 0, 0, 0);
-    
-    console.log('   📅 Fecha parseada:', fechaCita.toLocaleDateString('es-MX'));
-    
-    // Buscar día en la semana
-    const diaIndex = fechasSemana.findIndex(fecha => 
-      fecha.getDate() === fechaCita.getDate() &&
-      fecha.getMonth() === fechaCita.getMonth() &&
-      fecha.getFullYear() === fechaCita.getFullYear()
-    );
-
-    if (diaIndex !== -1) {
-      console.log('   ✅ Día encontrado:', ['LUN', 'MAR', 'MIE', 'JUE', 'VIE'][diaIndex]);
-      
-      // Parsear hora
-      const [hora, minutos] = cita.hora.split(':');
-      const horaInt = parseInt(hora);
-      
-      console.log('   🕐 Hora:', cita.hora, '→', horaInt);
-
-      if (horaInt >= 9 && horaInt <= 21) {
-        const filaIndex = horaInt - 9;
-        const columnaIndex = diaIndex + 1;
-        
-        console.log('   📍 Posición tabla: Fila', filaIndex, 'Columna', columnaIndex);
-
-        const filas = document.querySelectorAll('.schedule tbody tr');
-        
-        if (filas[filaIndex]) {
-          const celda = filas[filaIndex].cells[columnaIndex];
-          
-          if (celda) {
-            const tipoCita = TIPOS_CITA[cita.tipoCita] || 'Consulta';
-            const nombreMostrar = cita.pacienteNombre || 'Paciente';
-            
-            const citaElement = document.createElement('div');
-            citaElement.className = 'appointment-simple';
-            citaElement.innerHTML = `
-              <div class="appointment-title">${nombreMostrar}</div>
-              <div class="appointment-update">${tipoCita}</div>
-            `;
-            
-            citaElement.addEventListener('click', () => {
-              mostrarDetallesCita(cita);
-            });
-            
-            celda.appendChild(citaElement);
-            citasRenderizadas++;
-            
-            console.log('   ✅ RENDERIZADA:', nombreMostrar, '-', tipoCita);
-          } else {
-            console.log('    Celda no encontrada en columna', columnaIndex);
-          }
-        } else {
-          console.log('    Fila no encontrada:', filaIndex);
-        }
-      } else {
-        console.log('   ⚠️ Hora fuera de rango (9-21h):', horaInt);
-      }
-    } else {
-      console.log('   ⚠️ Cita fuera de semana actual');
-      console.log('   📅 Cita:', fechaCita.toLocaleDateString('es-MX'));
-      console.log('   📅 Semana:', fechasSemana[0].toLocaleDateString('es-MX'), '-', fechasSemana[4].toLocaleDateString('es-MX'));
-    }
-  });
-
-  console.log(`\n📊 RESUMEN: ${citasRenderizadas}/${appointments.length} citas renderizadas`);
-}
-
-function mostrarDetallesCita(cita) {
-  const fechaISO = cita.fecha.split('T')[0];
-  const [year, month, day] = fechaISO.split('-');
-  
-  const fechaObj = new Date(parseInt(year), parseInt(month) - 1, parseInt(day));
-  
-  const fechaFormateada = fechaObj.toLocaleDateString('es-MX', {
-    weekday: 'long',
-    year: 'numeric',
-    month: 'long',
-    day: 'numeric'
-  });
-
-  const tipoCita = TIPOS_CITA[cita.tipoCita] || 'Consulta';
-
-  alert(`
-📅 Tipo: ${tipoCita}
-👤 Paciente: ${cita.pacienteNombre || 'N/A'}
-📆 Fecha: ${fechaFormateada}
-🕐 Hora: ${cita.hora}
-📝 Descripción: ${cita.descripcion || 'Sin descripción'}
-  `.trim());
-}
-
+// ===== CONFIGURAR FORMULARIOS =====
 function configurarFormularios() {
   const forms = {
     cita: async () => {
@@ -479,11 +511,11 @@ function configurarFormularios() {
           limpiarFormularioCita();
           await cargarCitasMedico(medicoId);
         } else {
-          alert(' Error al agendar cita: ' + (data.error || 'Error desconocido'));
+          alert('❌ Error al agendar cita: ' + (data.error || 'Error desconocido'));
         }
       } catch (error) {
-        console.error(' Error al agendar cita:', error);
-        alert(' Error de conexión al agendar cita');
+        console.error('❌ Error al agendar cita:', error);
+        alert('❌ Error de conexión al agendar cita');
       }
     },
     
@@ -492,7 +524,7 @@ function configurarFormularios() {
         const userId = localStorage.getItem('userId');
         
         if (!userId) {
-          alert(' Error: No se encontró ID de usuario');
+          alert('❌ Error: No se encontró ID de usuario');
           return;
         }
 
@@ -528,11 +560,11 @@ function configurarFormularios() {
           Modal.cerrar('perfil');
           await cargarPerfilMedico();
         } else {
-          alert(' Error: ' + (data.error || 'No se pudo actualizar el perfil'));
+          alert('❌ Error: ' + (data.error || 'No se pudo actualizar el perfil'));
         }
       } catch (error) {
-        console.error(' Error:', error);
-        alert(' Error de conexión: ' + error.message);
+        console.error('❌ Error:', error);
+        alert('❌ Error de conexión: ' + error.message);
       }
     }
   };
@@ -563,3 +595,5 @@ function limpiarFormularioCita() {
   document.getElementById('tipoCita').value = '';
   document.getElementById('pacienteSuggestions').classList.remove('show');
 }
+
+console.log('✅ inicioMedico.js cargado correctamente');
