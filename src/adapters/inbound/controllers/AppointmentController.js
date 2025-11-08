@@ -1,306 +1,399 @@
-const express = require('express');
-const AppointmentRepository = require('../../../infrastructure/database/AppointmentRepository');
-const PatientRepository = require('../../../infrastructure/database/PatientRepository');
+// src/adapters/inbound/controllers/PatientProfileController.js
 
-// ========== IMPORTAR VALIDACIONES ==========
+const express = require('express');
+const PatientRepository = require('../../../infrastructure/database/PatientRepository');
+const AppointmentRepository = require('../../../infrastructure/database/AppointmentRepository');
 const { handleValidationErrors } = require('../middleware/validationHandler');
 const {
-    createAppointmentValidation,
-    updateAppointmentValidation,
-    appointmentIdValidation,
-    dateRangeValidation,
-    medicoIdValidation,
-    patientIdValidation
-} = require('../validators/appointmentValidators');
+    patientProfileEmailValidation,
+    upsertPatientProfileValidation,
+    appointmentActionValidation
+} = require('../validators/expedienteValidators');
 
 const router = express.Router();
 
-// ========== FUNCIÓN AUXILIAR PARA CONVERTIR TIPO ==========
-function obtenerTipoPorNumero(numero) {
-    const tipos = {
-        '1': 'Consulta médica',
-        '2': 'Consulta General',
-        '3': 'Revision General',
-        '4': 'Consulta de Control',
-        '5': 'Consulta de Seguimiento'
-    };
-    return tipos[numero] || 'Consulta General';
-}
-
-// ========== OBTENER TODAS LAS CITAS ==========
-router.get('/', async (req, res) => {
+// ========== OBTENER PERFIL COMPLETO DEL PACIENTE POR EMAIL ==========
+router.get('/profile/:email', patientProfileEmailValidation, handleValidationErrors, async (req, res) => {
     try {
-        const appointments = await AppointmentRepository.findAll();
+        const emailBuscado = decodeURIComponent(req.params.email);
+        console.log('📥 Obteniendo perfil del paciente con email:', emailBuscado);
         
-        const enrichedAppointments = await Promise.all(
-            appointments.map(async (appointment) => {
-                const patient = await PatientRepository.findById(appointment.pacienteId);
-                return {
-                    ...appointment,
-                    pacienteNombre: patient ? `${patient.nombre} ${patient.apellidos}` : 'Paciente desconocido'
-                };
-            })
-        );
+        const patient = await PatientRepository.findByEmail(emailBuscado);
         
-        res.json({
-            success: true,
-            appointments: enrichedAppointments,
-            count: enrichedAppointments.length
-        });
-    } catch (error) {
-        console.error('Error obteniendo citas:', error);
-        res.status(500).json({
-            success: false,
-            error: 'Error al obtener citas'
-        });
-    }
-});
-
-// ========== OBTENER CITAS POR RANGO DE FECHAS ==========
-router.get('/range', ...dateRangeValidation, handleValidationErrors, async (req, res) => {
-    try {
-        console.log('📥 GET /api/appointments/range');
-        console.log('📋 Query params:', req.query);
-        
-        const { startDate, endDate } = req.query;
-        
-        const fechaInicio = new Date(startDate);
-        const fechaFin = new Date(endDate);
-        
-        console.log('📅 Rango de fechas:', {
-            inicio: fechaInicio.toISOString(),
-            fin: fechaFin.toISOString()
-        });
-        
-        // Obtener citas del repositorio
-        const appointments = await AppointmentRepository.findByDateRange(
-            fechaInicio.toISOString(),
-            fechaFin.toISOString()
-        );
-        
-        console.log(`✅ Se encontraron ${appointments.length} citas`);
-        
-        // Enriquecer con información del paciente
-        const enrichedAppointments = await Promise.all(
-            appointments.map(async (appointment) => {
-                try {
-                    const patient = await PatientRepository.findById(appointment.pacienteId.toString());
-                    return {
-                        ...appointment,
-                        pacienteNombre: patient 
-                            ? `${patient.nombre} ${patient.apellidos}` 
-                            : appointment.pacienteNombre || 'Paciente desconocido'
-                    };
-                } catch (error) {
-                    console.error('Error obteniendo paciente:', error);
-                    return {
-                        ...appointment,
-                        pacienteNombre: appointment.pacienteNombre || 'Paciente desconocido'
-                    };
-                }
-            })
-        );
-        
-        console.log('✅ Citas enriquecidas con información de pacientes');
-        
-        // Respuesta exitosa
-        res.json({
-            success: true,
-            appointments: enrichedAppointments,
-            count: enrichedAppointments.length,
-            dateRange: {
-                start: fechaInicio.toISOString(),
-                end: fechaFin.toISOString()
-            }
-        });
-        
-    } catch (error) {
-        console.error(' Error obteniendo citas por rango:', error);
-        console.error('Stack:', error.stack);
-        
-        res.status(500).json({
-            success: false,
-            error: 'Error al obtener citas',
-            details: process.env.NODE_ENV === 'development' ? error.message : undefined
-        });
-    }
-});
-
-// ========== OBTENER CITAS DE UN MÉDICO ==========
-router.get('/medico/:medicoId', ...medicoIdValidation, handleValidationErrors, async (req, res) => {
-    try {
-        console.log('📥 GET /medico/:medicoId - ID:', req.params.medicoId);
-        
-        const appointments = await AppointmentRepository.findByMedicoId(req.params.medicoId);
-        
-        console.log(`📊 Citas encontradas en BD: ${appointments.length}`);
-        
-        // Log cada cita para debug
-        appointments.forEach((apt, i) => {
-            console.log(`  ${i+1}. ${apt.pacienteNombre} - ${apt.fecha} - Estado: ${apt.estado}`);
-        });
-        
-        const enrichedAppointments = await Promise.all(
-            appointments.map(async (appointment) => {
-                try {
-                    const patient = await PatientRepository.findById(appointment.pacienteId);
-                    return {
-                        ...appointment,
-                        pacienteNombre: patient ? `${patient.nombre} ${patient.apellidos}` : appointment.pacienteNombre || 'Paciente desconocido'
-                    };
-                } catch (error) {
-                    console.warn(`⚠️ Error cargando paciente ${appointment.pacienteId}:`, error.message);
-                    return {
-                        ...appointment,
-                        pacienteNombre: appointment.pacienteNombre || 'Paciente desconocido'
-                    };
-                }
-            })
-        );
-        
-        console.log(`✅ Enviando ${enrichedAppointments.length} citas al frontend`);
-        
-        res.json({
-            success: true,
-            appointments: enrichedAppointments,
-            count: enrichedAppointments.length
-        });
-    } catch (error) {
-        console.error(' Error obteniendo citas del médico:', error);
-        res.status(500).json({
-            success: false,
-            error: 'Error al obtener citas'
-        });
-    }
-});
-
-// ========== OBTENER CITAS DE UN PACIENTE ==========
-router.get('/patient/:patientId', ...patientIdValidation, handleValidationErrors, async (req, res) => {
-    try {
-        const appointments = await AppointmentRepository.findByPatientId(req.params.patientId);
-        
-        res.json({
-            success: true,
-            appointments: appointments,
-            count: appointments.length
-        });
-    } catch (error) {
-        console.error('Error obteniendo citas del paciente:', error);
-        res.status(500).json({
-            success: false,
-            error: 'Error al obtener citas'
-        });
-    }
-});
-
-// ========== CREAR CITA ==========
-router.post('/', ...createAppointmentValidation, handleValidationErrors, async (req, res) => {
-    try {
-        console.log('📥 POST /api/appointments');
-        console.log('📦 Body recibido:', JSON.stringify(req.body, null, 2));
-        
-        const {
-            pacienteId,
-            pacienteNombre,
-            medicoId,
-            fecha,
-            hora,
-            tipoCita,
-            descripcion,
-            sintomas
-        } = req.body;
-        
-        const ObjectId = require('mongodb').ObjectId;
-        
-        const tipoFinal = tipoCita;
-        
-        let fechaDate;
-        
-        if (fecha.includes('T')) {
-            fechaDate = new Date(fecha);
-            console.log('📅 Fecha ISO recibida:', fecha);
-        } else {
-            const [year, month, day] = fecha.split('-');
-            fechaDate = new Date(parseInt(year), parseInt(month) - 1, parseInt(day), 0, 0, 0, 0);
-            console.log('📅 Fecha simple recibida:', fecha);
+        if (!patient) {
+            console.log('⚠️ Paciente no encontrado con email:', emailBuscado);
+            return res.json({
+                success: true,
+                hasProfile: false,
+                patient: null,
+                searchedEmail: emailBuscado
+            });
         }
+
+        console.log('✅ Paciente encontrado:', patient.nombre);
         
-        const appointmentData = {
-            pacienteId: new ObjectId(pacienteId),
-            pacienteNombre: pacienteNombre || 'Paciente',
-            medicoId: medicoId,
-            fecha: fechaDate,
-            hora: hora,
-            tipoCita: tipoFinal,
-            descripcion: descripcion || '',
-            sintomas: sintomas || descripcion || '',
-            estado: 'pendiente',
-            recordatorioEnviado: false,
-            confirmada: false
-        };
+        const appointments = await AppointmentRepository.findByPatientId(patient._id.toString());
         
-        const result = await AppointmentRepository.save(appointmentData);
-        res.status(201).json({
+        res.json({
             success: true,
-            message: 'Cita creada exitosamente',
-            appointmentId: result.insertedId
+            hasProfile: true,
+            patient: patient,
+            appointments: appointments || [],
+            appointmentsCount: appointments?.length || 0
         });
     } catch (error) {
-        console.error(' Error creando cita:', error);
-        console.error('Stack:', error.stack);
+        console.error('❌ Error obteniendo perfil del paciente:', error);
         res.status(500).json({
             success: false,
-            error: 'Error al crear cita',
+            error: 'Error al obtener perfil del paciente',
             details: error.message
         });
     }
 });
 
-// ========== ACTUALIZAR CITA ==========
-router.put('/:id', updateAppointmentValidation, handleValidationErrors, async (req, res) => {
+// ========== CREAR O ACTUALIZAR PERFIL DEL PACIENTE ==========
+router.post('/profile/upsert', upsertPatientProfileValidation, handleValidationErrors, async (req, res) => {
     try {
-        const updateData = { ...req.body };
-        delete updateData._id;
+        console.log('📥 POST /api/patient-profile/profile/upsert');
+        console.log('📦 Body recibido:', JSON.stringify(req.body, null, 2));
         
-        if (updateData.fecha) {
-            updateData.fecha = new Date(updateData.fecha);
+        const {
+            email,
+            nombre,
+            apellidos,
+            fechaNacimiento,
+            sexo,
+            telefono,
+            telefonoEmergencia,
+            domicilio,
+            alergias,
+            padecimientos,
+            tipoSanguineo
+        } = req.body;
+
+        if (!email) {
+            console.error('❌ Email no proporcionado');
+            return res.status(400).json({
+                success: false,
+                error: 'Email es requerido'
+            });
         }
-        
-        if (updateData.pacienteId) {
-            const ObjectId = require('mongodb').ObjectId;
-            updateData.pacienteId = new ObjectId(updateData.pacienteId);
+
+        if (!nombre || !apellidos) {
+            console.error('❌ Nombre o apellidos no proporcionados');
+            return res.status(400).json({
+                success: false,
+                error: 'Nombre y apellidos son requeridos'
+            });
         }
+
+        let patient = await PatientRepository.findByEmail(email);
+
+        if (patient) {
+            console.log('🔄 Actualizando paciente existente:', patient._id);
+            
+            const updateData = {};
+            
+            if (nombre !== undefined) updateData.nombre = nombre;
+            if (apellidos !== undefined) updateData.apellidos = apellidos;
+            
+            if (fechaNacimiento !== undefined && fechaNacimiento !== null) {
+                try {
+                    updateData.fechaNacimiento = new Date(fechaNacimiento);
+                    
+                    const birthDate = new Date(fechaNacimiento);
+                    const today = new Date();
+                    let edad = today.getFullYear() - birthDate.getFullYear();
+                    const monthDiff = today.getMonth() - birthDate.getMonth();
+                    if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
+                        edad--;
+                    }
+                    updateData.edad = edad;
+                    console.log('📅 Edad calculada:', edad);
+                } catch (error) {
+                    console.error('❌ Error procesando fechaNacimiento:', error);
+                }
+            }
+            
+            if (sexo !== undefined) updateData.sexo = sexo;
+            if (telefono !== undefined) updateData.telefono = telefono;
+            if (telefonoEmergencia !== undefined) updateData.telefonoEmergencia = telefonoEmergencia;
+            if (domicilio !== undefined) updateData.domicilio = domicilio;
+            if (alergias !== undefined) updateData.alergias = alergias || 'Ninguna';
+            if (padecimientos !== undefined) updateData.padecimientos = padecimientos || 'Sin padecimientos';
+            
+            if (tipoSanguineo !== undefined) {
+                if (tipoSanguineo === '' || tipoSanguineo === null) {
+                    updateData.tipoSanguineo = null;
+                } else {
+                    updateData.tipoSanguineo = tipoSanguineo;
+                }
+                console.log('💉 Actualizando tipo sanguíneo:', updateData.tipoSanguineo);
+            }
+
+            console.log('📝 Datos a actualizar:', JSON.stringify(updateData, null, 2));
+
+            const updatedPatient = await PatientRepository.update(patient._id.toString(), updateData);
+
+            if (!updatedPatient) {
+                console.error('❌ No se pudo actualizar el paciente');
+                return res.status(500).json({
+                    success: false,
+                    error: 'Error al actualizar paciente'
+                });
+            }
+
+            console.log('✅ Paciente actualizado:', updatedPatient.nombre);
+
+            return res.json({
+                success: true,
+                message: 'Perfil actualizado correctamente',
+                patient: updatedPatient,
+                isNew: false
+            });
+            
+        } else {
+            console.log('✨ Creando nuevo perfil de paciente');
+            
+            let edad = null;
+            let fechaNacimientoDate = null;
+            
+            if (fechaNacimiento) {
+                try {
+                    fechaNacimientoDate = new Date(fechaNacimiento);
+                    const today = new Date();
+                    edad = today.getFullYear() - fechaNacimientoDate.getFullYear();
+                    const monthDiff = today.getMonth() - fechaNacimientoDate.getMonth();
+                    if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < fechaNacimientoDate.getDate())) {
+                        edad--;
+                    }
+                    console.log('📅 Edad calculada:', edad);
+                } catch (error) {
+                    console.error('❌ Error procesando fechaNacimiento:', error);
+                    fechaNacimientoDate = null;
+                }
+            }
+
+            const patientData = {
+                correo: email,
+                nombre: nombre,
+                apellidos: apellidos,
+                fechaNacimiento: fechaNacimientoDate,
+                edad: edad,
+                sexo: sexo || null,
+                telefono: telefono || '',
+                telefonoEmergencia: telefonoEmergencia || '',
+                domicilio: domicilio || '',
+                alergias: alergias || 'Ninguna',
+                padecimientos: padecimientos || 'Sin padecimientos',
+                tipoSanguineo: tipoSanguineo || null,
+                historialMedico: []
+            };
+
+            console.log('📝 Datos del nuevo paciente:', JSON.stringify(patientData, null, 2));
+
+            const result = await PatientRepository.save(patientData);
+            
+            if (!result || !result.insertedId) {
+                console.error('❌ No se pudo crear el paciente');
+                return res.status(500).json({
+                    success: false,
+                    error: 'Error al crear paciente'
+                });
+            }
+            
+            const newPatient = await PatientRepository.findById(result.insertedId.toString());
+
+            if (!newPatient) {
+                console.error('❌ No se pudo recuperar el paciente creado');
+                return res.status(500).json({
+                    success: false,
+                    error: 'Error al recuperar paciente creado'
+                });
+            }
+
+            console.log('✅ Nuevo paciente creado:', newPatient.nombre);
+
+            return res.status(201).json({
+                success: true,
+                message: 'Perfil creado correctamente',
+                patient: newPatient,
+                isNew: true
+            });
+        }
+    } catch (error) {
+        console.error('❌ ERROR CRÍTICO en upsert de perfil:', error);
+        console.error('Stack:', error.stack);
+        res.status(500).json({
+            success: false,
+            error: 'Error al guardar perfil del paciente',
+            details: error.message
+        });
+    }
+});
+
+// ========== OBTENER PRÓXIMAS CITAS DEL PACIENTE (FILTRADAS) ==========
+router.get('/appointments/upcoming/:email', async (req, res) => {
+    try {
+        console.log('📥 Obteniendo próximas citas para:', req.params.email);
         
-        const updatedAppointment = await AppointmentRepository.update(req.params.id, updateData);
+        const patient = await PatientRepository.findByEmail(req.params.email);
         
+        if (!patient) {
+            return res.json({
+                success: true,
+                appointments: []
+            });
+        }
+
+        const appointments = await AppointmentRepository.findByPatientId(patient._id.toString());
+        
+        const now = new Date();
+        const upcomingAppointments = appointments
+            .filter(apt => {
+                // ✅ CAMBIO: Excluir citas confirmadas
+                if (apt.confirmada === true) {
+                    console.log(`⏭️ Excluyendo cita confirmada: ${apt.pacienteNombre} - ${apt.fecha}`);
+                    return false;
+                }
+                
+                // ✅ CAMBIO: Excluir citas con estado "confirmada"
+                if (apt.estado === 'confirmada') {
+                    console.log(`⏭️ Excluyendo por estado confirmada: ${apt.pacienteNombre} - ${apt.fecha}`);
+                    return false;
+                }
+                
+                // Crear fecha completa con hora
+                const [hours, minutes] = apt.hora.split(':');
+                const aptDate = new Date(apt.fecha);
+                aptDate.setHours(parseInt(hours), parseInt(minutes), 0, 0);
+                
+                // Solo citas futuras
+                return aptDate > now;
+            })
+            .sort((a, b) => {
+                const dateA = new Date(a.fecha);
+                const [hoursA, minutesA] = a.hora.split(':');
+                dateA.setHours(parseInt(hoursA), parseInt(minutesA));
+                
+                const dateB = new Date(b.fecha);
+                const [hoursB, minutesB] = b.hora.split(':');
+                dateB.setHours(parseInt(hoursB), parseInt(minutesB));
+                
+                return dateA - dateB;
+            });
+
+        console.log(`✅ Citas próximas (sin confirmadas): ${upcomingAppointments.length}`);
+
+        res.json({
+            success: true,
+            appointments: upcomingAppointments,
+            count: upcomingAppointments.length
+        });
+    } catch (error) {
+        console.error('❌ Error obteniendo próximas citas:', error);
+        res.status(500).json({
+            success: false,
+            error: 'Error al obtener próximas citas'
+        });
+    }
+});
+
+// ========== OBTENER HISTORIAL DE CITAS DEL PACIENTE ==========
+router.get('/appointments/history/:email', async (req, res) => {
+    try {
+        console.log('📥 Obteniendo historial de citas para:', req.params.email);
+        
+        const patient = await PatientRepository.findByEmail(req.params.email);
+        
+        if (!patient) {
+            return res.json({
+                success: true,
+                appointments: []
+            });
+        }
+
+        const appointments = await AppointmentRepository.findByPatientId(patient._id.toString());
+        
+        const now = new Date();
+        const pastAppointments = appointments
+            .filter(apt => {
+                const [hours, minutes] = apt.hora.split(':');
+                const aptDate = new Date(apt.fecha);
+                aptDate.setHours(parseInt(hours), parseInt(minutes), 0, 0);
+                
+                return aptDate < now;
+            })
+            .sort((a, b) => {
+                const dateA = new Date(a.fecha);
+                const [hoursA, minutesA] = a.hora.split(':');
+                dateA.setHours(parseInt(hoursA), parseInt(minutesA));
+                
+                const dateB = new Date(b.fecha);
+                const [hoursB, minutesB] = b.hora.split(':');
+                dateB.setHours(parseInt(hoursB), parseInt(minutesB));
+                
+                return dateB - dateA;
+            });
+
+        res.json({
+            success: true,
+            appointments: pastAppointments,
+            count: pastAppointments.length
+        });
+    } catch (error) {
+        console.error('❌ Error obteniendo historial de citas:', error);
+        res.status(500).json({
+            success: false,
+            error: 'Error al obtener historial de citas'
+        });
+    }
+});
+
+// ========== CONFIRMAR CITA (ACTUALIZADO) ==========
+router.put('/appointments/:appointmentId/confirm', appointmentActionValidation, handleValidationErrors, async (req, res) => {
+    try {
+        console.log('✅ Confirmando cita:', req.params.appointmentId);
+        
+        // ✅ CAMBIO: Actualizar AMBOS campos
+        const updatedAppointment = await AppointmentRepository.update(
+            req.params.appointmentId,
+            {
+                confirmada: true,
+                estado: 'confirmada'
+            }
+        );
+
         if (!updatedAppointment) {
             return res.status(404).json({
                 success: false,
                 error: 'Cita no encontrada'
             });
         }
-        
+
+        console.log('✅ Cita confirmada exitosamente');
+
         res.json({
             success: true,
-            message: 'Cita actualizada exitosamente',
+            message: 'Cita confirmada correctamente',
             appointment: updatedAppointment
         });
     } catch (error) {
-        console.error('Error actualizando cita:', error);
+        console.error('❌ Error confirmando cita:', error);
         res.status(500).json({
             success: false,
-            error: 'Error al actualizar cita'
+            error: 'Error al confirmar cita'
         });
     }
 });
 
-// ELIMINAR CITA (agregar antes de module.exports)
-router.delete('/:id', appointmentIdValidation, handleValidationErrors, async (req, res) => {
+// ========== CANCELAR CITA (CAMBIAR A DELETE) ==========
+router.delete('/appointments/:appointmentId', appointmentActionValidation, handleValidationErrors, async (req, res) => {
     try {
-        console.log('🗑️ DELETE /api/appointments/:id');
-        console.log('📋 Appointment ID:', req.params.id);
+        console.log('🗑️ Eliminando cita:', req.params.appointmentId);
         
-        const clinicConn = await require('../../../infrastructure/database/connections').connectClinic();
+        const connections = require('../../../infrastructure/database/connections');
+        const clinicConn = await connections.connectClinic();
         
         if (clinicConn.readyState !== 1) {
             throw new Error('MongoDB Clinic no está conectado');
@@ -310,7 +403,7 @@ router.delete('/:id', appointmentIdValidation, handleValidationErrors, async (re
         
         // Verificar que la cita existe
         const citaExistente = await clinicConn.collection('appointments')
-            .findOne({ _id: new ObjectId(req.params.id) });
+            .findOne({ _id: new ObjectId(req.params.appointmentId) });
         
         if (!citaExistente) {
             return res.status(404).json({
@@ -319,9 +412,9 @@ router.delete('/:id', appointmentIdValidation, handleValidationErrors, async (re
             });
         }
         
-        // Eliminar la cita
+        // ✅ CAMBIO: Eliminar en lugar de actualizar
         const result = await clinicConn.collection('appointments')
-            .deleteOne({ _id: new ObjectId(req.params.id) });
+            .deleteOne({ _id: new ObjectId(req.params.appointmentId) });
         
         if (result.deletedCount === 0) {
             return res.status(500).json({
@@ -331,11 +424,11 @@ router.delete('/:id', appointmentIdValidation, handleValidationErrors, async (re
         }
         
         console.log('✅ Cita eliminada correctamente');
-        
+
         res.json({
             success: true,
             message: 'Cita eliminada correctamente',
-            deletedId: req.params.id
+            deletedId: req.params.appointmentId
         });
     } catch (error) {
         console.error('❌ Error eliminando cita:', error);

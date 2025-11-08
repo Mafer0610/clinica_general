@@ -260,47 +260,41 @@ function mostrarMensajeError() {
     `;
 }
 
-// ===== CONFIGURAR BOTONES =====
 function configurarBotones() {
     console.log('🔧 Configurando event listeners...');
+    const formSection = document.querySelector('.form-section:last-child');
     
-    const btnConfirmar = document.querySelector('.btn-submit:first-of-type');
-    const btnCancelar = document.querySelector('.btn-submit:last-of-type');
-    
-    if (!btnConfirmar) {
-        console.error('❌ No se encontró el botón de confirmar');
+    if (!formSection) {
+        console.error('❌ No se encontró el contenedor de botones');
         return;
     }
     
-    if (!btnCancelar) {
-        console.error('❌ No se encontró el botón de cancelar');
-        return;
-    }
+    console.log('✅ Contenedor encontrado, configurando delegación de eventos');
     
-    console.log('✅ Botones encontrados');
-    
-    // Remover listeners previos (si existen)
-    btnConfirmar.replaceWith(btnConfirmar.cloneNode(true));
-    btnCancelar.replaceWith(btnCancelar.cloneNode(true));
-    
-    // Obtener referencias actualizadas
-    const newBtnConfirmar = document.querySelector('.btn-submit:first-of-type');
-    const newBtnCancelar = document.querySelector('.btn-submit:last-of-type');
-    
-    // Agregar nuevos listeners
-    newBtnConfirmar.addEventListener('click', async (e) => {
-        e.preventDefault();
-        console.log('🖱️ Click en CONFIRMAR ASISTENCIA');
-        await confirmarAsistencia();
+    // Usar delegación de eventos en el contenedor padre
+    formSection.addEventListener('click', async (e) => {
+        // Verificar si el click fue en el botón de confirmar o sus hijos
+        const btnConfirmar = e.target.closest('.btn-submit:first-of-type');
+        if (btnConfirmar && !btnConfirmar.disabled) {
+            e.preventDefault();
+            e.stopPropagation();
+            console.log('🖱️ Click en CONFIRMAR ASISTENCIA detectado');
+            await confirmarAsistencia();
+            return;
+        }
+        
+        // Verificar si el click fue en el botón de cancelar o sus hijos
+        const btnCancelar = e.target.closest('.btn-submit:last-of-type');
+        if (btnCancelar && !btnCancelar.disabled) {
+            e.preventDefault();
+            e.stopPropagation();
+            console.log('🖱️ Click en CANCELAR CITA detectado');
+            await cancelarCita();
+            return;
+        }
     });
     
-    newBtnCancelar.addEventListener('click', async (e) => {
-        e.preventDefault();
-        console.log('🖱️ Click en CANCELAR CITA');
-        await cancelarCita();
-    });
-    
-    console.log('✅ Event listeners configurados correctamente');
+    console.log('✅ Delegación de eventos configurada en el contenedor');
 }
 
 // ===== CONFIRMAR ASISTENCIA =====
@@ -331,6 +325,11 @@ async function confirmarAsistencia() {
         
         // Mostrar loading en el botón
         const btnConfirmar = document.querySelector('.btn-submit:first-of-type');
+        if (!btnConfirmar) {
+            console.error('❌ No se encontró el botón de confirmar');
+            return;
+        }
+        
         const textoOriginal = btnConfirmar.innerHTML;
         btnConfirmar.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Confirmando...';
         btnConfirmar.disabled = true;
@@ -359,6 +358,12 @@ async function confirmarAsistencia() {
             
             // Mostrar notificación
             mostrarNotificacionExito('✅ Asistencia confirmada correctamente');
+            
+            // Redirigir después de 2 segundos
+            setTimeout(() => {
+                console.log('🔄 Redirigiendo a inicioPaciente.html...');
+                window.location.href = 'inicioPaciente.html';
+            }, 2000);
         } else {
             console.error('❌ Error en la respuesta:', data.error);
             // Restaurar botón
@@ -372,8 +377,10 @@ async function confirmarAsistencia() {
         
         // Restaurar botón
         const btnConfirmar = document.querySelector('.btn-submit:first-of-type');
-        btnConfirmar.innerHTML = '<i class="fas fa-check-circle"></i> Confirmar Asistencia';
-        btnConfirmar.disabled = false;
+        if (btnConfirmar) {
+            btnConfirmar.innerHTML = '<i class="fas fa-check-circle"></i> Confirmar Asistencia';
+            btnConfirmar.disabled = false;
+        }
         
         alert('❌ Error al confirmar asistencia. Por favor intenta nuevamente.');
     }
@@ -402,15 +409,20 @@ async function cancelarCita() {
 
     try {
         console.log('📤 Enviando petición de eliminación...');
-        console.log('   URL:', `${API_BASE_URL}/appointments/${proximaCita._id}`);
+        console.log('   URL:', `${API_BASE_URL}/patient-profile/appointments/${proximaCita._id}`);
         
         // Mostrar loading
         const btnCancelar = document.querySelector('.btn-submit:last-of-type');
+        if (!btnCancelar) {
+            console.error('❌ No se encontró el botón de cancelar');
+            return;
+        }
+        
         const textoOriginal = btnCancelar.innerHTML;
         btnCancelar.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Eliminando...';
         btnCancelar.disabled = true;
 
-        const response = await fetch(`${API_BASE_URL}/appointments/${proximaCita._id}`, {
+        const response = await fetch(`${API_BASE_URL}/patient-profile/appointments/${proximaCita._id}`, {
             method: 'DELETE',
             headers: {
                 'Content-Type': 'application/json'
@@ -442,8 +454,10 @@ async function cancelarCita() {
         
         // Restaurar botón
         const btnCancelar = document.querySelector('.btn-submit:last-of-type');
-        btnCancelar.innerHTML = '<i class="fas fa-times-circle"></i> Cancelar Cita';
-        btnCancelar.disabled = false;
+        if (btnCancelar) {
+            btnCancelar.innerHTML = '<i class="fas fa-times-circle"></i> Cancelar Cita';
+            btnCancelar.disabled = false;
+        }
         
         alert('❌ Error al eliminar la cita: ' + error.message + '\n\nPor favor intenta nuevamente.');
     }
