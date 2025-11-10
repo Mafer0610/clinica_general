@@ -6,11 +6,13 @@ require('dotenv').config();
 const connections = require('../../src/infrastructure/database/connections');
 const rabbitmq = require('../../shared/rabbitmq/RabbitMQClient');
 
+const ReminderService = require('../../src/application/services/ReminderService');
 const AuthController = require('../../src/adapters/inbound/controllers/AuthController');
 const PatientController = require('../../src/adapters/inbound/controllers/PatientController');
 const AppointmentController = require('../../src/adapters/inbound/controllers/AppointmentController');
 const PatientProfileController = require('../../src/adapters/inbound/controllers/PatientProfileController');
 const ExpedienteController = require('../../src/adapters/inbound/controllers/ExpedienteController');
+const RecetaController = require('../../src/adapters/inbound/controllers/RecetaController');
 
 const app = express();
 const PORT = process.env.PORT || 3002;
@@ -46,7 +48,7 @@ const validateMongoConnection = async (req, res, next) => {
         }
         next();
     } catch (error) {
-        console.error('❌ Error validando conexión:', error);
+        console.error(' Error validando conexión:', error);
         return res.status(503).json({
             error: 'Servicio no disponible',
             message: 'Error de conexión a la base de datos.'
@@ -60,6 +62,7 @@ app.use('/api/patients', validateMongoConnection, PatientController);
 app.use('/api/appointments', validateMongoConnection, AppointmentController);
 app.use('/api/patient-profile', validateMongoConnection, PatientProfileController);
 app.use('/api/expedientes', validateMongoConnection, ExpedienteController);
+app.use('/api/recetas', validateMongoConnection, RecetaController);
 
 // Ruta raíz - Login
 app.get('/', (req, res) => {
@@ -109,7 +112,7 @@ app.get('/health', async (req, res) => {
 
 // ========== MANEJO DE ERRORES ==========
 app.use((err, req, res, next) => {
-    console.error('❌ Error:', err);
+    console.error(' Error:', err);
     res.status(500).json({
         error: 'Error interno del servidor',
         message: err.message,
@@ -142,14 +145,12 @@ async function initRabbitMQ() {
         await rabbitmq.bindQueue('user.updated', 'user.events', 'user.updated');
         await rabbitmq.bindQueue('user.deleted', 'user.events', 'user.deleted');
     } catch (error) {
-        console.error('❌ Error inicializando RabbitMQ:', error.message);
+        console.error(' Error inicializando RabbitMQ:', error.message);
     }
 }
 
-// ========== INICIAR SERVIDOR ==========
 async function startServer() {
-    try {        
-        // Paso 1: Conectar a MongoDB Auth
+    try {
         await connections.connectAuth();
         await new Promise(resolve => setTimeout(resolve, 1000));
         
@@ -160,7 +161,6 @@ async function startServer() {
             return;
         }
         
-        // Paso 2: Conectar a MongoDB Clinic
         await connections.connectClinic();
         await new Promise(resolve => setTimeout(resolve, 1000));
         
@@ -171,10 +171,79 @@ async function startServer() {
             return;
         }
 
-        // Paso 3: Inicializar RabbitMQ
+        // Paso 3: RabbitMQ
         await initRabbitMQ();
 
-        // Paso 4: Iniciar servidor Express
+        // ✅ NUEVO Paso 4: Iniciar servicio de recordatorios
+        console.log('🔔 Iniciando servicio de recordatorios automáticos...');
+        ReminderService.iniciar();
+
+// ✅ Agregar ANTES de app.listen() en tu server.js
+
+// 🧪 ENDPOINT PARA PROBAR RECORDATORIOS (verificación manual)
+app.get('/api/test-reminder', async (req, res) => {
+    try {
+        console.log('🧪 Endpoint de prueba de recordatorios llamado');
+        
+        // Verificar estado del servicio
+        const status = ReminderService.getStatus();
+        
+        res.json({
+            success: true,
+            message: 'Prueba de recordatorios iniciada',
+            servicioActivo: status.isRunning,
+            descripcion: status.description,
+            nota: 'Revisa la consola del servidor para ver los logs'
+        });
+
+        // Ejecutar verificación en background
+        setTimeout(() => {
+            ReminderService.verificarAhora();
+        }, 1000);
+        
+    } catch (error) {
+        console.error('❌ Error en test-reminder:', error);
+        res.status(500).json({
+            success: false,
+            error: error.message
+        });
+    }
+});
+
+// 🧪 ENDPOINT PARA ENVIAR RECORDATORIOS DE TODAS LAS CITAS (MODO PRUEBA)
+app.get('/api/test-reminder-all', async (req, res) => {
+    try {
+        console.log('🧪 Modo prueba: enviando recordatorios de TODAS las citas');
+        
+        const resultado = await ReminderService.probarRecordatorios();
+        
+        res.json({
+            success: true,
+            message: 'Prueba completa',
+            recordatoriosEnviados: resultado.enviados,
+            recordatoriosFallidos: resultado.fallidos,
+            nota: 'Revisa tu email y la consola del servidor'
+        });
+        
+    } catch (error) {
+        console.error('❌ Error en test-reminder-all:', error);
+        res.status(500).json({
+            success: false,
+            error: error.message
+        });
+    }
+});
+
+// 🔍 ENDPOINT PARA VER ESTADO DEL SERVICIO
+app.get('/api/reminder-status', (req, res) => {
+    const status = ReminderService.getStatus();
+    res.json({
+        success: true,
+        ...status,
+        timestamp: new Date().toISOString()
+    });
+});
+
         app.listen(PORT, () => {
             console.log('');
             console.log('═══════════════════════════════════════════════════');
@@ -190,12 +259,13 @@ async function startServer() {
             console.log(`   👤 Auth: http://localhost:${PORT}/auth`);
             console.log(`   🏥 Pacientes: http://localhost:${PORT}/api/patients`);
             console.log(`   📅 Citas: http://localhost:${PORT}/api/appointments`);
-            console.log(`   👨‍⚕️ Perfil Paciente: http://localhost:${PORT}/api/patient-profile`); // NUEVO
+            console.log(`   👨‍⚕️ Perfil Paciente: http://localhost:${PORT}/api/patient-profile`);
             console.log('');
             console.log('📊 ESTADO:');
             console.log(`   🗄️  MongoDB Auth: ✅ Conectado (${authConn.name})`);
             console.log(`   🗄️  MongoDB Clinic: ✅ Conectado (${clinicConn.name})`);
             console.log(`   🐰 RabbitMQ: ${rabbitmq.channel ? '✅ Conectado' : '❌ Desconectado'}`);
+            console.log(`   🔔 Recordatorios: ${ReminderService.getStatus().isRunning ? '✅ Activo' : '❌ Inactivo'}`);
             console.log('');
             console.log(`   📊 Health check: http://localhost:${PORT}/health`);
             console.log('═══════════════════════════════════════════════════');
@@ -212,18 +282,22 @@ startServer();
 
 // ========== GRACEFUL SHUTDOWN ==========
 process.on('SIGINT', async () => {
+    console.log('\n⏹️ Cerrando Clinic Service...');
     try {
+        ReminderService.detener();
+        
         await rabbitmq.close();
         await connections.closeAll();
+        console.log('✅ Conexiones cerradas correctamente');
         process.exit(0);
     } catch (error) {
-        console.error('Error al cerrar:', error);
+        console.error('❌ Error al cerrar:', error);
         process.exit(1);
     }
 });
 
 process.on('unhandledRejection', (reason, promise) => {
-    console.error('❌ Unhandled Rejection at:', promise, 'reason:', reason);
+    console.error(' Unhandled Rejection at:', promise, 'reason:', reason);
 });
 
 module.exports = app;

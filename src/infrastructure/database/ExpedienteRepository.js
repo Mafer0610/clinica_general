@@ -1,9 +1,6 @@
 const connections = require('./connections');
 
 const ExpedienteRepository = {
-    /**
-     * Generar número de expediente único
-     */
     async generarNumeroExpediente() {
         try {
             const ahora = new Date();
@@ -33,9 +30,6 @@ const ExpedienteRepository = {
         }
     },
 
-    /**
-     * Buscar o crear expediente por pacienteId
-     */
     async findOrCreateByPacienteId(pacienteId) {
         try {
             const clinicConn = await connections.connectClinic();
@@ -97,9 +91,25 @@ const ExpedienteRepository = {
         }
     },
 
-    /**
-     * Actualizar historia clínica del expediente
-     */
+    async findByPacienteId(pacienteId) {
+        try {
+            const clinicConn = await connections.connectClinic();
+            
+            if (clinicConn.readyState !== 1) {
+                throw new Error('MongoDB Clinic no está conectado');
+            }
+
+            const ObjectId = require('mongodb').ObjectId;
+            const expediente = await clinicConn.collection('expedientes')
+                .findOne({ pacienteId: new ObjectId(pacienteId) });
+            
+            return expediente;
+        } catch (error) {
+            console.error('Error buscando expediente por pacienteId:', error);
+            throw error;
+        }
+    },
+
     async updateHistoriaClinica(expedienteId, historiaClinica) {
         try {
             console.log('🔄 ExpedienteRepository.updateHistoriaClinica');
@@ -116,7 +126,7 @@ const ExpedienteRepository = {
             
             // ✅ Validar que el ID sea válido antes de convertir
             if (!ObjectId.isValid(expedienteId)) {
-                console.error('❌ ID de expediente inválido:', expedienteId);
+                console.error(' ID de expediente inválido:', expedienteId);
                 throw new Error('ID de expediente inválido');
             }
             
@@ -125,10 +135,10 @@ const ExpedienteRepository = {
             
             // Primero verificar si existe el documento
             const existe = await clinicConn.collection('expedientes').findOne({ _id: objectId });
-            console.log('🔍 Expediente existe antes de actualizar:', existe ? '✅ SÍ' : '❌ NO');
+            console.log('🔍 Expediente existe antes de actualizar:', existe ? '✅ SÍ' : ' NO');
             
             if (!existe) {
-                console.error('❌ El expediente no existe en la BD');
+                console.error(' El expediente no existe en la BD');
                 console.log('💡 Buscando todos los expedientes...');
                 const todos = await clinicConn.collection('expedientes').find({}).toArray();
                 console.log(`📊 Total de expedientes en BD: ${todos.length}`);
@@ -154,7 +164,7 @@ const ExpedienteRepository = {
             console.log('📊 Documentos modificados:', updateResult.modifiedCount);
 
             if (updateResult.modifiedCount === 0) {
-                console.error('❌ No se pudo actualizar el expediente');
+                console.error(' No se pudo actualizar el expediente');
                 return null;
             }
 
@@ -164,15 +174,12 @@ const ExpedienteRepository = {
 
             return expedienteActualizado;
         } catch (error) {
-            console.error('❌ Error actualizando historia clínica:', error);
+            console.error(' Error actualizando historia clínica:', error);
             console.error('Stack:', error.stack);
             throw error;
         }
     },
 
-    /**
-     * Actualizar resultados de estudios
-     */
     async updateResultadosEstudios(expedienteId, resultadosEstudios) {
         try {
             const clinicConn = await connections.connectClinic();
@@ -195,7 +202,7 @@ const ExpedienteRepository = {
             );
 
             if (updateResult.modifiedCount === 0) {
-                console.error('❌ No se pudo actualizar resultados de estudios');
+                console.error(' No se pudo actualizar resultados de estudios');
                 return null;
             }
 
@@ -207,9 +214,6 @@ const ExpedienteRepository = {
         }
     },
 
-    /**
-     * Agregar consulta al expediente
-     */
     async addConsulta(expedienteId, consultaData) {
         try {
             const clinicConn = await connections.connectClinic();
@@ -235,7 +239,7 @@ const ExpedienteRepository = {
             );
 
             if (updateResult.modifiedCount === 0) {
-                console.error('❌ No se pudo agregar consulta');
+                console.error(' No se pudo agregar consulta');
                 return null;
             }
 
@@ -247,9 +251,6 @@ const ExpedienteRepository = {
         }
     },
 
-    /**
-     * Obtener todas las consultas de un expediente
-     */
     async getConsultas(expedienteId) {
         try {
             const clinicConn = await connections.connectClinic();
@@ -272,9 +273,6 @@ const ExpedienteRepository = {
         }
     },
 
-    /**
-     * Obtener expediente completo
-     */
     async findById(expedienteId) {
         try {
             const clinicConn = await connections.connectClinic();

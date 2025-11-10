@@ -42,10 +42,10 @@ document.getElementById('login-form').addEventListener('submit', async (e) => {
                 alert("⚠️ Rol no reconocido, contacta al soporte.");
             }
         } else {
-            alert("❌ " + (data.error || "Credenciales incorrectas"));
+            alert(" " + (data.error || "Credenciales incorrectas"));
         }
     } catch (error) {
-        console.error("❌ Error en login:", error);
-        alert("❌ Error: " + error.message + "\n\nVerifica que el Auth Service esté corriendo en puerto 3001");
+        console.error(" Error en login:", error);
+        alert(" Error: " + error.message + "\n\nVerifica que el Auth Service esté corriendo en puerto 3001");
     }
 });

@@ -33,7 +33,7 @@ const validateMongoConnection = async (req, res, next) => {
         }
         next();
     } catch (error) {
-        console.error('❌ Error validando conexión:', error);
+        console.error(' Error validando conexión:', error);
         return res.status(503).json({
             error: 'Servicio no disponible',
             message: 'Error de conexión a la base de datos.'
@@ -69,7 +69,7 @@ app.get('/', (req, res) => {
 });
 
 app.use((err, req, res, next) => {
-    console.error('❌ Error:', err);
+    console.error(' Error:', err);
     res.status(500).json({
         error: 'Error interno del servidor',
         message: err.message,
@@ -102,7 +102,7 @@ async function initRabbitMQ() {
         
         ('✅ RabbitMQ inicializado en Auth Service');
     } catch (error) {
-        console.error('❌ Error inicializando RabbitMQ:', error.message);
+        console.error(' Error inicializando RabbitMQ:', error.message);
     }
 }
 
@@ -116,7 +116,7 @@ async function startServer() {
         
         const authConn = await connections.connectAuth();
         if (authConn.readyState !== 1) {
-            console.error('❌ MongoDB conectado pero no está listo');
+            console.error(' MongoDB conectado pero no está listo');
             setTimeout(startServer, 3000);
             return;
         }
@@ -133,13 +133,13 @@ async function startServer() {
             (`🚀 Auth Service escuchando en http://localhost:${PORT}`);
             (`📊 Health check: http://localhost:${PORT}/health`);
             (`🗄️  MongoDB Auth: ✅ Conectado`);
-            (`🐰 RabbitMQ: ${rabbitmq.channel ? '✅ Conectado' : '❌ Desconectado'}`);
+            (`🐰 RabbitMQ: ${rabbitmq.channel ? '✅ Conectado' : ' Desconectado'}`);
             ('═══════════════════════════════════════════════════');
             ('');
         });
 
     } catch (error) {
-        console.error('❌ Error al iniciar el servidor:', error);
+        console.error(' Error al iniciar el servidor:', error);
         process.exit(1);
     }
 }
@@ -155,13 +155,13 @@ process.on('SIGINT', async () => {
         console.log('✅ Conexiones cerradas correctamente');
         process.exit(0);
     } catch (error) {
-        console.error('❌ Error al cerrar:', error);
+        console.error(' Error al cerrar:', error);
         process.exit(1);
     }
 });
 
 process.on('unhandledRejection', (reason, promise) => {
-    console.error('❌ Unhandled Rejection at:', promise, 'reason:', reason);
+    console.error(' Unhandled Rejection at:', promise, 'reason:', reason);
 });
 
 module.exports = app;

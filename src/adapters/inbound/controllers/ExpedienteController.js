@@ -2,6 +2,27 @@ const express = require('express');
 const ExpedienteRepository = require('../../../infrastructure/database/ExpedienteRepository');
 const PatientRepository = require('../../../infrastructure/database/PatientRepository');
 
+// Agregar método findByPacienteId al ExpedienteRepository
+ExpedienteRepository.findByPacienteId = async function(pacienteId) {
+    try {
+        const connections = require('../../../infrastructure/database/connections');
+        const clinicConn = await connections.connectClinic();
+        
+        if (clinicConn.readyState !== 1) {
+            throw new Error('MongoDB Clinic no está conectado');
+        }
+
+        const ObjectId = require('mongodb').ObjectId;
+        const expediente = await clinicConn.collection('expedientes')
+            .findOne({ pacienteId: new ObjectId(pacienteId) });
+        
+        return expediente;
+    } catch (error) {
+        console.error('Error buscando expediente por pacienteId:', error);
+        throw error;
+    }
+};
+
 const router = express.Router();
 
 // ========== OBTENER O CREAR EXPEDIENTE POR PACIENTE ID ==========
@@ -10,7 +31,6 @@ router.get('/paciente/:pacienteId', async (req, res) => {
         console.log('📥 GET /api/expedientes/paciente/:pacienteId');
         console.log('📋 pacienteId:', req.params.pacienteId);
         
-        // Obtener datos del paciente
         const patient = await PatientRepository.findById(req.params.pacienteId);
         
         if (!patient) {
@@ -20,16 +40,13 @@ router.get('/paciente/:pacienteId', async (req, res) => {
             });
         }
         
-        // Buscar o crear expediente
         const expediente = await ExpedienteRepository.findOrCreateByPacienteId(req.params.pacienteId);
         
-        // ✅ IMPORTANTE: Convertir _id a string para el frontend
         const expedienteConIdString = {
             ...expediente,
             _id: expediente._id.toString()
         };
         
-        // Combinar datos del paciente con el expediente
         const expedienteCompleto = {
             expediente: expedienteConIdString,
             paciente: {
@@ -57,6 +74,42 @@ router.get('/paciente/:pacienteId', async (req, res) => {
         res.status(500).json({
             success: false,
             error: 'Error al obtener expediente',
+            details: error.message
+        });
+    }
+});
+
+// ========== OBTENER CONSULTAS DEL EXPEDIENTE (HISTORIAL) ==========
+router.get('/paciente/:pacienteId/consultas', async (req, res) => {
+    try {
+        console.log('📥 GET /api/expedientes/paciente/:pacienteId/consultas');
+        console.log('📋 pacienteId:', req.params.pacienteId);
+        
+        const expediente = await ExpedienteRepository.findByPacienteId(req.params.pacienteId);
+        
+        if (!expediente) {
+            return res.json({
+                success: true,
+                consultas: [],
+                message: 'No hay expediente para este paciente'
+            });
+        }
+        
+        // Ordenar consultas por fecha (más reciente primero)
+        const consultasOrdenadas = expediente.consultas.sort((a, b) => 
+            new Date(b.fechaConsulta) - new Date(a.fechaConsulta)
+        );
+        
+        res.json({
+            success: true,
+            consultas: consultasOrdenadas,
+            count: consultasOrdenadas.length
+        });
+    } catch (error) {
+        console.error('❌ Error obteniendo consultas:', error);
+        res.status(500).json({
+            success: false,
+            error: 'Error al obtener consultas',
             details: error.message
         });
     }
@@ -154,7 +207,6 @@ router.post('/:expedienteId/consulta', async (req, res) => {
         
         const consultaData = req.body;
         
-        // Validar campos requeridos
         if (!consultaData.fechaConsulta) {
             return res.status(400).json({
                 success: false,
@@ -162,12 +214,10 @@ router.post('/:expedienteId/consulta', async (req, res) => {
             });
         }
         
-        // Convertir fecha a Date object
         if (typeof consultaData.fechaConsulta === 'string') {
             consultaData.fechaConsulta = new Date(consultaData.fechaConsulta);
         }
         
-        // Obtener ID del médico del localStorage (se envía en el body)
         const medicoId = consultaData.creadoPor || '';
         consultaData.creadoPor = medicoId;
         
@@ -215,6 +265,45 @@ router.get('/:expedienteId/consultas', async (req, res) => {
         res.status(500).json({
             success: false,
             error: 'Error al obtener consultas',
+            details: error.message
+        });
+    }
+});
+
+// ========== OBTENER CONSULTA ESPECÍFICA POR ID ==========
+router.get('/:expedienteId/consulta/:consultaId', async (req, res) => {
+    try {
+        console.log('📥 GET /api/expedientes/:expedienteId/consulta/:consultaId');
+        
+        const { expedienteId, consultaId } = req.params;
+        
+        const expediente = await ExpedienteRepository.findById(expedienteId);
+        
+        if (!expediente) {
+            return res.status(404).json({
+                success: false,
+                error: 'Expediente no encontrado'
+            });
+        }
+        
+        const consulta = expediente.consultas.find(c => c._id.toString() === consultaId);
+        
+        if (!consulta) {
+            return res.status(404).json({
+                success: false,
+                error: 'Consulta no encontrada'
+            });
+        }
+        
+        res.json({
+            success: true,
+            consulta: consulta
+        });
+    } catch (error) {
+        console.error('❌ Error obteniendo consulta:', error);
+        res.status(500).json({
+            success: false,
+            error: 'Error al obtener consulta',
             details: error.message
         });
     }

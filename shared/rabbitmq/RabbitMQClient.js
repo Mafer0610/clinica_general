@@ -23,13 +23,13 @@ class RabbitMQClient {
       });
 
       this.connection.on('error', (err) => {
-        console.error('❌ Error en conexión RabbitMQ:', err.message);
+        console.error(' Error en conexión RabbitMQ:', err.message);
         this.channel = null;
       });
 
       return this.channel;
     } catch (error) {
-      console.error('❌ Error conectando a RabbitMQ:', error.message);
+      console.error(' Error conectando a RabbitMQ:', error.message);
       this.channel = null;
       this.connection = null;
       setTimeout(() => this.connect(), 5000);
@@ -83,7 +83,7 @@ class RabbitMQClient {
       
       return true;
     } catch (error) {
-      console.error(`❌ Error enviando mensaje a [${queueName}]:`, error.message);
+      console.error(` Error enviando mensaje a [${queueName}]:`, error.message);
       return false;
     }
   }
@@ -108,7 +108,7 @@ class RabbitMQClient {
       
       return true;
     } catch (error) {
-      console.error(`❌ Error publicando mensaje:`, error.message);
+      console.error(` Error publicando mensaje:`, error.message);
       return false;
     }
   }
@@ -140,7 +140,7 @@ class RabbitMQClient {
               this.channel.ack(msg);
             }
           } catch (error) {
-            console.error(`❌ Error procesando mensaje de [${queueName}]:`, error.message);
+            console.error(` Error procesando mensaje de [${queueName}]:`, error.message);
             // Rechazar y reencolar el mensaje
             this.channel.nack(msg, false, true);
           }
@@ -149,7 +149,7 @@ class RabbitMQClient {
 
       return true;
     } catch (error) {
-      console.error(`❌ Error consumiendo de [${queueName}]:`, error.message);
+      console.error(` Error consumiendo de [${queueName}]:`, error.message);
       return false;
     }
   }
@@ -168,7 +168,7 @@ class RabbitMQClient {
       
       return true;
     } catch (error) {
-      console.error(`❌ Error vinculando cola:`, error.message);
+      console.error(` Error vinculando cola:`, error.message);
       return false;
     }
   }
@@ -183,7 +183,7 @@ class RabbitMQClient {
       }
       console.log('🔌 Conexión a RabbitMQ cerrada');
     } catch (error) {
-      console.error('❌ Error cerrando conexión RabbitMQ:', error.message);
+      console.error(' Error cerrando conexión RabbitMQ:', error.message);
     }
   }
 }

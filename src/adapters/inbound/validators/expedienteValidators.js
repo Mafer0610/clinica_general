@@ -231,10 +231,15 @@ const upsertPatientProfileValidation = [
         }),
     
     body('sexo')
-        .optional({ checkFalsy: true })
-        .trim()
-        .isIn(['M', 'F', 'Masculino', 'Femenino']).withMessage('Sexo inválido')
-        .escape(),
+    .optional({ checkFalsy: true })
+    .trim()
+    .isIn(['M', 'F', 'Masculino', 'Femenino']).withMessage('Sexo inválido')
+    .customSanitizer(value => {
+        if (value === 'M') return 'Masculino';
+        if (value === 'F') return 'Femenino';
+        return value;
+    })
+    .escape(),
     
     body('telefono')
         .optional()

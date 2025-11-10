@@ -42,7 +42,7 @@ router.get('/profile/:email', patientProfileEmailValidation, handleValidationErr
             appointmentsCount: appointments?.length || 0
         });
     } catch (error) {
-        console.error('❌ Error obteniendo perfil del paciente:', error);
+        console.error(' Error obteniendo perfil del paciente:', error);
         res.status(500).json({
             success: false,
             error: 'Error al obtener perfil del paciente',
@@ -73,7 +73,7 @@ router.post('/profile/upsert', upsertPatientProfileValidation, handleValidationE
 
         // Validaciones básicas
         if (!email) {
-            console.error('❌ Email no proporcionado');
+            console.error(' Email no proporcionado');
             return res.status(400).json({
                 success: false,
                 error: 'Email es requerido'
@@ -81,7 +81,7 @@ router.post('/profile/upsert', upsertPatientProfileValidation, handleValidationE
         }
 
         if (!nombre || !apellidos) {
-            console.error('❌ Nombre o apellidos no proporcionados');
+            console.error(' Nombre o apellidos no proporcionados');
             return res.status(400).json({
                 success: false,
                 error: 'Nombre y apellidos son requeridos'
@@ -116,7 +116,7 @@ router.post('/profile/upsert', upsertPatientProfileValidation, handleValidationE
                     updateData.edad = edad;
                     console.log('📅 Edad calculada:', edad);
                 } catch (error) {
-                    console.error('❌ Error procesando fechaNacimiento:', error);
+                    console.error(' Error procesando fechaNacimiento:', error);
                     // No actualizar fechaNacimiento si hay error
                 }
             }
@@ -143,7 +143,7 @@ router.post('/profile/upsert', upsertPatientProfileValidation, handleValidationE
             const updatedPatient = await PatientRepository.update(patient._id.toString(), updateData);
 
             if (!updatedPatient) {
-                console.error('❌ No se pudo actualizar el paciente');
+                console.error(' No se pudo actualizar el paciente');
                 return res.status(500).json({
                     success: false,
                     error: 'Error al actualizar paciente'
@@ -178,7 +178,7 @@ router.post('/profile/upsert', upsertPatientProfileValidation, handleValidationE
                     }
                     console.log('📅 Edad calculada:', edad);
                 } catch (error) {
-                    console.error('❌ Error procesando fechaNacimiento:', error);
+                    console.error(' Error procesando fechaNacimiento:', error);
                     fechaNacimientoDate = null;
                 }
             }
@@ -204,7 +204,7 @@ router.post('/profile/upsert', upsertPatientProfileValidation, handleValidationE
             const result = await PatientRepository.save(patientData);
             
             if (!result || !result.insertedId) {
-                console.error('❌ No se pudo crear el paciente');
+                console.error(' No se pudo crear el paciente');
                 return res.status(500).json({
                     success: false,
                     error: 'Error al crear paciente'
@@ -214,7 +214,7 @@ router.post('/profile/upsert', upsertPatientProfileValidation, handleValidationE
             const newPatient = await PatientRepository.findById(result.insertedId.toString());
 
             if (!newPatient) {
-                console.error('❌ No se pudo recuperar el paciente creado');
+                console.error(' No se pudo recuperar el paciente creado');
                 return res.status(500).json({
                     success: false,
                     error: 'Error al recuperar paciente creado'
@@ -231,7 +231,7 @@ router.post('/profile/upsert', upsertPatientProfileValidation, handleValidationE
             });
         }
     } catch (error) {
-        console.error('❌ ERROR CRÍTICO en upsert de perfil:', error);
+        console.error(' ERROR CRÍTICO en upsert de perfil:', error);
         console.error('Stack:', error.stack);
         res.status(500).json({
             success: false,
@@ -288,7 +288,7 @@ router.get('/appointments/upcoming/:email', async (req, res) => {
             count: upcomingAppointments.length
         });
     } catch (error) {
-        console.error('❌ Error obteniendo próximas citas:', error);
+        console.error(' Error obteniendo próximas citas:', error);
         res.status(500).json({
             success: false,
             error: 'Error al obtener próximas citas'
@@ -343,7 +343,7 @@ router.get('/appointments/history/:email', async (req, res) => {
             count: pastAppointments.length
         });
     } catch (error) {
-        console.error('❌ Error obteniendo historial de citas:', error);
+        console.error(' Error obteniendo historial de citas:', error);
         res.status(500).json({
             success: false,
             error: 'Error al obtener historial de citas'
@@ -377,7 +377,7 @@ router.put('/appointments/:appointmentId/confirm', appointmentActionValidation, 
             appointment: updatedAppointment
         });
     } catch (error) {
-        console.error('❌ Error confirmando cita:', error);
+        console.error(' Error confirmando cita:', error);
         res.status(500).json({
             success: false,
             error: 'Error al confirmar cita'
@@ -388,7 +388,7 @@ router.put('/appointments/:appointmentId/confirm', appointmentActionValidation, 
 // ========== CANCELAR CITA ==========
 router.put('/appointments/:appointmentId/cancel', appointmentActionValidation, handleValidationErrors, async (req, res) => {
     try {
-        console.log('❌ Cancelando cita:', req.params.appointmentId);
+        console.log(' Cancelando cita:', req.params.appointmentId);
         
         const updatedAppointment = await AppointmentRepository.update(
             req.params.appointmentId,
@@ -410,7 +410,7 @@ router.put('/appointments/:appointmentId/cancel', appointmentActionValidation, h
             appointment: updatedAppointment
         });
     } catch (error) {
-        console.error('❌ Error cancelando cita:', error);
+        console.error(' Error cancelando cita:', error);
         res.status(500).json({
             success: false,
             error: 'Error al cancelar cita'

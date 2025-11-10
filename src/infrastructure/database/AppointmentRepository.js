@@ -47,16 +47,14 @@ const AppointmentRepository = {
             console.log('🔍 Buscando citas para médico:', medicoId);
             console.log('📋 Tipo de medicoId:', typeof medicoId);
             
-            // ✅ IMPORTANTE: No convertir medicoId a ObjectId porque es un string
             const appointments = await clinicConn.collection('appointments')
                 .find({ 
-                    medicoId: medicoId  // Buscar como string
+                    medicoId: medicoId
                 })
                 .toArray();
             
             console.log(`📊 Total de citas encontradas: ${appointments.length}`);
             
-            // Mostrar todas las citas en la BD (para debug)
             if (appointments.length === 0) {
                 console.log('⚠️ No se encontraron citas. Buscando TODAS las citas en la BD...');
                 const todasCitas = await clinicConn.collection('appointments').find({}).toArray();
@@ -66,7 +64,6 @@ const AppointmentRepository = {
                     console.log(`      pacienteId="${apt.pacienteId}" - ${apt.pacienteNombre}`);
                 });
             } else {
-                // Mostrar las citas encontradas
                 appointments.forEach((apt, i) => {
                     console.log(`  ${i+1}. ${apt.pacienteNombre} - Fecha: ${apt.fecha} - Estado: ${apt.estado}`);
                 });
@@ -119,6 +116,39 @@ const AppointmentRepository = {
             return appointments;
         } catch (error) {
             console.error("Error al buscar citas por rango:", error.message);
+            throw error;
+        }
+    },
+
+    // ✅ NUEVO: Buscar citas de un médico en un rango de fechas
+    async findByMedicoAndDateRange(medicoId, startDate, endDate) {
+        try {
+            const clinicConn = await connections.connectClinic();
+            
+            if (clinicConn.readyState !== 1) {
+                throw new Error('MongoDB Clinic no está conectado');
+            }
+
+            console.log('🔍 Buscando citas del médico en rango de fechas');
+            console.log(`   👨‍⚕️ Médico: ${medicoId}`);
+            console.log(`   📅 Desde: ${new Date(startDate).toLocaleString('es-MX')}`);
+            console.log(`   📅 Hasta: ${new Date(endDate).toLocaleString('es-MX')}`);
+
+            const appointments = await clinicConn.collection('appointments')
+                .find({
+                    medicoId: medicoId,
+                    fecha: {
+                        $gte: new Date(startDate),
+                        $lte: new Date(endDate)
+                    }
+                })
+                .toArray();
+            
+            console.log(`   📊 Citas encontradas: ${appointments.length}`);
+            
+            return appointments;
+        } catch (error) {
+            console.error("❌ Error al buscar citas por médico y rango:", error.message);
             throw error;
         }
     },

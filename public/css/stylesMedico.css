@@ -1006,3 +1006,335 @@ h1 {
 .form-group {
   position: relative;
 }
+
+/* === Seccion de medicohistorialpaciente.html === */
+/* === HISTORIAL PACIENTES === */
+.historial-layout {
+    display: grid;
+    grid-template-columns: 1fr 2fr;
+    gap: 30px;
+    margin-top: 20px;
+}
+
+.patients-list {
+    max-height: calc(100vh - 200px);
+    overflow-y: auto;
+}
+
+.patient-details {
+    background-color: #FFFFFF;
+    border: 2px solid #0F3759;
+    border-radius: 15px;
+    padding: 25px;
+    box-shadow: 0 3px 8px rgba(0, 0, 0, 0.1);
+    max-height: calc(100vh - 200px);
+    overflow-y: auto;
+}
+
+.patient-detail-view {
+    height: 100%;
+}
+
+.detail-placeholder {
+    text-align: center;
+    color: #6B8199;
+    padding: 60px 20px;
+}
+
+.detail-placeholder i {
+    font-size: 4em;
+    margin-bottom: 20px;
+    color: #B8CDE0;
+}
+
+.detail-placeholder h3 {
+    color: #0F3759;
+    margin-bottom: 15px;
+    font-size: 1.4em;
+}
+
+.detail-content {
+    height: 100%;
+}
+
+.patient-name-detail {
+    color: #0F3759;
+    font-size: 1.6em;
+    font-weight: 700;
+    margin-bottom: 25px;
+    padding-bottom: 15px;
+    border-bottom: 2px solid #B8CDE0;
+}
+
+.records-section {
+    margin-top: 20px;
+}
+
+.records-title {
+    color: #0F3759;
+    font-size: 1.3em;
+    font-weight: 600;
+    margin-bottom: 20px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.records-container {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.folder {
+    background-color: #FFFFFF;
+    border: 2px solid #0F3759;
+    border-radius: 10px;
+    overflow: hidden;
+    box-shadow: 0 3px 8px rgba(0, 0, 0, 0.1);
+    transition: all 0.3s ease;
+}
+
+.folder:hover {
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.15);
+}
+
+.folder-header {
+    background-color: #B8CDE0;
+    padding: 15px 20px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+}
+
+.folder-header:hover {
+    background-color: #9DB8CF;
+}
+
+.folder-header i.fa-folder {
+    color: #0F3759;
+    font-size: 1.2em;
+}
+
+.folder-date {
+    color: #0F3759;
+    font-weight: 600;
+    font-size: 1.1em;
+    flex: 1;
+}
+
+.folder-toggle {
+    color: #0F3759;
+    transition: transform 0.3s ease;
+}
+
+.folder.active .folder-toggle {
+    transform: rotate(180deg);
+}
+
+.folder-content {
+    display: none;
+    padding: 0;
+}
+
+.folder.active .folder-content {
+    display: block;
+    padding: 15px 20px;
+    animation: fadeIn 0.3s ease;
+}
+
+.record-item {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    padding: 12px 0;
+    border-bottom: 1px solid #E8E8E8;
+}
+
+.record-item:last-child {
+    border-bottom: none;
+}
+
+.record-item i {
+    font-size: 1.5em;
+    color: #0F3759;
+    width: 30px;
+    text-align: center;
+}
+
+.record-info {
+    flex: 1;
+}
+
+.record-info h4 {
+    color: #0F3759;
+    font-size: 1.1em;
+    font-weight: 600;
+    margin-bottom: 5px;
+}
+
+.record-info p {
+    color: #6B8199;
+    font-size: 0.9em;
+    margin-bottom: 5px;
+}
+
+.record-time {
+    color: #8B9DAF;
+    font-size: 0.85em;
+    font-style: italic;
+}
+
+.btn-view-record {
+    background-color: #0F3759;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    padding: 8px 15px;
+    font-size: 0.9em;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.btn-view-record:hover {
+    background-color: #1a5080;
+    transform: translateY(-2px);
+    box-shadow: 0 3px 8px rgba(15, 55, 89, 0.3);
+}
+.btn-view-record .fas.fa-eye {
+    color: white;
+}
+/* Estilos para el contenido del modal de expedientes */
+.record-content {
+    max-height: 60vh;
+    overflow-y: auto;
+    padding: 10px;
+    border: 1px solid #E8E8E8;
+    border-radius: 8px;
+    background-color: #F8F9FA;
+}
+
+.record-section {
+    margin-bottom: 20px;
+}
+
+.record-section-title {
+    color: #0F3759;
+    font-size: 1.1em;
+    font-weight: 600;
+    margin-bottom: 10px;
+    border-bottom: 1px solid #D3DAE2;
+    padding-bottom: 5px;
+}
+
+.record-field {
+    display: flex;
+    margin-bottom: 8px;
+}
+
+.record-label {
+    font-weight: 600;
+    color: #0F3759;
+    min-width: 150px;
+}
+
+.record-value {
+    color: #6B8199;
+    flex: 1;
+}
+
+.prescription-item {
+    background-color: white;
+    border: 1px solid #D3DAE2;
+    border-radius: 6px;
+    padding: 10px;
+    margin-bottom: 10px;
+}
+
+.prescription-header {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 8px;
+}
+
+.prescription-name {
+    font-weight: 600;
+    color: #0F3759;
+}
+
+.prescription-dosage {
+    color: #6B8199;
+}
+
+.prescription-instructions {
+    font-size: 0.9em;
+    color: #6B8199;
+}
+
+/* Estilo para paciente seleccionado */
+.patient-card.selected {
+    background-color: #0F3759;
+    border-color: #0F3759;
+}
+
+.patient-card.selected .patient-name,
+.patient-card.selected .patient-detail,
+.patient-card.selected .patient-detail strong {
+    color: white;
+}
+
+.patient-card.selected .patient-icon {
+    background-color: white;
+    border-color: white;
+}
+
+.patient-card.selected .patient-icon i {
+    color: #0F3759;
+}
+
+/* Responsive para historial */
+@media (max-width: 1024px) {
+    .historial-layout {
+        grid-template-columns: 1fr;
+        gap: 20px;
+    }
+    
+    .patients-list {
+        max-height: 400px;
+    }
+    
+    .patient-details {
+        max-height: 500px;
+    }
+}
+
+@media (max-width: 768px) {
+    .patient-name-detail {
+        font-size: 1.4em;
+    }
+    
+    .record-item {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 10px;
+    }
+    
+    .btn-view-record {
+        align-self: flex-end;
+    }
+    
+    .record-field {
+        flex-direction: column;
+    }
+    
+    .record-label {
+        min-width: auto;
+        margin-bottom: 3px;
+    }
+}

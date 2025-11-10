@@ -30,9 +30,14 @@ document.addEventListener('DOMContentLoaded', async function() {
     }
 
     currentUserEmail = userEmail;
+    console.log('✅ Email del usuario:', currentUserEmail);
+    
     await cargarDatosMedico();
     await cargarProximaCita(userEmail);
     configurarModalPerfil();
+    
+    // ✅ IMPORTANTE: Configurar botones DESPUÉS de cargar la cita
+    console.log('🔧 Configurando event listeners de botones...');
     configurarBotones();
 });
 
@@ -68,13 +73,17 @@ async function cargarDatosMedico() {
 // ===== CARGAR PRÓXIMA CITA ==========
 async function cargarProximaCita(email) {
     try {
+        console.log('📥 Solicitando próximas citas para:', email);
+        
         const response = await fetch(`${API_BASE_URL}/patient-profile/appointments/upcoming/${encodeURIComponent(email)}`);
         const data = await response.json();
+
+        console.log('📦 Respuesta del servidor:', data);
 
         if (data.success) {
             if (data.appointments && data.appointments.length > 0) {
                 proximaCita = data.appointments[0];
-                console.log('✅ Próxima cita encontrada');
+                console.log('✅ Próxima cita encontrada:', proximaCita);
                 
                 await cargarDatosPaciente(email);
                 mostrarProximaCita();
@@ -100,6 +109,7 @@ async function cargarDatosPaciente(email) {
 
         if (data.success && data.hasProfile) {
             patientData = data.patient;
+            console.log('✅ Datos del paciente cargados');
         }
     } catch (error) {
         console.error('❌ Error cargando datos del paciente:', error);
@@ -108,7 +118,12 @@ async function cargarDatosPaciente(email) {
 
 // ===== MOSTRAR PRÓXIMA CITA =====
 function mostrarProximaCita() {
-    if (!proximaCita) return;
+    if (!proximaCita) {
+        console.error('❌ No hay cita para mostrar');
+        return;
+    }
+
+    console.log('📋 Mostrando cita en la UI...');
 
     // Mostrar datos reales del médico
     if (medicoData) {
@@ -133,34 +148,58 @@ function mostrarProximaCita() {
     document.getElementById('fecha-cita').value = fechaISO;
     document.getElementById('hora-cita').value = proximaCita.hora || '';
 
+    console.log('✅ Datos mostrados en la UI');
     actualizarEstadoConfirmacion();
 }
 
 // ===== ACTUALIZAR ESTADO DE CONFIRMACIÓN =====
 function actualizarEstadoConfirmacion() {
+    console.log('🔄 Actualizando estado de confirmación...');
+    console.log('   Estado actual de la cita:', proximaCita.estado);
+    console.log('   Confirmada:', proximaCita.confirmada);
+    
     const btnConfirmar = document.querySelector('.btn-submit:first-of-type');
     const btnCancelar = document.querySelector('.btn-submit:last-of-type');
 
+    if (!btnConfirmar || !btnCancelar) {
+        console.error('❌ No se encontraron los botones en el DOM');
+        return;
+    }
+
     if (proximaCita.confirmada) {
-        btnConfirmar.textContent = '✅ Asistencia Confirmada';
-        btnConfirmar.style.backgroundColor = '#28a745';
+        console.log('✅ Cita confirmada - Actualizando botón a verde');
+        btnConfirmar.innerHTML = '<i class="fas fa-check-circle"></i> Asistencia Confirmada';
+        btnConfirmar.style.background = 'linear-gradient(135deg, #28a745 0%, #20c997 100%)';
         btnConfirmar.disabled = true;
         btnConfirmar.style.cursor = 'not-allowed';
+        btnConfirmar.style.opacity = '0.8';
+    } else {
+        console.log('⏳ Cita pendiente - Botón azul normal');
+        btnConfirmar.innerHTML = '<i class="fas fa-check-circle"></i> Confirmar Asistencia';
+        btnConfirmar.style.background = 'linear-gradient(135deg, #0F3759 0%, #1C4D8C 100%)';
+        btnConfirmar.disabled = false;
+        btnConfirmar.style.cursor = 'pointer';
+        btnConfirmar.style.opacity = '1';
     }
 
     if (proximaCita.estado === 'cancelada') {
+        console.log('⚠️ Cita cancelada - Deshabilitando botones');
         btnConfirmar.disabled = true;
         btnCancelar.disabled = true;
         btnConfirmar.style.opacity = '0.5';
         btnCancelar.style.opacity = '0.5';
         
         const container = document.querySelector('.form-section:last-child');
-        container.insertAdjacentHTML('afterbegin', `
-            <div style="background: #fff3cd; border: 2px solid #ffc107; padding: 15px; border-radius: 10px; margin-bottom: 20px; text-align: center;">
-                <i class="fas fa-exclamation-triangle" style="color: #856404; font-size: 24px; margin-bottom: 10px;"></i>
-                <p style="color: #856404; font-weight: 600; margin: 0;">Esta cita ha sido cancelada</p>
-            </div>
-        `);
+        const existingAlert = container.querySelector('.alert-cancelada');
+        
+        if (!existingAlert) {
+            container.insertAdjacentHTML('afterbegin', `
+                <div class="alert-cancelada" style="background: #fff3cd; border: 2px solid #ffc107; padding: 15px; border-radius: 10px; margin-bottom: 20px; text-align: center;">
+                    <i class="fas fa-exclamation-triangle" style="color: #856404; font-size: 24px; margin-bottom: 10px;"></i>
+                    <p style="color: #856404; font-weight: 600; margin: 0;">Esta cita ha sido cancelada</p>
+                </div>
+            `);
+        }
     }
 }
 
@@ -223,31 +262,79 @@ function mostrarMensajeError() {
 
 // ===== CONFIGURAR BOTONES =====
 function configurarBotones() {
+    console.log('🔧 Configurando event listeners...');
+    
     const btnConfirmar = document.querySelector('.btn-submit:first-of-type');
-    if (btnConfirmar) {
-        btnConfirmar.addEventListener('click', async (e) => {
-            e.preventDefault();
-            await confirmarAsistencia();
-        });
-    }
-
     const btnCancelar = document.querySelector('.btn-submit:last-of-type');
-    if (btnCancelar) {
-        btnCancelar.addEventListener('click', async (e) => {
-            e.preventDefault();
-            await cancelarCita();
-        });
+    
+    if (!btnConfirmar) {
+        console.error('❌ No se encontró el botón de confirmar');
+        return;
     }
+    
+    if (!btnCancelar) {
+        console.error('❌ No se encontró el botón de cancelar');
+        return;
+    }
+    
+    console.log('✅ Botones encontrados');
+    
+    // Remover listeners previos (si existen)
+    btnConfirmar.replaceWith(btnConfirmar.cloneNode(true));
+    btnCancelar.replaceWith(btnCancelar.cloneNode(true));
+    
+    // Obtener referencias actualizadas
+    const newBtnConfirmar = document.querySelector('.btn-submit:first-of-type');
+    const newBtnCancelar = document.querySelector('.btn-submit:last-of-type');
+    
+    // Agregar nuevos listeners
+    newBtnConfirmar.addEventListener('click', async (e) => {
+        e.preventDefault();
+        console.log('🖱️ Click en CONFIRMAR ASISTENCIA');
+        await confirmarAsistencia();
+    });
+    
+    newBtnCancelar.addEventListener('click', async (e) => {
+        e.preventDefault();
+        console.log('🖱️ Click en CANCELAR CITA');
+        await cancelarCita();
+    });
+    
+    console.log('✅ Event listeners configurados correctamente');
 }
 
 // ===== CONFIRMAR ASISTENCIA =====
 async function confirmarAsistencia() {
-    if (!proximaCita) return;
+    console.log('📝 Función confirmarAsistencia() iniciada');
+    
+    if (!proximaCita) {
+        console.error('❌ No hay cita para confirmar');
+        alert('Error: No se encontró información de la cita');
+        return;
+    }
+
+    // Si ya está confirmada, no hacer nada
+    if (proximaCita.confirmada) {
+        console.log('⚠️ La cita ya está confirmada');
+        return;
+    }
 
     const confirmar = confirm('¿Confirmas tu asistencia a esta cita?');
-    if (!confirmar) return;
+    if (!confirmar) {
+        console.log('❌ Usuario canceló la confirmación');
+        return;
+    }
 
     try {
+        console.log('📤 Enviando petición de confirmación...');
+        console.log('   URL:', `${API_BASE_URL}/patient-profile/appointments/${proximaCita._id}/confirm`);
+        
+        // Mostrar loading en el botón
+        const btnConfirmar = document.querySelector('.btn-submit:first-of-type');
+        const textoOriginal = btnConfirmar.innerHTML;
+        btnConfirmar.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Confirmando...';
+        btnConfirmar.disabled = true;
+
         const response = await fetch(`${API_BASE_URL}/patient-profile/appointments/${proximaCita._id}/confirm`, {
             method: 'PUT',
             headers: {
@@ -255,50 +342,139 @@ async function confirmarAsistencia() {
             }
         });
 
+        console.log('📥 Respuesta recibida:', response.status);
+        
         const data = await response.json();
+        console.log('📦 Datos de respuesta:', data);
 
         if (data.success) {
-            alert('✅ Asistencia confirmada correctamente');
+            console.log('✅ Confirmación exitosa');
+            
+            // Actualizar estado local
             proximaCita.confirmada = true;
             proximaCita.estado = 'confirmada';
+            
+            // Actualizar UI
             actualizarEstadoConfirmacion();
+            
+            // Mostrar notificación
+            mostrarNotificacionExito('✅ Asistencia confirmada correctamente');
         } else {
+            console.error('❌ Error en la respuesta:', data.error);
+            // Restaurar botón
+            btnConfirmar.innerHTML = textoOriginal;
+            btnConfirmar.disabled = false;
+            
             alert('❌ Error al confirmar asistencia: ' + data.error);
         }
     } catch (error) {
-        console.error('❌ Error:', error);
-        alert('❌ Error al confirmar asistencia');
+        console.error('❌ Error en confirmación:', error);
+        
+        // Restaurar botón
+        const btnConfirmar = document.querySelector('.btn-submit:first-of-type');
+        btnConfirmar.innerHTML = '<i class="fas fa-check-circle"></i> Confirmar Asistencia';
+        btnConfirmar.disabled = false;
+        
+        alert('❌ Error al confirmar asistencia. Por favor intenta nuevamente.');
     }
 }
 
 // ===== CANCELAR CITA =====
 async function cancelarCita() {
-    if (!proximaCita) return;
+    console.log('🗑️ Función cancelarCita() iniciada');
+    
+    if (!proximaCita) {
+        console.error('❌ No hay cita para cancelar');
+        alert('Error: No se encontró información de la cita');
+        return;
+    }
 
-    const confirmar = confirm('⚠️ ¿Estás seguro de que deseas cancelar esta cita?\n\nEsta acción no se puede deshacer.');
-    if (!confirmar) return;
+    const confirmar = confirm(
+        '⚠️ ¿Estás seguro de que deseas ELIMINAR esta cita?\n\n' +
+        '⚡ Esta acción es PERMANENTE y no se puede deshacer.\n\n' +
+        'La cita será eliminada completamente del sistema.'
+    );
+    
+    if (!confirmar) {
+        console.log('❌ Usuario canceló la eliminación');
+        return;
+    }
 
     try {
-        const response = await fetch(`${API_BASE_URL}/patient-profile/appointments/${proximaCita._id}/cancel`, {
-            method: 'PUT',
+        console.log('📤 Enviando petición de eliminación...');
+        console.log('   URL:', `${API_BASE_URL}/appointments/${proximaCita._id}`);
+        
+        // Mostrar loading
+        const btnCancelar = document.querySelector('.btn-submit:last-of-type');
+        const textoOriginal = btnCancelar.innerHTML;
+        btnCancelar.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Eliminando...';
+        btnCancelar.disabled = true;
+
+        const response = await fetch(`${API_BASE_URL}/appointments/${proximaCita._id}`, {
+            method: 'DELETE',
             headers: {
                 'Content-Type': 'application/json'
             }
         });
 
+        console.log('📥 Respuesta recibida:', response.status);
+        
         const data = await response.json();
+        console.log('📦 Datos de respuesta:', data);
 
         if (data.success) {
-            alert('✅ Cita cancelada correctamente');
-            proximaCita.estado = 'cancelada';
-            actualizarEstadoConfirmacion();
+            console.log('✅ Cita eliminada correctamente');
+            
+            // Mostrar notificación
+            mostrarNotificacionExito('✅ Cita cancelada y eliminada correctamente');
+            
+            // Redirigir después de 2 segundos
+            setTimeout(() => {
+                console.log('🔄 Redirigiendo a inicioPaciente.html...');
+                window.location.href = 'inicioPaciente.html';
+            }, 2000);
         } else {
-            alert('❌ Error al cancelar cita: ' + data.error);
+            console.error('❌ Error en la respuesta:', data.error);
+            throw new Error(data.error || 'Error al eliminar cita');
         }
     } catch (error) {
-        console.error('❌ Error:', error);
-        alert('❌ Error al cancelar cita');
+        console.error('❌ Error eliminando cita:', error);
+        
+        // Restaurar botón
+        const btnCancelar = document.querySelector('.btn-submit:last-of-type');
+        btnCancelar.innerHTML = '<i class="fas fa-times-circle"></i> Cancelar Cita';
+        btnCancelar.disabled = false;
+        
+        alert('❌ Error al eliminar la cita: ' + error.message + '\n\nPor favor intenta nuevamente.');
     }
+}
+
+// ===== MOSTRAR NOTIFICACIÓN DE ÉXITO =====
+function mostrarNotificacionExito(mensaje) {
+    const notificacion = document.createElement('div');
+    notificacion.style.cssText = `
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+        color: white;
+        padding: 20px 30px;
+        border-radius: 10px;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+        z-index: 10000;
+        font-weight: 600;
+        font-size: 16px;
+    `;
+    notificacion.innerHTML = `
+        <i class="fas fa-check-circle" style="margin-right: 10px;"></i>
+        ${mensaje}
+    `;
+    
+    document.body.appendChild(notificacion);
+    
+    setTimeout(() => {
+        notificacion.remove();
+    }, 3000);
 }
 
 // ===== CONFIGURAR MODAL DE PERFIL =====
@@ -332,25 +508,17 @@ function configurarModalPerfil() {
 // ===== CARGAR DATOS EN MODAL DE PERFIL =====
 async function cargarDatosModalPerfil() {
     try {
-        console.log('📥 Cargando datos del modal de perfil...');
-        
         const userId = localStorage.getItem('userId');
-        console.log('🆔 User ID:', userId);
-        
         const response = await fetch(`http://localhost:3001/auth/user/${userId}`);
         const data = await response.json();
 
-        console.log('📋 Respuesta auth:', data);
-
         if (data.success && data.user) {
             if (patientData) {
-                console.log('✅ Usando datos del perfil del paciente');
                 document.getElementById('nombre').value = patientData.nombre || '';
                 document.getElementById('apellidos').value = patientData.apellidos || '';
                 document.getElementById('telefono').value = patientData.telefono || '';
                 document.getElementById('emergencia').value = patientData.telefonoEmergencia || '';
             } else {
-                console.log('⚠️ Usando datos del auth (sin perfil completo)');
                 document.getElementById('nombre').value = data.user.nombre || '';
                 document.getElementById('apellidos').value = data.user.apellidos || '';
                 document.getElementById('telefono').value = data.user.telefono || '';
@@ -358,10 +526,6 @@ async function cargarDatosModalPerfil() {
             }
             
             document.getElementById('correo').value = data.user.email || '';
-            
-            console.log('✅ Modal de perfil cargado');
-        } else {
-            console.error('❌ No se encontraron datos del usuario');
         }
     } catch (error) {
         console.error('❌ Error cargando datos del modal:', error);
@@ -434,3 +598,5 @@ async function guardarCambiosPerfil() {
         alert('❌ Error al guardar cambios: ' + error.message);
     }
 }
+
+console.log('✅ proximaCitaPaciente.js cargado completamente');
