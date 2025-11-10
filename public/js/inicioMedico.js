@@ -37,11 +37,9 @@ document.addEventListener('DOMContentLoaded', async function() {
     return;
   }
 
-  // ✅ CRÍTICO: Cargar citas PRIMERO
   console.log('📥 Cargando citas del médico...');
   await cargarCitasMedico(medicoId);
 
-  // Luego configurar eventos
   configurarEventListeners();
   configurarBusquedaPacientes();
   configurarFormularios();
@@ -66,7 +64,6 @@ async function cargarCitasMedico(medicoId) {
     if (data.success && data.appointments) {
       console.log(`✅ Se cargaron ${data.appointments.length} citas del servidor`);
       
-      // ✅ Enriquecer citas con datos de pacientes
       const enrichedAppointments = await Promise.all(
         data.appointments.map(async (appointment) => {
           try {
@@ -118,7 +115,6 @@ async function cargarCitasMedico(medicoId) {
 function renderizarCitasEnCalendario(appointments) {
   console.log('\n🎨 ===== RENDERIZANDO CITAS EN CALENDARIO =====');
   
-  // Limpiar citas existentes
   document.querySelectorAll('.appointment-simple').forEach(el => el.remove());
 
   if (!appointments || appointments.length === 0) {
@@ -126,7 +122,6 @@ function renderizarCitasEnCalendario(appointments) {
     return;
   }
 
-  // ✅ Calcular semana actual correctamente
   const hoy = new Date();
   hoy.setHours(0, 0, 0, 0);
   
@@ -169,7 +164,6 @@ function renderizarCitasEnCalendario(appointments) {
       hora: cita.hora
     });
     
-    // Parsear fecha
     const fechaISO = cita.fecha.split('T')[0];
     const [year, month, day] = fechaISO.split('-');
     
@@ -178,7 +172,6 @@ function renderizarCitasEnCalendario(appointments) {
     
     console.log('   📅 Fecha parseada:', fechaCita.toLocaleDateString('es-MX'));
     
-    // Buscar día en la semana
     const diaIndex = fechasSemana.findIndex(fecha => 
       fecha.getDate() === fechaCita.getDate() &&
       fecha.getMonth() === fechaCita.getMonth() &&
@@ -188,7 +181,6 @@ function renderizarCitasEnCalendario(appointments) {
     if (diaIndex !== -1) {
       console.log('   ✅ Día encontrado:', ['LUN', 'MAR', 'MIE', 'JUE', 'VIE'][diaIndex]);
       
-      // Parsear hora
       const [hora, minutos] = cita.hora.split(':');
       const horaInt = parseInt(hora);
       
@@ -269,8 +261,6 @@ function mostrarDetallesCita(cita) {
 // ===== MOSTRAR MENSAJE DE ERROR =====
 function mostrarMensajeError(mensaje) {
   console.error('❌ Mostrando mensaje de error:', mensaje);
-  
-  // Puedes implementar una notificación visual aquí
   alert('❌ ' + mensaje);
 }
 
@@ -487,6 +477,8 @@ function configurarFormularios() {
         const [year, month, day] = fecha.split('-');
         const fechaISO = `${year}-${month}-${day}T00:00:00.000`;
         
+        console.log('📤 Enviando solicitud de cita...');
+        
         const response = await fetch(`${API_BASE_URL}/appointments`, {
           method: 'POST',
           headers: {
@@ -504,6 +496,23 @@ function configurarFormularios() {
         });
 
         const data = await response.json();
+
+        // ✅ MANEJO DE HORARIO NO DISPONIBLE
+        if (response.status === 409) {
+          console.log('⚠️ Horario no disponible');
+          
+          let mensaje = data.mensaje || 'El horario seleccionado no está disponible';
+          
+          if (data.conflicto) {
+            mensaje += `\n\n📋 Detalles del conflicto:\n`;
+            mensaje += `👤 Paciente: ${data.conflicto.paciente}\n`;
+            mensaje += `🕐 Hora ocupada: ${data.conflicto.hora}\n`;
+            mensaje += `✅ Próximo horario disponible: ${data.conflicto.horaDisponible}`;
+          }
+          
+          alert('⚠️ ' + mensaje);
+          return;
+        }
 
         if (data.success) {
           alert('✅ Cita agendada correctamente!');
