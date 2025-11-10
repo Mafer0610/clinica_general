@@ -146,6 +146,22 @@ async function generarCita() {
 
         const appointmentData = await appointmentResponse.json();
 
+        // ✅ MANEJO DE HORARIO NO DISPONIBLE (igual que en vista médico)
+        if (appointmentResponse.status === 409) {
+            console.log('⚠️ Horario no disponible');
+            
+            let mensaje = appointmentData.mensaje || 'El horario seleccionado no está disponible';
+            
+            if (appointmentData.conflicto) {
+                mensaje = `⚠️ Horario no disponible\n\n`;
+                mensaje += `El horario de las ${hora} ya está ocupado.\n`;
+                mensaje += `✅ Próximo horario disponible:\n${appointmentData.conflicto.horaDisponible}`;
+            }
+            
+            alert(mensaje);
+            return;
+        }
+
         if (!appointmentData.success) {
             console.error(' Error en respuesta de cita:', appointmentData.error);
             throw new Error(appointmentData.error || 'Error al crear cita');
