@@ -23,6 +23,173 @@ const Modal = {
   }
 };
 
+// ===== VARIABLES GLOBALES PARA HORARIOS =====
+let horariosOcupados = [];
+
+// ===== GENERAR HORARIOS DISPONIBLES =====
+function generarHorariosDisponibles() {
+  const horaInicio = 9;  // 9:00 AM
+  const horaFin = 21;    // 9:00 PM
+  const horarios = [];
+  
+  for (let hora = horaInicio; hora < horaFin; hora++) {
+    const horaStr = `${String(hora).padStart(2, '0')}:00`;
+    horarios.push(horaStr);
+  }
+  
+  return horarios;
+}
+
+// ===== OBTENER CITAS DEL DÍA SELECCIONADO =====
+// ===== OBTENER CITAS DEL DÍA SELECCIONADO (CORREGIDO) =====
+async function obtenerCitasDelDia(fecha, medicoId) {
+  try {
+    console.log('🔍 Obteniendo citas del día:', fecha);
+    
+    // Crear fecha en zona horaria local (México)
+    const fechaObj = new Date(fecha + 'T00:00:00-06:00'); // Forzar zona horaria México
+    
+    const inicioDia = new Date(fechaObj);
+    inicioDia.setHours(0, 0, 0, 0);
+    
+    const finDia = new Date(fechaObj);
+    finDia.setHours(23, 59, 59, 999);
+    
+    console.log('📅 Rango de búsqueda:');
+    console.log('   Inicio:', inicioDia.toLocaleString('es-MX'));
+    console.log('   Fin:', finDia.toLocaleString('es-MX'));
+    
+    // Formatear para API (mantener en local time)
+    const inicioISO = inicioDia.toISOString();
+    const finISO = finDia.toISOString();
+    
+    console.log('🌐 Enviando a API:');
+    console.log('   Inicio ISO:', inicioISO);
+    console.log('   Fin ISO:', finISO);
+    
+    const response = await fetch(
+      `${API_BASE_URL}/appointments/range?startDate=${inicioISO}&endDate=${finISO}`
+    );
+    
+    const data = await response.json();
+    
+    if (data.success) {
+      // Filtrar solo las citas del médico actual
+      const citasDelMedico = data.appointments.filter(apt => apt.medicoId === medicoId);
+      
+      // Extraer las horas ocupadas
+      horariosOcupados = citasDelMedico.map(apt => apt.hora);
+      
+      console.log(`📊 ${citasDelMedico.length} citas encontradas para el médico`);
+      console.log(`⏰ Horarios ocupados: ${horariosOcupados.join(', ')}`);
+      return horariosOcupados;
+    }
+    
+    console.log('ℹ️ No se encontraron citas para esta fecha');
+    return [];
+  } catch (error) {
+    console.error('❌ Error obteniendo citas del día:', error);
+    return [];
+  }
+}
+
+// ===== ACTUALIZAR SELECT DE HORAS CON FEEDBACK VISUAL (MEJORADO) =====
+async function actualizarSelectorHoras(fecha, medicoId) {
+  const selectHora = document.getElementById('hora');
+  
+  if (!fecha || !medicoId) {
+    console.log('⚠️ Faltan fecha o medicoId');
+    selectHora.innerHTML = '<option value="">Selecciona una fecha primero</option>';
+    return;
+  }
+  
+  console.log('🔄 Actualizando selector de horas para:', fecha);
+  
+  // Validar que la fecha no sea anterior a hoy
+  const hoy = new Date();
+  hoy.setHours(0, 0, 0, 0);
+  
+  const fechaSeleccionada = new Date(fecha + 'T00:00:00');
+  
+  if (fechaSeleccionada < hoy) {
+    selectHora.innerHTML = '<option value="">❌ No se pueden agendar citas en fechas pasadas</option>';
+    alert('⚠️ No puedes agendar citas en fechas pasadas');
+    return;
+  }
+  
+  // Agregar clase de animación
+  selectHora.classList.add('updating');
+  
+  // Mostrar estado de carga
+  selectHora.innerHTML = '<option value="">⏳ Cargando horarios...</option>';
+  selectHora.disabled = true;
+  
+  try {
+    // Obtener horarios ocupados del día
+    await obtenerCitasDelDia(fecha, medicoId);
+    
+    // Generar todos los horarios
+    const todosLosHorarios = generarHorariosDisponibles();
+    
+    // Limpiar select
+    selectHora.innerHTML = '';
+    
+    // Contar disponibles
+    let disponiblesCount = 0;
+    
+    // Agregar opción por defecto
+    const defaultOption = document.createElement('option');
+    defaultOption.value = '';
+    defaultOption.textContent = 'Seleccionar hora';
+    selectHora.appendChild(defaultOption);
+    
+    // Agregar horarios
+    todosLosHorarios.forEach(horario => {
+      const option = document.createElement('option');
+      option.value = horario;
+      
+      const estaOcupado = horariosOcupados.includes(horario);
+      
+      if (estaOcupado) {
+        option.textContent = `${horario} - ❌ Ocupado`;
+        option.disabled = true;
+        option.style.color = '#999';
+        option.style.fontStyle = 'italic';
+      } else {
+        option.textContent = `${horario} - ✅ Disponible`;
+        option.style.color = '#28a745';
+        option.style.fontWeight = '600';
+        disponiblesCount++;
+      }
+      
+      selectHora.appendChild(option);
+    });
+    
+    // Actualizar opción por defecto con contador
+    defaultOption.textContent = `Seleccionar hora (${disponiblesCount} disponibles)`;
+    
+    // Mostrar mensaje si no hay horarios disponibles
+    if (disponiblesCount === 0) {
+      selectHora.innerHTML = '<option value="">❌ No hay horarios disponibles este día</option>';
+      alert('⚠️ No hay horarios disponibles para esta fecha. Por favor selecciona otro día.');
+    }
+    
+    console.log(`✅ Selector actualizado: ${disponiblesCount} horarios disponibles`);
+    
+  } catch (error) {
+    console.error('❌ Error actualizando selector:', error);
+    selectHora.innerHTML = '<option value="">❌ Error cargando horarios</option>';
+  } finally {
+    // Habilitar select
+    selectHora.disabled = false;
+    
+    // Remover animación después de un delay
+    setTimeout(() => {
+      selectHora.classList.remove('updating');
+    }, 500);
+  }
+}
+
 // ===== INICIALIZACIÓN =====
 document.addEventListener('DOMContentLoaded', async function() {
   console.log('🔄 Inicializando Inicio Médico...');
@@ -268,6 +435,20 @@ function mostrarMensajeError(mensaje) {
 function configurarEventListeners() {
   console.log('🎯 Configurando event listeners...');
 
+  // Listener para cambio de fecha en modal de cita
+  const fechaInput = document.getElementById('fecha');
+  if (fechaInput) {
+    fechaInput.addEventListener('change', async function() {
+      const fecha = this.value;
+      const medicoId = localStorage.getItem('userId');
+      
+      if (fecha && medicoId) {
+        console.log('📅 Fecha seleccionada:', fecha);
+        await actualizarSelectorHoras(fecha, medicoId);
+      }
+    });
+  }
+
   document.addEventListener('click', async (e) => {
     const modalTrigger = e.target.closest('[data-modal]');
     const modalClose = e.target.closest('[data-close]');
@@ -277,6 +458,16 @@ function configurarEventListeners() {
       e.preventDefault();
       const modalName = modalTrigger.dataset.modal;
       console.log('📂 Abriendo modal:', modalName);
+      
+      if (modalName === 'cita') {
+        // Si hay fecha seleccionada, actualizar horarios
+        const fechaInput = document.getElementById('fecha');
+        const medicoId = localStorage.getItem('userId');
+        
+        if (fechaInput && fechaInput.value && medicoId) {
+          await actualizarSelectorHoras(fechaInput.value, medicoId);
+        }
+      }
       
       if (modalName === 'perfil') {
         await cargarPerfilMedico();
@@ -446,87 +637,94 @@ function configurarBusquedaPacientes() {
   });
 }
 
+// ===== VALIDACIÓN Y ENVÍO DE CITA =====
+async function validarYEnviarCita(e) {
+  e.preventDefault();
+  
+  const pacienteId = document.getElementById('pacienteId').value;
+  const pacienteNombre = document.getElementById('pacienteSearch').value;
+  const descripcion = document.getElementById('descripcion').value;
+  const fecha = document.getElementById('fecha').value;
+  const hora = document.getElementById('hora').value;
+  const tipoCita = document.getElementById('tipoCita').value;
+  const medicoId = localStorage.getItem('userId');
+
+  if (!pacienteId || !pacienteNombre) {
+    alert('⚠️ Por favor selecciona un paciente de la lista');
+    return;
+  }
+
+  if (!fecha || !hora) {
+    alert('⚠️ Por favor completa la fecha y hora');
+    return;
+  }
+
+  if (!tipoCita) {
+    alert('⚠️ Por favor selecciona el tipo de cita');
+    return;
+  }
+
+  try {
+    const [year, month, day] = fecha.split('-');
+    const fechaISO = `${year}-${month}-${day}T00:00:00.000`;
+    
+    console.log('📤 Enviando solicitud de cita...');
+    
+    const response = await fetch(`${API_BASE_URL}/appointments`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        pacienteId: pacienteId,
+        pacienteNombre: pacienteNombre,
+        medicoId: medicoId,
+        fecha: fechaISO,
+        hora: hora,
+        tipoCita: tipoCita,
+        descripcion: descripcion || ''
+      })
+    });
+
+    const data = await response.json();
+
+    if (response.status === 409) {
+      console.log('⚠️ Horario no disponible');
+      
+      let mensaje = data.mensaje || 'El horario seleccionado no está disponible';
+      
+      if (data.conflicto) {
+        mensaje += `\n\n📋 Detalles del conflicto:\n`;
+        mensaje += `👤 Paciente: ${data.conflicto.paciente}\n`;
+        mensaje += `🕐 Hora ocupada: ${data.conflicto.hora}\n`;
+        mensaje += `✅ Próximo horario disponible: ${data.conflicto.horaDisponible}`;
+      }
+      
+      alert('⚠️ ' + mensaje);
+      
+      // Recargar horarios disponibles
+      await actualizarSelectorHoras(fecha, medicoId);
+      return;
+    }
+
+    if (data.success) {
+      alert('✅ Cita agendada correctamente!');
+      Modal.cerrar('cita');
+      limpiarFormularioCita();
+      await cargarCitasMedico(medicoId);
+    } else {
+      alert('❌ Error al agendar cita: ' + (data.error || 'Error desconocido'));
+    }
+  } catch (error) {
+    console.error('❌ Error al agendar cita:', error);
+    alert('❌ Error de conexión al agendar cita');
+  }
+}
+
 // ===== CONFIGURAR FORMULARIOS =====
 function configurarFormularios() {
   const forms = {
-    cita: async () => {
-      const pacienteId = document.getElementById('pacienteId').value;
-      const pacienteNombre = document.getElementById('pacienteSearch').value;
-      const descripcion = document.getElementById('descripcion').value;
-      const fecha = document.getElementById('fecha').value;
-      const hora = document.getElementById('hora').value;
-      const tipoCita = document.getElementById('tipoCita').value;
-      const medicoId = localStorage.getItem('userId');
-
-      if (!pacienteId || !pacienteNombre) {
-        alert('⚠️ Por favor selecciona un paciente de la lista');
-        return;
-      }
-
-      if (!fecha || !hora) {
-        alert('⚠️ Por favor completa la fecha y hora');
-        return;
-      }
-
-      if (!tipoCita) {
-        alert('⚠️ Por favor selecciona el tipo de cita');
-        return;
-      }
-
-      try {
-        const [year, month, day] = fecha.split('-');
-        const fechaISO = `${year}-${month}-${day}T00:00:00.000`;
-        
-        console.log('📤 Enviando solicitud de cita...');
-        
-        const response = await fetch(`${API_BASE_URL}/appointments`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify({
-            pacienteId: pacienteId,
-            pacienteNombre: pacienteNombre,
-            medicoId: medicoId,
-            fecha: fechaISO,
-            hora: hora,
-            tipoCita: tipoCita,
-            descripcion: descripcion || ''
-          })
-        });
-
-        const data = await response.json();
-
-        // ✅ MANEJO DE HORARIO NO DISPONIBLE
-        if (response.status === 409) {
-          console.log('⚠️ Horario no disponible');
-          
-          let mensaje = data.mensaje || 'El horario seleccionado no está disponible';
-          
-          if (data.conflicto) {
-            mensaje += `\n\n📋 Detalles del conflicto:\n`;
-            mensaje += `👤 Paciente: ${data.conflicto.paciente}\n`;
-            mensaje += `🕐 Hora ocupada: ${data.conflicto.hora}\n`;
-            mensaje += `✅ Próximo horario disponible: ${data.conflicto.horaDisponible}`;
-          }
-          
-          alert('⚠️ ' + mensaje);
-          return;
-        }
-
-        if (data.success) {
-          alert('✅ Cita agendada correctamente!');
-          Modal.cerrar('cita');
-          limpiarFormularioCita();
-          await cargarCitasMedico(medicoId);
-        } else {
-          alert('❌ Error al agendar cita: ' + (data.error || 'Error desconocido'));
-        }
-      } catch (error) {
-        console.error('❌ Error al agendar cita:', error);
-        alert('❌ Error de conexión al agendar cita');
-      }
-    },
+    cita: validarYEnviarCita,
     
     perfil: async () => {
       try {
@@ -600,9 +798,13 @@ function limpiarFormularioCita() {
   document.getElementById('pacienteId').value = '';
   document.getElementById('descripcion').value = '';
   document.getElementById('fecha').value = '';
-  document.getElementById('hora').value = '';
+  document.getElementById('hora').innerHTML = '<option value="">Primero selecciona una fecha</option>';
   document.getElementById('tipoCita').value = '';
   document.getElementById('pacienteSuggestions').classList.remove('show');
 }
+
+// ===== EXPORTAR FUNCIONES GLOBALES =====
+window.actualizarSelectorHoras = actualizarSelectorHoras;
+window.obtenerCitasDelDia = obtenerCitasDelDia;
 
 console.log('✅ inicioMedico.js cargado correctamente');
