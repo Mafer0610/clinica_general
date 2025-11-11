@@ -196,9 +196,11 @@
         
         <div class="form-group">
           <label for="hora">Hora inicio:</label>
-          <div class="input-with-icon" data-picker="hora">
+          <div class="input-with-icon">
             <i class="fas fa-clock input-icon"></i>
-            <input type="time" id="hora" class="form-input" required>
+            <select id="hora" class="form-select" required style="padding-left: 45px;">
+              <option value="">Primero selecciona una fecha</option>
+            </select>
           </div>
         </div>
         
@@ -222,12 +224,12 @@
     </div>
   </div>
 
+  <!-- MODAL REPORTES -->
   <div id="modalReportes" class="modal" data-modal-id="reportes">
     <div class="modal-content modal-content-small">
       <button class="modal-close" data-close="reportes"><i class="fas fa-times"></i></button>
       <h2 class="modal-title-reportes">Seleccione el rango de fechas</h2>
       
-      <!-- ✅ IMPORTANTE: onsubmit llama a window.generarReportePDF -->
       <form class="modal-form-reportes" id="formReportes" onsubmit="window.generarReportePDF(event)">
         <div class="form-group-reportes">
           <div class="input-with-icon" data-picker="fechaInicio">
@@ -303,6 +305,7 @@
       </form>
     </div>
   </div>
+
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
   <script src="../js/inicioMedico.js" defer></script>
   <script src="../js/generarReporte.js" defer></script>
